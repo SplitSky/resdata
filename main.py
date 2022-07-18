@@ -8,15 +8,6 @@ import pymongo
 import variables as var
 from pymongo.mongo_client import MongoClient
 
-
-data_type_dict = {
-    1 : "1d array",
-    2 : "2d array",
-    3 : "3d array",
-    4 : "picture",
-    5 : "other"
-}
-
 class Dataset(BaseModel):
     name: str
     data: list
@@ -112,38 +103,10 @@ use post
 can return the body as a json by returning just an object
 This allows for a validation
 """
-
-
-#@app.get("/send_project")
-## sends the project given a whole set of data
-#async def send_test(): # sends the data to the server
-#    item = Item(name="thing", description="random description", price=0.42)
-#    ### creates the things collection
-#    mycol = db["things"]
-#    ### convert the object data into union
-#    err = mycol.insert_one(json_format)
-#    ### put it into the database
-#    return item
-
-
-
-#@app.post("/get_test/{project_name}/{experiment_id}/{database_id}") # sends the data to the user
-#async def find_(collection_id, experiment_id, databse_id):
-#    collections = db.list_collection_names()
-    # accessing database entries
-#    col = db[collection_id] # opens the chosen collection
-    # print the data sets
-#    temp =  col.find_one()
-#    if temp != None:
-        #item = Item(name = temp.get('name'), description= temp.get('description'), price=temp.get('price'), tax=temp.get('tax'))
-        #temp = assign_values(item)
-#    else:
-#        item = {"message": "Failed to find"}
-    #print(temp) # json object
-#    return item
-    #entry = temp.get('name')
-    #return json_return
-# attempt at picking up local file and putting it into a database using
+# 0. passing object in
+@app.post("/{project_id}/{experiment_id}/{dataset_id}/test")
+async def test(dataset: Dataset):
+    return dataset
 
 
 @app.post("/{project_id}/{experiment_id}/{dataset_id}")
