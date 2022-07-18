@@ -27,7 +27,6 @@ class Experiment(BaseModel):
     name: str
     children: list[Dataset]
     meta: str | None = None # implemented union as optional variable
-
     def convertJSON(self):
     ### uses the nesting feature of mongodb to allow for hierarchal storage of data
         temp_dict= {}
@@ -53,8 +52,8 @@ class Experiment(BaseModel):
 '''
 
 class Project(BaseModel):
-    name: str
-    author: str
+    name: str | None = None
+    author: str | None = None
     groups: list[Experiment]
     meta: str | None = None
 
@@ -71,7 +70,21 @@ class Project(BaseModel):
         }
         return json_dict
 
-# remove name and password from here and declare them in separate file
+    def convertDictionary(self, dict_in):
+        # converts this object into the layout of the inserted nested dictionary
+        experiments = []
+        for experiment in dict_in.get("groups"):
+            datasets = []
+            for dataset in experiment.get("children"):
+                datasets.append(Dataset(name=dataset.get("name"),data=dataset.get("data"),meta=dataset.get("meta"), data_type=dataset.get("data_type")))
+            experiments.append(Experiment(name=experiment.get("name"),children=datasets,meta=experiment.get("meta")))
+            #end for
+        #end for
+        self.name = dict_in.get("name")
+        self.author = dict_in.get("author")
+        self.groups=experiments
+        self.meta=dict_in.meta("meta")
+
 string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(string)
 db = client["test_struct"] # defines database called test 
