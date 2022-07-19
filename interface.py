@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 import numpy as np
 import hashlib as hash
 import os
@@ -30,16 +30,22 @@ def create_test_file(filename_in, structure, project_name, author_name):
     # dataset1 = mn.Dataset(name="dataset1", data=test_data_2D, meta="test dataset 1", data_type="2D dataset")
     experiments = []
     datasets = []
+
+    datasets_dict = {}
+    experiments_dict = {}
+
     meta_temp = str(date.today())
     for j in range(0,structure[1],1):
-        dataset2 = mn.Dataset(name="dataset " + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
-        datasets.append(dataset2) 
+        dataset = mn.Dataset(name="dataset " + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
+        datasets.append(dataset)
+        datasets_dict[j] = dataset.convertJSON() # appends a dictionary using the convert function
 
     for i in range(0,structure[0],1):
-        experiment = mn.Experiment(name="experiment " + str(i), children=datasets, meta=meta_temp)
+        experiment = mn.Experiment(name="experiment " + str(i), children=datasets_dict, meta=meta_temp)
         experiments.append(experiment)
+        experiments_dict[i] = experiment.convertJSON() # appends a dictionary using the conversion function
     
-    project = mn.Project(name=project_name, author=author_name, groups=experiments, meta="This is a test")
+    project = mn.Project(name=project_name, author=author_name, groups=experiments_dict, meta="This is a test")
     with open(filename_in, 'w') as file:
         json.dump(project.convertJSON(),file)
         file.close()
@@ -52,22 +58,10 @@ def load_file(filename_out): # returns a project object
         #python_dict = json.loads(json_string)
         print("The data type is: " + str(type(json_string)))
 
-        project = mn.Project(groups=[]) # initialise empty project
+        project = mn.Project(groups={}) # initialise empty project
         project.convertDictionary(json_string)
         file.close()
     return project
-
-
-def load_file_easy(filename_out):
-    with open(filename_out, 'r') as file:
-        json_string = json.load(file)
-        #python_dict = json.loads(json_string)
-        #print("The data type is: " + str(type(json_string)))
-        #project = mn.Project(groups=[]) # initialise empty project
-        #project.convertDictionary(json_string)
-        file.close()
-    return json.dumps(json_string)
-
 
 class makeAPIcall:
 
@@ -104,8 +98,9 @@ def main():
     filename = "test.json"
     path = "http://127.0.0.1:8000/"
     create_test_file(filename,[1,1],project_name, author_name)
-    json_string = load_file_easy(filename) # returns the json string from the file
-    #project = load_file(filename) # returns the project class from the json file
+    project_in = load_file(filename) # returns request body class from json file
+    json_body = json.dumps(project_in.convertJSON())
+    print(json_body)
     # api path defined by /{project_id}/{experiment_id}/{dataset_id}
     response = requests.get(path)
     print("Checking for connection...")
@@ -113,26 +108,24 @@ def main():
         print("Connection successful")
         print(response)
     
-    print(json_string)
-    response = requests.post(url=path + project_name,json=json_string)
-
+    response = requests.post(url=path + project_name,json=project_in)
+    #response = requests.post(url=path + project_name,json=json_body)
     print("Inserting the project from json file")
     print("Response code: " + str(response))
     print("response content: ")
     print(response.json())
 
-    response = requests.get(path+str(project_name))
-    print("Retrieving project from database")
-    print("Response code: " + str(response))
+    #response = requests.get(path+str(project_name))
+    #print("Retrieving project from database")
+    #print("Response code: " + str(response))
 
-
-    # return the whole project from dataset using calls
-
-
+    # return the whole project from dataset using calls   
     # returns just the names of the datasets
-
-
     # return just the project names
+
+
+    # insert one dataset into an existing project
+
 #end main
 
 main()

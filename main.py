@@ -11,7 +11,7 @@ import json
 
 class Dataset(BaseModel):
     name: str
-    data: list
+    data: list # list of numbers or bits
     meta: str | None = None
     data_type: str
 
@@ -26,61 +26,40 @@ class Dataset(BaseModel):
 
 class Experiment(BaseModel):
     name: str
-    children: list[Dataset]
+    children: dict # dictionary of data sets each with ID
     meta: str | None = None # implemented union as optional variable
+    
     def convertJSON(self):
     ### uses the nesting feature of mongodb to allow for hierarchal storage of data
-        temp= []
-        i = 0
-        for dataset in self.children:
-            temp.append(dataset.convertJSON())
-            # appends the groups 
-            i += 1
         json_dict  = {
             "name" : self.name,
             "meta" : self.meta,
-            "datasets" : temp # datatype is list -> remember request body deals with validation       
+            "datasets" : self.children # datatype is dicitonary -> double nested      
         }
-
         return json_dict
 
 class Project(BaseModel):
     name: str | None = None
     author: str | None = None
-    groups: list[Experiment]
+    groups: dict
     meta: str | None = None
 
     def convertJSON(self):
-        temp = []
-        i = 0
-        for group in self.groups:
-            temp.append(group.convertJSON())
-            i += 1
-
         json_dict = {
             "name" : self.name,
             "author" : self.author,
             "meta" : self.meta,
-            "groups" : temp
+            "groups" : self.groups
         }
         return json_dict
 
     def convertDictionary(self, dict_in):
-        # converts this object into the layout of the inserted nested dictionary
-        experiments = []
-        ### check if there are any experiments
         self.name = dict_in.get("name")
         self.author = dict_in.get("author")
-        self.meta=dict_in.get("meta")
+        self.meta = dict_in.get("meta")
+        self.groups = dict_in.get("groups")
 
-        for i, experiment in dict_in.get("groups").items():
-            # experiments is also a dictionary with {number: {dictionary ... }}
-            # i and j are not accessed but are required to keep the format as a dictionary during the creation of it
-            datasets = []
-            for j, dataset in experiment.get("datasets").items():
-                datasets.append(Dataset(name=dataset.get("name"),data=dataset.get("data"),meta=dataset.get("meta"), data_type=dataset.get("data_type")))
-            experiments.append(Experiment(name=experiment.get("name"),children=datasets,meta=experiment.get("meta")))
-        self.groups = experiments
+
 
 
 string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
