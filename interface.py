@@ -13,7 +13,7 @@ import random
 import requests
 from datetime import date
 
-def create_test_file(filename_in, structure, project_name, author_name):
+def create_test_file_project(filename_in, structure, project_name, author_name):
     '''
     filename_in     string      the name of the json file
     structure       list        a list containing the number of the experiments and datasets [0,0]
@@ -51,7 +51,25 @@ def create_test_file(filename_in, structure, project_name, author_name):
         file.close()
     # project.convertJSON()
 
-def load_file(filename_out): # returns a project object
+
+def create_test_file_dataset(filename_in, project_name, author_name):
+
+    meta_temp = str(date.today())
+    x = []
+    y = []
+    y2 = []
+    for i in range(0,100):
+        x.append(i)
+        y.append(random.randint(0,100))
+        y2.append(random.randint(0,100))
+    test_data_3D = [x,y,y2]
+    dataset = mn.Dataset(name="dataset 0", data=test_data_3D, data_type="3D dataset", meta=meta_temp)
+    with open(filename_in, 'w') as file:
+        json.dump(dataset.convertJSON(),file)
+        file.close()
+
+
+def load_file_project(filename_out): # returns a project object
     # load files. Initially json files in the correct format
     with open(filename_out, 'r') as file:
         json_string = json.load(file)
@@ -63,61 +81,53 @@ def load_file(filename_out): # returns a project object
         file.close()
     return project
 
-class makeAPIcall:
 
-    #def __init__(self):
-
-    def formatted_print(self, obj):
-        text = json.dumps(obj, sort_keys=True, indent=4)
-        print(text)
- 
-
-
-    def get_dataset_data(self, api):
-        response = requests.get(f"{api}")
-        if response.status_code == 200:
-            print("sucessfully fetched the data")
-            self.formatted_print(response.json())
-        else:
-            print("Hello person, there's a {response.status_code} error with your request")
-
-    def get_user_data(self, api, parameters):
-        response = requests.get(f"{api}", params=parameters)
-        if response.status_code == 200:
-            print("sucessfully fetched the data with parameters provided")
-            self.formatted_print(response.json())
-        else:
-            print(f"Hello person, there's a {response.status_code} error with your request")
+def load_file_dataset(filename_out):
+    with open(filename_out, 'r') as file:
+        json_string = json.load(file)
+        print("The data type is: " + str(type(json_string)))
+        dataset = mn.Dataset(name=json_string.get("name") , data=json_string.get("data"), meta= json_string.get("meta"), data_type=json_string.get("data_type"))
+        file.close()
+    return dataset
 
 def main():
 
     project_name = "test1"
+    experiment_name = "experiment 1"
     author_name = "j.smith" 
 
 
     filename = "test.json"
     path = "http://127.0.0.1:8000/"
-    create_test_file(filename,[1,1],project_name, author_name)
-    project_in = load_file(filename) # returns request body class from json file
-    json_body = json.dumps(project_in.convertJSON())
-    print(json_body)
+    create_test_file_dataset(filename,project_name, author_name)
+    dataset_in = load_file_dataset(filename)
+    #json_body = json.dumps(dataset_in.convertJSON())
+    #print(json_body)
     # api path defined by /{project_id}/{experiment_id}/{dataset_id}
     response = requests.get(path)
     print("Checking for connection...")
     if response == 200:
         print("Connection successful")
         print(response)
-    
-    response = requests.post(url=path + project_name,json=project_in)
-    #response = requests.post(url=path + project_name,json=json_body)
-    print("Inserting the project from json file")
-    print("Response code: " + str(response))
+   
+
+    print("thing being put into function")
+    print(json.dumps(dataset_in.convertJSON()))
+
+            # inserting one dataset
+    response = requests.post(url=path+project_name+"/"+experiment_name+"/"+dataset_in.return_name(), json=dataset_in.convertJSON())
+    print("Inserting single dataset")
+    print("response code: " + str(response))
     print("response content: ")
     print(response.json())
-
-    #response = requests.get(path+str(project_name))
-    #print("Retrieving project from database")
+    
+            # inserting whole project #
+    #response = requests.post(url=path + project_name,json=project_in)
+    ##response = requests.post(url=path + project_name,json=json_body)
+    #print("Inserting the project from json file")
     #print("Response code: " + str(response))
+    #print("response content: ")
+    #print(response.json())
 
     # return the whole project from dataset using calls   
     # returns just the names of the datasets

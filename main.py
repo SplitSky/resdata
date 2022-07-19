@@ -1,10 +1,6 @@
-from re import L
-from fastapi import FastAPI, Form
+from fastapi import FastAPI
 from pydantic import BaseModel
-import numpy as np
 import hashlib as hash
-import os
-import pymongo
 import variables as var
 from pymongo.mongo_client import MongoClient
 import json
@@ -23,6 +19,9 @@ class Dataset(BaseModel):
             "data" : self.data 
         }
         return json_dict
+
+    def return_name(self):
+        return self.name
 
 class Experiment(BaseModel):
     name: str
@@ -101,29 +100,25 @@ async def test(dataset: Dataset):
 
 @app.post("/{project_id}/{experiment_id}/{dataset_id}")
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
-async def insert_single_dataset(project_id, experiment_id, dataset_id):
+async def insert_single_dataset(project_id, experiment_id, dataset_id, item: Dataset):
     project_temp = db[project_id] # returns the project
     experiment_temp = project_temp[experiment_id] # returns the experiment or creates if doesn't exist
     dataset_temp = experiment_temp[dataset_id] # returns the dataset 
     # data insert here
-    temp = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
-    data_temp = Dataset(name="test1", data=temp, data_type="1d array")
     # each experiment has multiple data sets. Each is nested in the experiment collection
     # end of data insert
-    dataset_temp.insert_one(data_temp.convertJSON()) # data insert into database
-    return data_temp # returns the request body to the API for verification
+    dataset_temp.insert_one(item.convertJSON()) # data insert into database
+    return item # returns the request body to the API for verification
 # end def
 # end post
 
 @app.post("/{project_id}/{group_id}")
 # 2. Call to insert single group "/{project_id}/{experiment_id}" - post
-async def insert_group(project_id, group_id):
+async def insert_group(project_id, group_id, item: Dataset):
     project_temp = db[project_id]
     experiment_temp = project_temp[group_id]
     # data insert here
-    dataset_in = Dataset(name="test1", data=[1,2,3,4,5,6,7,8,9,10], data_type="1d array")
-    experiment_in = Experiment(name="exp_test_1", children=[dataset_in], meta="This is a test experiment")
-    experiment_temp.insert_one(experiment_in.convertJSON())
+    experiment_temp.insert_one(item.convertJSON())
     return experiment_temp # returns a request body to the API for verification
 
 @app.post("/{project_id}") #### this one ***************************************************************************************************************************************
