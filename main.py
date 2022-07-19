@@ -7,6 +7,7 @@ import os
 import pymongo
 import variables as var
 from pymongo.mongo_client import MongoClient
+import json
 
 class Dataset(BaseModel):
     name: str
@@ -29,27 +30,19 @@ class Experiment(BaseModel):
     meta: str | None = None # implemented union as optional variable
     def convertJSON(self):
     ### uses the nesting feature of mongodb to allow for hierarchal storage of data
-        temp_dict= {}
+        temp= []
+        i = 0
         for dataset in self.children:
-            temp_dict.update(dataset.convertJSON())
-            # appends the groups  
-
-        #json structure
+            temp.append(dataset.convertJSON())
+            # appends the groups 
+            i += 1
         json_dict  = {
             "name" : self.name,
             "meta" : self.meta,
-            "datasets" : temp_dict,            
+            "datasets" : temp # datatype is list -> remember request body deals with validation       
         }
+
         return json_dict
-'''
-{ group dict
-"name" : "thing",
-"meta" : None,
-"datasets" : {"name" : "dataset1", "meta": None, "data" : []}
-
-}
-
-'''
 
 class Project(BaseModel):
     name: str | None = None
@@ -58,32 +51,37 @@ class Project(BaseModel):
     meta: str | None = None
 
     def convertJSON(self):
-        temp_dict = {}
+        temp = []
+        i = 0
         for group in self.groups:
-            temp_dict.update(group.convertJSON())
+            temp.append(group.convertJSON())
+            i += 1
 
         json_dict = {
             "name" : self.name,
             "author" : self.author,
             "meta" : self.meta,
-            "experiments" : temp_dict
+            "groups" : temp
         }
         return json_dict
 
     def convertDictionary(self, dict_in):
         # converts this object into the layout of the inserted nested dictionary
         experiments = []
-        for experiment in dict_in.get("groups"):
-            datasets = []
-            for dataset in experiment.get("children"):
-                datasets.append(Dataset(name=dataset.get("name"),data=dataset.get("data"),meta=dataset.get("meta"), data_type=dataset.get("data_type")))
-            experiments.append(Experiment(name=experiment.get("name"),children=datasets,meta=experiment.get("meta")))
-            #end for
-        #end for
+        ### check if there are any experiments
         self.name = dict_in.get("name")
         self.author = dict_in.get("author")
-        self.groups=experiments
-        self.meta=dict_in.meta("meta")
+        self.meta=dict_in.get("meta")
+
+        for i, experiment in dict_in.get("groups").items():
+            # experiments is also a dictionary with {number: {dictionary ... }}
+            # i and j are not accessed but are required to keep the format as a dictionary during the creation of it
+            datasets = []
+            for j, dataset in experiment.get("datasets").items():
+                datasets.append(Dataset(name=dataset.get("name"),data=dataset.get("data"),meta=dataset.get("meta"), data_type=dataset.get("data_type")))
+            experiments.append(Experiment(name=experiment.get("name"),children=datasets,meta=experiment.get("meta")))
+        self.groups = experiments
+
 
 string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(string)
@@ -149,20 +147,13 @@ async def insert_group(project_id, group_id):
     experiment_temp.insert_one(experiment_in.convertJSON())
     return experiment_temp # returns a request body to the API for verification
 
-@app.post("/{project_id}")
+@app.post("/{project_id}") #### this one ***************************************************************************************************************************************
 # 3. Call to insert a whole project "/" - post
-async def insert_project(project_id):
-    project_temp = db[project_id]
-    # data insert here
-    dataset_in = Dataset(name="test1", data=[1,2,3,4,5,6,7,8,9,10], data_type="1d array")
-    experiment_in = Experiment(name="exp_test_1", children=[dataset_in], meta="This is a test experiment")
-    # data variables in
-    name = "proj_test1"
-    author = "J. Smith"
-    # end data variables in
-    project_in = Project(name=name, author=author, groups=[experiment_in], meta="This is a test project for entire insertion")
-    project_temp.insert_one(project_in.convertJSON())
-
+async def insert_project(project_id, json_in: Project):
+    project_temp = db[project_id] # access or create project folder in database
+    #dictionary_temp = json.loads(json_in) # returns a python object
+    project_temp.insert_one(json_in.convertJSON()) # inserts a python dictionary 
+    print("testing testing ")
     return project_temp # returns a request body to the API for verification
 
 # 4. Call to update a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - patch
