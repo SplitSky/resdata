@@ -91,51 +91,32 @@ def load_file_dataset(filename_out):
     return dataset
 
 def main():
-
     project_name = "test1"
     experiment_name = "experiment 1"
     author_name = "j.smith" 
-
-
     filename = "test.json"
     path = "http://127.0.0.1:8000/"
     create_test_file_dataset(filename,project_name, author_name)
     dataset_in = load_file_dataset(filename)
-    #json_body = json.dumps(dataset_in.convertJSON())
-    #print(json_body)
-    # api path defined by /{project_id}/{experiment_id}/{dataset_id}
+    
     response = requests.get(path)
     print("Checking for connection...")
     if response == 200:
         print("Connection successful")
         print(response)
-   
-
-    print("thing being put into function")
-    print(json.dumps(dataset_in.convertJSON()))
-
-            # inserting one dataset
+    
+    # inserting one dataset
     response = requests.post(url=path+project_name+"/"+experiment_name+"/"+dataset_in.return_name(), json=dataset_in.convertJSON())
     print("Inserting single dataset")
     print("response code: " + str(response))
     print("response content: ")
     print(response.json())
     
-            # inserting whole project #
-    #response = requests.post(url=path + project_name,json=project_in)
-    ##response = requests.post(url=path + project_name,json=json_body)
-    #print("Inserting the project from json file")
-    #print("Response code: " + str(response))
-    #print("response content: ")
-    #print(response.json())
-
-    # return the whole project from dataset using calls   
-    # returns just the names of the datasets
-    # return just the project names
-
-
-    # insert one dataset into an existing project
-
-#end main
+    # return one dataset
+    response = requests.get(url=path+project_name+"/"+experiment_name+"/"+dataset_in.return_name())
+    print("Retrieving single dataset")
+    print("response code: " + str(response))
+    print("response content: ")
+    print(response.json())
 
 main()

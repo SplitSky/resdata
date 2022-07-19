@@ -74,24 +74,7 @@ async def connection_test(): # works like main
         thing = "failed to connect"
     return {"message" : thing}
 # end get
-"""
-path parameters
-@app.get("/items/{item_id}")
-item_id is a variable that's passed in
-async def read_item(item_id):
-    return {"item_id" : item_id}
 
-// hashing for authentication
-salt = os.urandom(blake2d.SALT_SIZE)
-h1 = blake2b(salt=salt1)
-h1.update(thing)
-
-request body is data sent from client to API 
-use post
-
-can return the body as a json by returning just an object
-This allows for a validation
-"""
 # 0. passing object in
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/test")
 async def test(dataset: Dataset):
@@ -121,7 +104,7 @@ async def insert_group(project_id, group_id, item: Dataset):
     experiment_temp.insert_one(item.convertJSON())
     return experiment_temp # returns a request body to the API for verification
 
-@app.post("/{project_id}") #### this one ***************************************************************************************************************************************
+@app.post("/{project_id}") #### this one ******
 # 3. Call to insert a whole project "/" - post
 async def insert_project(project_id, json_in: Project):
     project_temp = db[project_id] # access or create project folder in database
@@ -155,7 +138,6 @@ async def returm_all_project_names():
 # end def
 # end get
 
-
 # 6. Call to return a query of a project and return all experiment names - "/{project_id}/" - get
 @app.get("/{project_id}/")
 async def return_all_experiment_names(project_id):
@@ -174,11 +156,10 @@ async def return_all_dataset_names(project_id, experiment_id):
     names_temp = []
     for dataset in experiment.find():
         names_temp.append(dataset.get("name"))
-
     return {"dataset names" : names_temp}
 
 
-# 8. Call to return a query of a dataset to return queried data - "/{project_id}/{experiment_id}/{dataset_id}" - get
+# 8. Call to return a result of the query of a dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
 @app.get("/{project_id}/{experiment_id}/{dataset_id}")
 async def return_queried_data(project_id, experiment_id, dataset_id):
     project = db[project_id]
@@ -188,7 +169,16 @@ async def return_queried_data(project_id, experiment_id, dataset_id):
     temp = dataset.find() 
     if temp == None:
         return {"message" : "no data found"}
-    elif temp == dict:
+    else:
         for dataset in temp:
-            temp_return.update({dataset.get("name") : dataset.get("data") })
+            dict_struct = {
+                "name": dataset.get("name"),
+                "data" : dataset.get("data"),
+                "meta" : dataset.get("meta"),
+                "data_type" : dataset.get("data_type")
+            }
+            temp_return[dataset.get("name")] = dict_struct
         return {"datasets data" : temp_return}
+
+
+
