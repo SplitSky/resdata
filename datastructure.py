@@ -105,3 +105,18 @@ class Project(BaseModel):
         return self.meta
 
 
+class Simple_Request_body(BaseModel):
+    name : str
+    meta : str | None = None
+    author : str
+
+    def get_variables(self):
+        return [self.name, self.meta, self.author]
+
+    def convertJSON(self):
+        json_dict = {
+            "name" : self.name,
+            "meta" : self.meta,
+            "author" : self.author
+        }
+        return json_dict

@@ -19,7 +19,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     x = []
     y = []
     y2 = []
-    for i in range(0,100):
+    for i in range(0,2):
         x.append(i)
         y.append(random.randint(0,100))
         y2.append(random.randint(0,100))

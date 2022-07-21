@@ -3,6 +3,12 @@ import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
 import datastructure as d
+import json
+
+'''
+the project parameters are stored in their own database called "config"
+They are updated in the update_project_data call
+'''
 
 string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(string)
@@ -51,7 +57,7 @@ async def insert_single_dataset(project_id, experiment_id, dataset_id, item: d.D
     # each experiment has multiple data sets. Each is nested in the experiment collection
     # end of data insert
     dataset_temp.insert_one(item.convertJSON()) # data insert into database
-    return item # returns the request body to the API for verification
+    return json.dumps(item.convertJSON())
 # end def
 # end post
 
@@ -80,3 +86,45 @@ async def return_all_dataset_names(project_id, experiment_id):
     for dataset in experiment.find():
         names_temp.append(dataset.get("name"))
     return {"dataset names" : names_temp}
+
+@app.get("/{project_id}/{experiment_id}/details") # returns the details without the data
+async def return_experiment_details(project_id, experiment_id):
+    project = db[project_id]
+    result = project.find_one({"name" : experiment_id}) # returns json object
+    if result == None:
+        return {"message" : "Experiment not found found"}
+    else:
+        python_dict = json.loads(result)
+        json_dict = {
+            "name" : python_dict.get("name"),
+            "meta" : python_dict.get("meta")
+        }
+        return json_dict
+
+@app.post("/{project_id}/set_project")
+async def update_project_data(project_id, data_in : d.Simple_Request_body):
+    project = db[project_id]
+    temp = data_in.get_variables()
+    json_dict = {
+        "name" : temp[0],
+        "meta" : temp[1],
+        "author" : temp[2]
+    }
+    project.insert_one({"config" : json_dict})
+    return json_dict
+
+
+@app.get("/{project_id}/details")
+async def return_project_data(project_id):
+    project = db[project_id]
+    result = project.find_one("config")
+    if result == None:
+        return {"message" : "No config found"}
+    else:
+        python_dict = json.loads(result)
+        json_dict = {
+            "name" : python_dict.get("name"),
+            "meta" : python_dict.get("meta"),
+            "author" : python_dict.get("author")
+        }
+        return json_dict
