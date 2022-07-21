@@ -3,6 +3,13 @@ import json
 from datetime import date
 import random
 
+'''
+json file in -> dictionary format
+h5 file in -> conversion to json file format
+storage is done using classes but file storage is done using nested dicitonaries as json doesn't serialise
+lists of objects
+'''
+
 def create_test_file_project(filename_in, structure, project_name, author_name):
     '''
     filename_in     string      the name of the json file
@@ -21,21 +28,16 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     experiments = []
     datasets = []
 
-    datasets_dict = {}
-    experiments_dict = {}
-
     meta_temp = str(date.today())
     for j in range(0,structure[1],1):
         dataset = d.Dataset(name="dataset " + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
         datasets.append(dataset)
-        datasets_dict[j] = dataset.convertJSON() # appends a dictionary using the convert function
 
     for i in range(0,structure[0],1):
-        experiment = d.Experiment(name="experiment " + str(i), children=datasets_dict, meta=meta_temp)
+        experiment = d.Experiment(name="experiment " + str(i), children=datasets, meta=meta_temp)
         experiments.append(experiment)
-        experiments_dict[i] = experiment.convertJSON() # appends a dictionary using the conversion function
     
-    project = d.Project(name=project_name, author=author_name, groups=experiments_dict, meta="This is a test")
+    project = d.Project(name=project_name, author=author_name, groups=experiments, meta="This is a test")
     with open(filename_in, 'w') as file:
         json.dump(project.convertJSON(),file)
         file.close()
@@ -59,16 +61,24 @@ def create_test_file_dataset(filename_in):
         file.close()
 
 
-def load_file_project(filename_out): # returns a project object
+def load_file_project(filename_out): # returns a project object from file
     # load files. Initially json files in the correct format
     with open(filename_out, 'r') as file:
-        json_string = json.load(file)
+        python_dict = json.load(file)
         #python_dict = json.loads(json_string)
-        print("The data type is: " + str(type(json_string)))
-
-        project = d.Project(groups={}) # initialise empty project
-        project.convertDictionary(json_string)
+        print("The data type is: " + str(type(python_dict)))
+        print("contents of the file: ")
+        print(python_dict)
+        groups_temp = []
+        for i, experiment in python_dict.get("groups").items():
+            # iterate over datasets
+            datasets_temp = []
+            for j, dataset in experiment.get("datasets").items():
+                datasets_temp.append(d.Dataset(name=dataset.get("name"), data=dataset.get("data") , data_type=dataset.get("data_type"), meta=dataset.get("meta")))
+            groups_temp.append(d.Experiment(name= experiment.get("name"),children= datasets_temp,meta=experiment.get("meta")))
+        project = d.Project(name=python_dict.get("name"),author=python_dict.get("author"),groups=groups_temp,meta=python_dict.get("meta")) # initialise empty project
         file.close()
+    
     return project
 
 

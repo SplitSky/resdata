@@ -9,48 +9,79 @@ class Dataset(BaseModel):
     meta: str | None = None
     data_type: str
 
-    def convertJSON(self):
+    def convertJSON(self): # converts it into nested dictionary
         json_dict = {
             "name" : self.name,
             "meta" : self.meta,
             "data_type" : self.data_type,
-            "data" : self.data 
+            "data" : self.data # this list can be serialised 
         }
         return json_dict
 
     def return_name(self):
         return self.name
 
+    # get functions
+    def get_name(self):
+        return self.name
+
+    def get_data(self):
+        return self.data
+
+    def get_meta(self):
+        return self.meta
+
+    def get_datatype(self):
+        return self.data_type
+
 class Experiment(BaseModel):
     name: str
-    children: dict # dictionary of data sets each with ID
+    children: list[Dataset] # dictionary of data sets each with ID
     meta: str | None = None # implemented union as optional variable
     
-    def convertJSON(self):
-    ### uses the nesting feature of mongodb to allow for hierarchal storage of data
+    def convertJSON(self): # returns a nested python dictionary
+        temp_dict = {}
+        i = 0
+        for child in self.children:
+            temp_dict[i] = child.convertJSON()
+            i += 1
+        # end for
+
         json_dict  = {
             "name" : self.name,
             "meta" : self.meta,
-            "datasets" : self.children # datatype is dicitonary -> double nested      
+            "datasets" : temp_dict # datatype is dicitonary -> double nested      
         }
         return json_dict
 
-    def return_datasets(self):
-        return self.children
+    def return_datasets(self): # change the names of those functions to get
+        return self.children # returns a list of objects
+
+    def get_name(self):
+        return self.name
+
+    def get_meta(self):
+        return self.meta
 
         # this class is the root node of the data structure
 class Project(BaseModel):
-    name: str | None = None
-    author: str | None = None
-    groups: dict
+    name: str
+    author: str
+    groups: list[Experiment]
     meta: str | None = None
 
-    def convertJSON(self):
+    def convertJSON(self): # returns a dictionary
+        temp_dict = {}
+        i = 0
+        for group in self.groups:
+            temp_dict[i] = group.convertJSON()
+            i += 1
+
         json_dict = {
             "name" : self.name,
             "author" : self.author,
             "meta" : self.meta,
-            "groups" : self.groups
+            "groups" : temp_dict
         }
         return json_dict
 
@@ -59,5 +90,18 @@ class Project(BaseModel):
         self.author = dict_in.get("author")
         self.meta = dict_in.get("meta")
         self.groups = dict_in.get("groups")
+
+    def return_experiments(self): # return a list of objects
+        return self.groups
+
+    # get functions
+    def get_name(self):
+        return self.name
+
+    def get_author(self):
+        return self.author
+
+    def get_meta(self):
+        return self.meta
 
 

@@ -1,9 +1,7 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
-import json
 import datastructure as d
 
 string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
@@ -21,7 +19,7 @@ async def connection_test(): # works like main
     return {"message" : thing}
 # end get
 
-# 8. Call to return a result of the query of a dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
+# 8. Call to return a result full dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
 @app.get("/{project_id}/{experiment_id}/{dataset_id}")
 async def return_queried_data(project_id, experiment_id, dataset_id):
     project = db[project_id]
@@ -43,6 +41,7 @@ async def return_queried_data(project_id, experiment_id, dataset_id):
         return {"datasets data" : temp_return}
 
 @app.post("/{project_id}/{experiment_id}/{dataset_id}")
+
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, dataset_id, item: d.Dataset):
     project_temp = db[project_id] # returns the project
@@ -63,17 +62,17 @@ async def returm_all_project_names():
 # end def
 # end get
 
-# 6. Call to return a query of a project and return all experiment names - "/{project_id}/" - get
-@app.get("/{project_id}/")
+# 6. Call to return all experiment names for a project - "/{project_id}/" - get
+@app.get("/{project_id}")
 async def return_all_experiment_names(project_id):
     project = db[project_id] # return collection of experiments
     names_temp = []
     for experiment in project.find():
         names_temp.append(experiment.get("name"))
-    return {"experiment names" : names_temp}
+    return {"names" : names_temp}
 
-# 7. Call to return a query of an experiment and return all dataset names - "/{project_id}/{experiment_id}/" - get
-@app.get("/{project_id}/{experiment_id}/")
+# 7. Call to return all dataset names for an experiment - "/{project_id}/{experiment_id}/" - get
+@app.get("/{project_id}/{experiment_id}")
 async def return_all_dataset_names(project_id, experiment_id):
     project = db[project_id]
     experiment = project[experiment_id]
