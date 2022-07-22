@@ -30,11 +30,11 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
 
     meta_temp = str(date.today())
     for j in range(0,structure[1],1):
-        dataset = d.Dataset(name="dataset " + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
+        dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
         datasets.append(dataset)
 
     for i in range(0,structure[0],1):
-        experiment = d.Experiment(name="experiment " + str(i), children=datasets, meta=meta_temp)
+        experiment = d.Experiment(name="experiment_" + str(i), children=datasets, meta=meta_temp)
         experiments.append(experiment)
     
     project = d.Project(name=project_name, author=author_name, groups=experiments, meta="This is a test")
@@ -44,7 +44,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     # project.convertJSON()
 
 
-def create_test_file_dataset(filename_in):
+def create_test_file_dataset(filename_in, dataset_name):
 
     meta_temp = str(date.today())
     x = []
@@ -55,7 +55,7 @@ def create_test_file_dataset(filename_in):
         y.append(random.randint(0,100))
         y2.append(random.randint(0,100))
     test_data_3D = [x,y,y2]
-    dataset = d.Dataset(name="dataset 0", data=test_data_3D, data_type="3D dataset", meta=meta_temp)
+    dataset = d.Dataset(name="dataset_name", data=test_data_3D, data_type="3D dataset", meta=meta_temp)
     with open(filename_in, 'w') as file:
         json.dump(dataset.convertJSON(),file)
         file.close()
