@@ -4,7 +4,8 @@ import variables as var
 from pymongo.mongo_client import MongoClient
 import datastructure as d
 import json
-
+import hashlib as h
+import random
 '''
 the project parameters are stored in their own database called "config"
 They are updated in the update_project_data call
@@ -30,6 +31,48 @@ client = MongoClient(string)
 #db = client["test_struct"] # defines database called test 
 #db = client["dev_struct"]
 app = FastAPI()
+
+### authentication functions which return whether the user is allowed or not
+def check_username_exists(username):
+    auth = client["Authentication"]
+    users = auth["Users"]
+    result = users.find_one({"username" : username})
+    if result == None:
+        return False
+    else:
+        return True
+
+# returns True or False
+# hashing done using shake_256
+def authenticate(username, password):
+    # look up the Users database to see if the user exists.
+    auth = client["Authentication"]
+    users = auth["Users"]
+    result = users.find_one({"username" : username})
+    # if it exists check if the password matches the hash
+    if result == None:
+        return False
+    # if yes return True
+    else:
+        # user is found
+        # validate password
+        hash_result = result.get("hash")
+        if hash_result == h.shake_256(password):
+            return True
+        else:
+            return False
+    # if fails at any point return False and "Failed to Authenticate" message
+
+def return_final_hash(username, hash_init):
+    auth = client["Authentication"]
+    users = auth["Users"]
+    result = users.find_one({"username" : username})
+    if result != None:
+        salt = result.get("salt")
+        return h.shake_256(salt + hash_init)
+    
+
+
 
 # functions that work
 @app.get("/")
@@ -154,3 +197,27 @@ async def return_project_data(project_id):
             "author" : python_dict.get("author")
         }
         return json_dict
+
+### functions managing grouping of existing datasets and experiments
+
+### functions managing authentication
+@app.get("{username}/{hash_init}/authenticate")
+async def create_user(username, hash_init: str):
+    # see if user already exists
+    result = check_username_exists(username)
+    if result:
+        return {"message" : "User already exists"}
+    else:
+        # generate salt and insert it into database
+        salt_init = random.SystemRandom().getrandbits(256)
+        temp = h.shake_256() 
+        password = str(salt_init) + hash_init
+
+        temp.update(password.encode('utf8'))
+        # open database and insert a user document
+        user_json = {
+            "username" : username,
+            "hash" : temp.digest(64)
+        }
+        
+
