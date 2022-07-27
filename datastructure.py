@@ -122,3 +122,44 @@ class Simple_Request_body(BaseModel):
         }
         return json_dict
 
+class User_Request_Body(BaseModel):
+    username : str
+    hash : str
+    permission : str
+    
+    def get_username(self):
+        return self.username
+
+    def get_hash(self):
+        return self.hash
+
+    def get_permission(self):
+        return self.permission
+
+class Group(BaseModel):
+    authors : list[str]
+    meta : list[str]
+    experiments : list[str] # full experiments attached to the group
+    datasets : list[str] # loose datasets attache
+
+    # get functions
+    def get_authors(self):
+        return self.authors
+
+    def get_meta(self):
+        return self.meta
+
+    def get_experiments(self):
+        return self.experiments
+
+    def get_permission(self):
+        return self.get_permission
+
+    def convertJSON(self):
+        json_dict = {
+            "authors" : self.authors,
+            "meta" : self.meta,
+            "experiments" : self.experiments,
+            "datasets" : self.datasets
+        }
+        return json_dict

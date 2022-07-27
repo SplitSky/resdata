@@ -199,10 +199,30 @@ async def return_project_data(project_id):
         return json_dict
 
 ### functions managing grouping of existing datasets and experiments
+'''
+1. create a group using a list of names
+2. remove the group
+3. add a dataset to a group
+4. remove a dataset from a group
+5. add an experiment to a group
+6. remove an experiment from  a group
+'''
+# 1. create a group using an object
+@app.post("{group_name}/{username}/{hash_init}/group_init")
+async def create_group(group_name, username, hash_init, group_init, group : d.Group)
+    # compose the group document
+    experiments = 
+    # insert 
+
 
 ### functions managing authentication
 @app.get("{username}/{hash_init}/authenticate")
-async def create_user(username, hash_init: str):
+async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
+    # variables
+    username = user_data.get_username()
+    hash_init = user_data.get_hash()
+    permission = user_data.get_permission()
+
     # see if user already exists
     result = check_username_exists(username)
     if result:
@@ -217,7 +237,14 @@ async def create_user(username, hash_init: str):
         # open database and insert a user document
         user_json = {
             "username" : username,
-            "hash" : temp.digest(64)
+            "hash" : temp.digest(64), # 64 length digest of the hash
+            "permission" : permission
         }
+        # enter the document into the database
+        auth = client["Authentication"]
+        users = auth["Users"]
+        users.insert_one(user_json)
+        return {"message" : "User created"}
+
         
 
