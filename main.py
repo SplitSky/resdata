@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
@@ -6,7 +6,7 @@ import datastructure as d
 import json
 import hashlib as h
 import random
-
+import datetime
 import security as s
 
 
@@ -33,49 +33,6 @@ client = MongoClient(string)
 #db = client["test_struct"] # defines database called test 
 #db = client["dev_struct"]
 app = FastAPI()
-
-### authentication functions which return whether the user is allowed or not
-def check_username_exists(username):
-    auth = client["Authentication"]
-    users = auth["Users"]
-    result = users.find_one({"username" : username})
-    if result == None:
-        return False
-    else:
-        return True
-
-# returns True or False
-# hashing done using shake_256
-def authenticate(username, password, permission):
-    # look up the Users database to see if the user exists.
-    auth = client["Authentication"]
-    users = auth["Users"]
-    result = users.find_one({"username" : username})
-    # if it exists check if the password matches the hash
-    if result == None:
-        return False
-    # if yes return True
-    else:
-        # user is found
-        # validate password
-        hash_result = result.get("hash")
-        permission_user = result.get("permission")
-        if hash_result == h.shake_256(password) and (permission in permission_user):
-            return True
-        else:
-            return False
-    # if fails at any point return False and "Failed to Authenticate" message
-
-def return_final_hash(username, hash_init):
-    auth = client["Authentication"]
-    users = auth["Users"]
-    result = users.find_one({"username" : username})
-    if result != None:
-        salt = result.get("salt")
-        return h.shake_256(salt + hash_init)
-
-
-def verify_password()
     
 # functions that work
 @app.get("/")
@@ -214,10 +171,8 @@ async def return_project_data(project_id):
 @app.post("{group_name}/{username}/{hash_init}/group_init")
 async def create_group(username, hash_init, group : d.Group):
     ### authentication
-    if authenticate(username, hash_init, "admin"): 
 
     ### end authentication
-muscular
     # compose the group document
     group_json = {
         "name" : group.get_name(),
@@ -230,18 +185,19 @@ muscular
 
 
 ### functions managing authentication
-
 @app.get("{username}/{hash_init}/authenticate")
 async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
     # variables
     username = user_data.get_username()
-    hash_init = user_data.get_hash()
-    permission = user_data.get_permission()
+    hash_init = user_data.get_password()
+    user = s.User_Auth(username, hash_init)
 
     # see if user already exists
-    result = check_username_exists(username)
+    result = user.check_username_exists()
     if result:
-        return {"message" : "User already exists"}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="User already exists",
+                            headers={"WWW-Authenticate" : "Bearer"})
     else:
         # generate salt and insert it into database
         salt_init = random.SystemRandom().getrandbits(256)
@@ -253,21 +209,17 @@ async def create_user(user_data : d.User_Request_Body): # permission variable to
         user_json = {
             "username" : username,
             "hash" : temp.digest(64), # 64 length digest of the hash
-            "permission" : permission
+            "full_name" : user_data.get_full_name(),
+            "email" : user_data.get_email(),
+            "disabled" : True,
+            "permission" : [],
+            "salt" : salt_init,
+            "expiry" : datetime.datetime.now(datetime.timezone.utc)
         }
         # enter the document into the database
         auth = client["Authentication"]
         users = auth["Users"]
         users.insert_one(user_json)
-        return {"message" : "User created"}
+        raise HTTPException(status_code=status.HTTP_200_OK)
 
  ##### experimenting        
-        
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-def get_user(db, username : str):
-    if check_username_exists(username=username) == True:
-        auth = client["Authentication"]
-        users = auth["Users"]
-        result = users.find_one({"username" : username})
-        return result
