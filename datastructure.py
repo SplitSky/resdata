@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel
 from enum import Enum
+import datetime
 ### enum for permissions
 class Permission(Enum):
     admin = "admin"
@@ -129,28 +130,36 @@ class Simple_Request_body(BaseModel):
 
 class User_Request_Body(BaseModel):
     username : str
-    full_name : str
-    disabled : bool # this variable is a flag for the API to know whether the user has been authenticated
-    email : str
     hash : str
-    salt : str
-    
+    full_name : str
+    email : str
+    # permissions are given separately
     def get_username(self):
         return self.username
+    def get_password(self):
+        return self.hash
     def get_full_name(self):
         return self.full_name
     def get_email(self):
         return self.email
-    def get_disabled(self):
-        return self.disabled
     def get_hash(self):
         return self.hash
+
+
+class User(User_Request_Body):
+    disabled : bool # this variable is a flag for the API to know whether the user has been authenticated
+    salt : str
+    token : str
+    expiry : datetime.date
+    
+    def get_disabled(self):
+        return self.disabled
     def get_salt(self):
         return self.salt
-
-class User_inDB(User_Request_Body):
-    hashed_password : str
-
+    def get_token(self):
+        return self.token
+    def get_expiry(self):
+        return self.expiry
 
 class Group(BaseModel):
     name : str
