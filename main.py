@@ -6,6 +6,10 @@ import datastructure as d
 import json
 import hashlib as h
 import random
+
+import security as s
+
+
 '''
 the project parameters are stored in their own database called "config"
 They are updated in the update_project_data call
@@ -13,8 +17,6 @@ They are updated in the update_project_data call
 project = database
 experiment = collection
 dataset = document 
-
-
 
 '''
 
@@ -44,7 +46,7 @@ def check_username_exists(username):
 
 # returns True or False
 # hashing done using shake_256
-def authenticate(username, password):
+def authenticate(username, password, permission):
     # look up the Users database to see if the user exists.
     auth = client["Authentication"]
     users = auth["Users"]
@@ -57,7 +59,8 @@ def authenticate(username, password):
         # user is found
         # validate password
         hash_result = result.get("hash")
-        if hash_result == h.shake_256(password):
+        permission_user = result.get("permission")
+        if hash_result == h.shake_256(password) and (permission in permission_user):
             return True
         else:
             return False
@@ -70,10 +73,10 @@ def return_final_hash(username, hash_init):
     if result != None:
         salt = result.get("salt")
         return h.shake_256(salt + hash_init)
+
+
+def verify_password()
     
-
-
-
 # functions that work
 @app.get("/")
 async def connection_test(): # works like main
@@ -209,13 +212,25 @@ async def return_project_data(project_id):
 '''
 # 1. create a group using an object
 @app.post("{group_name}/{username}/{hash_init}/group_init")
-async def create_group(group_name, username, hash_init, group_init, group : d.Group)
+async def create_group(username, hash_init, group : d.Group):
+    ### authentication
+    if authenticate(username, hash_init, "admin"): 
+
+    ### end authentication
+muscular
     # compose the group document
-    experiments = 
+    group_json = {
+        "name" : group.get_name(),
+        "authors" : group.get_authors(),
+        "meta" : group.get_meta(),
+        "experiments" : group.get_experiments(),
+        "datasets" : group.get_datasets()
+    }
     # insert 
 
 
 ### functions managing authentication
+
 @app.get("{username}/{hash_init}/authenticate")
 async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
     # variables
@@ -246,5 +261,13 @@ async def create_user(user_data : d.User_Request_Body): # permission variable to
         users.insert_one(user_json)
         return {"message" : "User created"}
 
+ ##### experimenting        
         
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+def get_user(db, username : str):
+    if check_username_exists(username=username) == True:
+        auth = client["Authentication"]
+        users = auth["Users"]
+        result = users.find_one({"username" : username})
+        return result

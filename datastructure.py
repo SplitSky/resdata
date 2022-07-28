@@ -1,6 +1,11 @@
 ### this file contains the class which describes the datastructure
 
 from pydantic import BaseModel
+from enum import Enum
+### enum for permissions
+class Permission(Enum):
+    admin = "admin"
+
 
 # the baseline for data storage. Each measurement is a node in terms of a dataset
 class Dataset(BaseModel):
@@ -124,20 +129,33 @@ class Simple_Request_body(BaseModel):
 
 class User_Request_Body(BaseModel):
     username : str
+    full_name : str
+    disabled : bool # this variable is a flag for the API to know whether the user has been authenticated
+    email : str
     hash : str
-    permission : str
+    salt : str
     
     def get_username(self):
         return self.username
-
+    def get_full_name(self):
+        return self.full_name
+    def get_email(self):
+        return self.email
+    def get_disabled(self):
+        return self.disabled
     def get_hash(self):
         return self.hash
+    def get_salt(self):
+        return self.salt
 
-    def get_permission(self):
-        return self.permission
+class User_inDB(User_Request_Body):
+    hashed_password : str
+
 
 class Group(BaseModel):
+    name : str
     authors : list[str]
+    share : list [str]
     meta : list[str]
     experiments : list[str] # full experiments attached to the group
     datasets : list[str] # loose datasets attache
@@ -152,12 +170,19 @@ class Group(BaseModel):
     def get_experiments(self):
         return self.experiments
 
-    def get_permission(self):
-        return self.get_permission
+    def get_datasets(self):
+        return self.get_datasets
+
+    def get_name(self):
+        return self.name
+
+    def get_share(self):
+        return self.share
 
     def convertJSON(self):
         json_dict = {
             "authors" : self.authors,
+            "share" : self.share,
             "meta" : self.meta,
             "experiments" : self.experiments,
             "datasets" : self.datasets

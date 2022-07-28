@@ -2,7 +2,7 @@ import json
 import requests
 from datetime import date
 import datastructure as d
-
+from requests.auth import HTTPBasicAuth
 import testing as t # this import should be removed for deployment
 # storage in database is done using nested dictionaries
 
@@ -146,6 +146,43 @@ class API_interface():
         response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables
         return response 
 
+    ### groups and managing access to them
+
+    def create_group(self, user : d.User_Request_Body):
+        # return names of user's experiments and loose datasets. Print as tree
+        
+        # take an input of indexes of names to include in the group
+
+        # retrieve user id
+        
+        # insert document in group
+        a = 1
+        
+    def discard_group(self, user : d.User_Request_Body):
+        # return tree of group
+        
+        # ask for confirmation
+
+        # remove the group entry in the database
+        a = 2
+
+    def share_group_read_only(self, user : d.User_Request_Body, username):
+        # check if user exists
+
+        # append share to the group
+
+    def share_group_full(self, user : d.User_Request_Body, username):
+        # check if user exists
+
+        # append author to the group
+
+    def create_user(self, username, password):
+        # insert the user into the database
+
+    def login(username, password):
+        basic = HTTPBasicAuth(username, password)
+        response = requests.get(self.path + "login", auth=basic)
+        return response
 
 def main():
     project_name = "S_Church"
