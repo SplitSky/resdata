@@ -9,29 +9,24 @@ import random
 '''
 the project parameters are stored in their own database called "config"
 They are updated in the update_project_data call
-
 project = database
 experiment = collection
 dataset = document 
-
-
-
 '''
 
-# string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority" # local databse for PSI
-# string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
-string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
-
+# Connection string
+string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w" \
+                                                                "=majority "
 client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
+# Connect to database "test"
 db = client.test
-
+# Create mongo client
 client = MongoClient(string)
-# db = client["test_struct"] # defines database called test
-# db = client["dev_struct"]
+# Launch fastAPI
 app = FastAPI()
 
 
-### authentication functions which return whether the user is allowed or not
+# authentication functions which return whether the user is allowed or not
 def check_username_exists(username):
     auth = client["Authentication"]
     users = auth["Users"]
@@ -68,7 +63,7 @@ def return_final_hash(username, hash_init):
     auth = client["Authentication"]
     users = auth["Users"]
     result = users.find_one({"username": username})
-    if result != None:
+    if result is not None:
         salt = result.get("salt")
         return h.shake_256(salt + hash_init)
 
@@ -78,7 +73,7 @@ def return_final_hash(username, hash_init):
 async def connection_test():  # works like main
     try:
         thing = str(client.server_info)
-    except:
+    except BaseException:
         thing = "failed to connect"
     return {"message": thing}
 
@@ -93,7 +88,7 @@ async def return_dataset(project_id, experiment_id, dataset_id):
     # dataset = experiment[dataset_id] # document
     temp_return = {}
     temp = experiment.find({"name": dataset_id})  # returns document
-    if temp == None:
+    if temp is None:
         return {"message": "no data found"}
     else:
         for dataset in temp:
@@ -152,7 +147,7 @@ async def return_experiment_details(project_id, experiment_id):
     project = client[project_id]
     experiment = project[experiment_id]
     result = experiment.find_one({"ref": "config"})  # returns json object
-    if result == None:
+    if result is None:
         return {"message": "Experiment not found found. Experiment not initialised"}
     else:
         python_dict = json.loads(result)
@@ -209,7 +204,7 @@ async def return_project_data(project_id):
         return json_dict
 
 
-### functions managing grouping of existing datasets and experiments
+# functions managing grouping of existing datasets and experiments
 '''
 1. create a group using a list of names
 2. remove the group
