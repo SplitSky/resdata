@@ -12,15 +12,15 @@ log = logging.getLogger()
 
 
 class API_interface:
-    def __init__(self, path_in):
+    def __init__(self, path_in: str) -> None:
         """Base http path for API"""
         self.path = path_in
 
-    def check_connection(self):
+    def check_connection(self) -> bool:
         """Simple test of connectivity against endpoint"""
         return requests.get(self.path) == 200
 
-    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset):
+    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
         """Build a REST request using project name, experiment name etc and insert a dataset"""
 
         # Try-except for conversion
@@ -41,16 +41,22 @@ class API_interface:
         # Return response code
         return response == 200
 
-    def return_fulldataset(self, project_name: str, experiment_name: str, dataset_name: str):
-        response = requests.get(url=self.path + project_name + "/" + experiment_name + "/" + dataset_name)
-        print("Retrieving single dataset")
-        print("response code: + str(response)")
-        print("content of the dataset: ")
-        print(response.json())
-        temp = response.json()
-        temp = json.loads(temp)
-        dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
-                            data_type=temp.get("data_type"))
+    def get_dataset(self, project_name: str, experiment_name: str, dataset_name: str) -> d.Dataset:
+        """Retrieve a dataset specified by a project and experiment name"""
+        # Build path and make request
+        try:
+            response = requests.get(url=self.path + project_name + "/" + experiment_name + "/" + dataset_name)
+        except BaseException as E:
+            raise E
+        # Log outcome
+        log.info(f"Retrieving single dataset, response code: {response}")
+        log.info("content of the dataset: ")
+        log.info(response.json())
+        # Convert back to a dictionary
+        return_data = json.loads(response.json())
+        # Create a dataset from dictionary
+        dataset = d.Dataset(name=return_data.get("name"), data=return_data.get("data"), meta=return_data.get("meta"),
+                            data_type=return_data.get("data_type"))
         return dataset  # returns an object of DataSet class
 
     def insert_experiment(self, project_name: str, experiment: d.Experiment):
@@ -87,7 +93,7 @@ class API_interface:
         datasets = []
         for name in names_list:
             datasets.append(
-                self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
+                self.get_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each dataset and return the contents -> then add the contents to an object and return the object
         response = requests.get(self.path + project_name + "/" + experiment_name + "/details")
         exp_dict = json.loads(response.json())
