@@ -21,7 +21,7 @@ class Experiment(BaseModel):
     children: List[Dataset]  # dictionary of data sets each with ID
     meta: Union[str, None] = None  # implemented union as optional variable
 
-    def json(self) -> dict:  # returns a nested python dictionary
+    def dict(self) -> dict:  # returns a nested python dictionary
         return {
             "name": self.name,
             "meta": self.meta,
@@ -36,7 +36,7 @@ class Project(BaseModel):
     groups: List[Experiment]
     meta: Union[str, None] = None
 
-    def json(self) -> dict:  # returns a dictionary
+    def dict(self) -> dict:  # returns a dictionary
         return {
             "name": self.name,
             "author": self.author,

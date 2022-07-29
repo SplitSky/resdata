@@ -24,7 +24,7 @@ class API_interface:
 
         # Try-except for conversion
         try:
-            json_payload = dataset_in.json()
+            json_payload = dataset_in.dict()
         except BaseException as E:
             raise E
 

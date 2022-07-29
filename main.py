@@ -17,7 +17,8 @@ dataset = document
 # Connection string
 string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w" \
                                                                 "=majority "
-client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
+                                                                "=majority "
+client = MongoClient(string)
 # Connect to database "test"
 db = client.test
 # Create mongo client
@@ -73,7 +74,7 @@ def return_final_hash(username, hash_init):
 async def connection_test():  # works like main
     try:
         thing = str(client.server_info)
-    except BaseException:
+    except BaseException as E:
         thing = "failed to connect"
     return {"message": thing}
 
@@ -107,8 +108,8 @@ async def return_dataset(project_id, experiment_id, dataset_id):
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
     project_temp = client[project_id]  # returns the project - database
     experiment_temp = project_temp[experiment_id]  # calls the experiment collection
-    experiment_temp.insert_one(item.convertJSON())  # data insert into database
-    return json.dumps(item.convertJSON())  # return for verification
+    experiment_temp.insert_one(item.dict())  # data insert into database
+    return json.dumps(item.dict())  # return for verification
 
 
 # end def
