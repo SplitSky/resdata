@@ -5,7 +5,6 @@ import requests  # Base for REST communications
 import datastructure as d  # defined datastructures for communication
 import logging
 
-import testing as t  # this import should be removed for deployment
 
 # Connect to logger
 log = logging.getLogger()
@@ -25,13 +24,13 @@ class API_interface:
 
         # Try-except for conversion
         try:
-            json_payload = dataset_in.convertJSON()
+            json_payload = dataset_in.json()
         except BaseException as E:
             raise E
 
         # Try-except for request
         try:
-            response = requests.post(url=self.path + project_name + "/" + experiment_name + "/" + dataset_in.get_name(),
+            response = requests.post(url=self.path + project_name + "/" + experiment_name + "/" + dataset_in.name,
                                      json=json_payload)
         except BaseException as E:
             raise E
@@ -61,7 +60,7 @@ class API_interface:
 
     def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
         """Insert a whole experiment, defined as multiple datasets"""
-        experiment_name = experiment.get_name()
+        experiment_name = experiment.name
         # check if experiment exists:
         if not self.check_experiment_exists(project_name, experiment_name):
             # if it doesn't initialise it
@@ -70,7 +69,7 @@ class API_interface:
 
         # init the experiment
         response = []
-        for dataset in experiment.return_datasets():
+        for dataset in experiment.children:
             # for each dataset in experiment call API 
             response.append(self.insert_dataset(project_name, experiment_name, dataset))
         # Check response
@@ -133,10 +132,10 @@ class API_interface:
         response_out = []
         # set project in database
         # check if project exists. If not initialise it 
-        if not self.check_project_exists(project_name=project.get_name()):
+        if not self.check_project_exists(project_name=project.name):
             self.init_project(project)
-        for experiment in project.return_experiments():
-            response_out.append(self.insert_experiment(project.get_name(), experiment))
+        for experiment in project.groups:
+            response_out.append(self.insert_experiment(project.name, experiment))
         return response_out
 
     # two functions to return names of the experiment and the names of the project
@@ -146,16 +145,16 @@ class API_interface:
 
     # initialize project
     def init_project(self, project: d.Project):
-        request_body = d.simpleRequestBody(name=project.get_name(), meta=project.get_meta(),
-                                           author=project.get_author())
-        response = requests.post(self.path + project.get_name() + "/set_project",
-                                 json=request_body.convertJSON())  # updates the project variables
+        request_body = d.simpleRequestBody(name=project.name, meta=project.meta,
+                                           author=project.author)
+        response = requests.post(self.path + project.name + "/set_project",
+                                 json=request_body.json())  # updates the project variables
         return response
 
     # initialize experiment
     def init_experiment(self, project_id, experiment: d.Experiment):
-        request_body = d.simpleRequestBody(name=experiment.get_name(), meta=experiment.get_meta(), author="a")
+        request_body = d.simpleRequestBody(name=experiment.name, meta=experiment.meta, author="a")
         log.info(f"Request body {request_body}")
-        response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment",
-                                 json=request_body.convertJSON())  # updates the experiment variables
+        response = requests.post(self.path + project_id + "/" + experiment.name + "/set_experiment",
+                                 json=request_body.json())  # updates the experiment variables
         return response

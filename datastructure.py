@@ -1,8 +1,9 @@
 # Description of datastructures
 from __future__ import annotations
+# For pydantic typing
+from typing import Union, List
 
-from typing import List
-
+# Base model
 from pydantic import BaseModel
 
 
@@ -10,30 +11,21 @@ class Dataset(BaseModel):
     """Baseline for data storage. Each measurement is a node in terms of a dataset"""
     name: str
     data: list  # list of numbers or bits
-    meta: str | None = None
+    meta: Union[str, None] = None
     data_type: str
-
-    def convertJSON(self) -> dict:
-        """converts it into nested dictionary"""
-        return {
-            "name": self.name,
-            "meta": self.meta,
-            "data_type": self.data_type,
-            "data": self.data  # this list can be serialised
-        }
 
 
 ###################################################
 class Experiment(BaseModel):
     name: str
-    children: list[Dataset]  # dictionary of data sets each with ID
-    meta: str | None = None  # implemented union as optional variable
+    children: List[Dataset]  # dictionary of data sets each with ID
+    meta: Union[str, None] = None  # implemented union as optional variable
 
-    def convertJSON(self) -> dict:  # returns a nested python dictionary
+    def json(self) -> dict:  # returns a nested python dictionary
         return {
             "name": self.name,
             "meta": self.meta,
-            "datasets": {child.name: child.convertJSON() for child in self.children}
+            "datasets": {child.name: child.json() for child in self.children}
         }
 
 
@@ -41,15 +33,15 @@ class Experiment(BaseModel):
 class Project(BaseModel):
     name: str
     author: str
-    groups: list[Experiment]
-    meta: str | None = None
+    groups: List[Experiment]
+    meta: Union[str, None] = None
 
-    def convertJSON(self) -> dict:  # returns a dictionary
+    def json(self) -> dict:  # returns a dictionary
         return {
             "name": self.name,
             "author": self.author,
             "meta": self.meta,
-            "groups": {group.name: group.convertJSON() for group in self.groups}
+            "groups": {group.name: group.json() for group in self.groups}
         }
 
     def convertDictionary(self, dict_in: dict) -> None:
@@ -62,18 +54,8 @@ class Project(BaseModel):
 ###################################################
 class simpleRequestBody(BaseModel):
     name: str
-    meta: str | None = None
+    meta: Union[str, None] = None
     author: str
-
-    def get_variables(self) -> List[str]:
-        return [self.name, self.meta, self.author]
-
-    def convertJSON(self) -> dict:
-        return {
-            "name": self.name,
-            "meta": self.meta,
-            "author": self.author
-        }
 
 
 ###################################################
@@ -85,15 +67,7 @@ class userRequestBody(BaseModel):
 
 ###################################################
 class Group(BaseModel):
-    authors: list[str]
-    meta: list[str]
-    experiments: list[str]  # full experiments attached to the group
-    datasets: list[str]  # loose datasets attache
-
-    def convertJSON(self) -> dict:
-        return {
-            "authors": self.authors,
-            "meta": self.meta,
-            "experiments": self.experiments,
-            "datasets": self.datasets
-        }
+    authors: List[str]
+    meta: List[str]
+    experiments: List[str]  # full experiments attached to the group
+    datasets: List[str]  # loose datasets attache
