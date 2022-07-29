@@ -1,35 +1,45 @@
-import json
-import requests
-import datastructure as d
+# interface - to connect to the remote API
+
+import json  # Required to pass data
+import requests  # Base for REST communications
+import datastructure as d  # defined datastructures for communication
+import logging
 
 import testing as t  # this import should be removed for deployment
 
-
-# storage in database is done using nested dictionaries
+# Connect to logger
+log = logging.getLogger()
 
 
 class API_interface:
     def __init__(self, path_in):
+        """Base http path for API"""
         self.path = path_in
 
     def check_connection(self):
-        response = requests.get(self.path)
-        if response == 200:
-            return True
-        else:
-            return False
+        """Simple test of connectivity against endpoint"""
+        return requests.get(self.path) == 200
 
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset):
-        response = requests.post(url=self.path + project_name + "/" + experiment_name + "/" + dataset_in.get_name(),
-                                 json=dataset_in.convertJSON())
-        print("Inserting single dataset")
-        print("response code: " + str(response))
-        print("response content: ")
-        print(response.json())
-        # convert to object and return
-        temp = response.json()
-        temp = json.loads(temp)
-        return temp
+        """Build a REST request using project name, experiment name etc and insert a dataset"""
+
+        # Try-except for conversion
+        try:
+            json_payload = dataset_in.convertJSON()
+        except BaseException as E:
+            raise E
+
+        # Try-except for request
+        try:
+            response = requests.post(url=self.path + project_name + "/" + experiment_name + "/" + dataset_in.get_name(),
+                                     json=json_payload)
+        except BaseException as E:
+            raise E
+        # Log request
+        log.info(f"Inserting single dataset- response code: {response}")
+        log.info(response.json())
+        # Return response code
+        return response == 200
 
     def return_fulldataset(self, project_name: str, experiment_name: str, dataset_name: str):
         response = requests.get(url=self.path + project_name + "/" + experiment_name + "/" + dataset_name)
@@ -151,31 +161,3 @@ class API_interface:
         response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment",
                                  json=request_body.convertJSON())  # updates the experiment variables
         return response
-
-
-def main():
-    project_name = "S_Church"
-    # experiment_name = "experiment 1"
-    author_name = "S.Church"
-    filename = "test.json"
-    path = "http://127.0.0.1:8000/"
-
-    t.create_test_file_project(filename, [1, 1], project_name, author_name)
-    project_in = t.load_file_project(filename)
-    ui = API_interface(path)
-
-    ui.check_connection()
-    # insert project
-
-    print("Inserting Project")
-    temp = ui.insert_project(project=project_in)
-    print("Response:")
-    print(temp)
-
-    print("Returning Project")
-    temp = ui.get_project_names()
-    # temp = ui.return_fullproject(project_in.get_name())
-    print(temp)
-
-
-main()
