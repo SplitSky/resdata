@@ -4,12 +4,14 @@ from datetime import date
 import datastructure as d
 from requests.auth import HTTPBasicAuth
 import testing as t # this import should be removed for deployment
+
 # storage in database is done using nested dictionaries
 # testing
 
 class API_interface():
     def __init__(self, path_in):
         self.path = path_in
+        self.token = ""
 
     def check_connection(self):
         response = requests.get(self.path)
@@ -172,7 +174,10 @@ class API_interface():
 
     def create_user(self, username, password):
         # insert the user into the database
-        # this function should also hash the user password 
+        # this function should also hash the user password
+
+        response = requests.get(, auth=basic)
+        
 
 
     def generate_token(self,username, password):

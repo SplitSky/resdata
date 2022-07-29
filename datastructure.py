@@ -145,21 +145,34 @@ class User_Request_Body(BaseModel):
     def get_hash(self):
         return self.hash
 
-
-class User(User_Request_Body):
-    disabled : bool # this variable is a flag for the API to know whether the user has been authenticated
-    salt : str
-    token : str
-    expiry : datetime.date
-    
-    def get_disabled(self):
-        return self.disabled
-    def get_salt(self):
-        return self.salt
+class Token(BaseModel):
+    access_token : str
+    token_type : str
     def get_token(self):
-        return self.token
-    def get_expiry(self):
-        return self.expiry
+        return self.access_token
+
+class User(BaseModel):
+    username : str
+    email : str | None = None
+    full_name : str | None = None
+    hash_in : str
+
+    def get_username(self):
+        return self.username
+
+    def get_email(self):
+        return self.email
+
+    def get_full_name(self):
+        return self.full_name
+
+    def get_hash_in(self):
+        return self.hash_in
+
+class UserInDB(User):
+    hashed_password: str
+    disabled: bool
+
 
 class Group(BaseModel):
     name : str

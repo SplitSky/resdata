@@ -9,44 +9,9 @@ from pydantic import BaseModel
 from main import app, client # imports of api variables
 import hashlib as h
 from variables import secret_key, algorithm, access_token_expire
+from datastructure import User, UserInDB, Token
+import random
 #from passlib.context import CryptContext
-
-### BaseModel classes
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-    def get_token(self):
-        return self.access_token
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    hash_in: str
-
-    def get_username(self):
-        return self.username
-
-    def get_email(self):
-        return self.email
-
-    def get_full_name(self):
-        return self.full_name
-
-    def get_hash_in(self):
-        return self.hash_in
-
-
-
-class UserInDB(User):
-    hashed_password: str
-    disabled: bool | None = None
-
 
 # declare constants for the 
 
@@ -71,20 +36,32 @@ class User_Auth(object):
         else:
             pass_in_db = result.get("hash") # returns the hashed password from database
             # hashes the password in and compares
-            if pass_in_db == self.return_final_hash():
+            if pass_in_db == self.return_final_hash(None):
                 return True
             else:
                 return False
             
-    def return_final_hash(self):
-        auth = client["Authentication"]
-        users = auth["Users"]
-        result = users.find_one({"username" : self.username})
-        if result != None:
-            salt = result.get("salt")
+    def return_final_hash(self, salt_in):
+        if salt_in != None:
+            password = salt_in + self.password
             temp = h.shake_256()
-            password = salt + self.password
             temp.update(password.encode('utf8'))
+            return temp.digest(64)
+        else:
+
+            auth = client["Authentication"]
+            users = auth["Users"]
+            result = users.find_one({"username" : self.username})
+            if result != None:
+                salt = result.get("salt")
+                temp = h.shake_256()
+                password = salt + self.password
+                temp.update(password.encode('utf8'))
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail = "User doesn't exist"
+                )
             return temp.digest(64)
 
     def create_access_token(self,data: dict, expires_delta: timedelta | None = None):
@@ -123,9 +100,34 @@ class User_Auth(object):
             return False
         else:
             return True
-    
+
+    def add_user(self, full_name, email):
+        auth = client["Authentication"]
+        users = auth["Users"]
+        salt_init = random.SystemRandom().getrandbits(256)
+        
+        # check user exists
+        if not self.check_username_exists():
+
+            user_dict = {
+                "username" : self.username,
+                "hash" : self.return_final_hash(salt_init),
+                "full_name" : full_name,
+                "email" : email,
+                "disabled" : True,
+                "salt" : salt_init,
+                "expiry" : str(datetime.now(timezone.utc))
+            }
+            result = users.insert_one(user_dict)
+            return result
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_302_FOUND,
+                detail = "User already exists"
+            )
+
 ### API call generating the token
-@app.get("/generate_token")
+@app.get("/generate_token", response_model=Token)
 async def login_for_access_token(credentials : HTTPBasicCredentials):
     user_in = User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
     user = User_Auth(user_in.get_username(), user_in.get_hash_in()) 
@@ -145,7 +147,6 @@ async def login_for_access_token(credentials : HTTPBasicCredentials):
                 user.activate_user()
                 users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
                 return Token(access_token=temp, token_type="bearer")
-    
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="The credentials failed to validate"
@@ -174,12 +175,11 @@ async def validate_token(token : Token):
         if result != None:
             token_in_db = result.get("token") # returns the hashed password from database
             # hashes the password in and compares
-            if token_in_db == token.get_token():
+            if token_in_db == token.get_token(): #### change to digest comparison to stop timing attack 
                 # the user has the matching token
                 # get the expiry time from database
                 expiry = datetime.fromisoformat(result.get("expiry")) # converts string to date
                 if datetime.now(timezone.utc) <= expiry: # check if token is not expired
-                    
                     raise HTTPException(
                         status_code=status.HTTP_200_OK,
                         detail="User authenticated",
@@ -193,6 +193,12 @@ async def validate_token(token : Token):
         detail="User doesn't exist",
         headers={"WWW-Authenticate" : "Bearer"}
     )
-    
 
+@app.get("{full_name}/{email}/create_user")
+async def create_user(full_name, email,credentials : HTTPBasicCredentials):
+    username = credentials.username
+    password = credentials.password
+    user = User_Auth(username, password)
+    response = user.add_user(full_name, email)
+    return {"message" : response}
 
