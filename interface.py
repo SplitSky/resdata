@@ -59,56 +59,51 @@ class API_interface:
                             data_type=return_data.get("data_type"))
         return dataset  # returns an object of DataSet class
 
-    def insert_experiment(self, project_name: str, experiment: d.Experiment):
-        # takes in the experiment object 
-        # perform multiple calls to create an experiment directory and then
-        # insert datasets one by one
+    def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
+        """Insert a whole experiment, defined as multiple datasets"""
         experiment_name = experiment.get_name()
         # check if experiment exists:
         if not self.check_experiment_exists(project_name, experiment_name):
             # if it doesn't initialise it
+            log.info(f'{experiment_name} does not exist, creating it')
             self.init_experiment(project_name, experiment)
 
         # init the experiment
         response = []
-        temp = experiment.return_datasets()
-        for dataset in temp:
+        for dataset in experiment.return_datasets():
             # for each dataset in experiment call API 
             response.append(self.insert_dataset(project_name, experiment_name, dataset))
-        # call to initialise experiment and return structure
-        return response
+        # Check response
+        return False not in response
 
-    def return_fullexperiment(self, project_name: str, experiment_name: str):
-        # call api to find the names of all datasets in the experiment
-        print("Printing variables")
-        print(self.path)
-        print(project_name)
-        print(experiment_name)
+    def get_fullExperiment(self, project_name: str, experiment_name: str) -> d.Experiment:
+        """Return a full experimental dataset. No filtering"""
+        log.info(f"Requesting {self.path}/{project_name}/{experiment_name}")
 
-        response = requests.get(
-            self.path + project_name + "/names")  # request the names of the datasets connected to experiment
-        print(type(response.json()))
-        names_dict = response.json()
-        names_list = names_dict.get("names")
-        datasets = []
-        for name in names_list:
-            datasets.append(
-                self.get_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
-        # call api for each dataset and return the contents -> then add the contents to an object and return the object
-        response = requests.get(self.path + project_name + "/" + experiment_name + "/details")
-        exp_dict = json.loads(response.json())
+        # Make request
+        try:
+            response = requests.get(self.path + project_name + "/names")
+        except BaseException as E:
+            raise E
+
+        log.info(f'Return type is {type(response.json())}')
+        names_list = response.json().get("names")
+        # Get datasets via comprehension
+        datasets = [self.get_dataset(
+            project_name=project_name, experiment_name=experiment_name, dataset_name=name)
+            for name in names_list]
+        # Fetch project details
+        exp_dict = json.loads(requests.get(self.path + project_name + "/" + experiment_name + "/details").json())
         experiment = d.Experiment(name=exp_dict.get("name"), children=datasets, meta=exp_dict.get("meta"))
+
         return experiment
 
-    def return_fullproject(self, project_name: str):
+    def get_fullProject(self, project_name: str) -> d.Project:
+        """Return a full project"""
         response = requests.get(self.path + project_name)
-        exp_names_dict = response.json()
-        exp_names_list = exp_names_dict.get(self.path + "/names")
-        print("Experiment names: ")
-        print(exp_names_list)
-        experiments = []
-        for exp_name in exp_names_list:  # return names function returns type none
-            experiments.append(self.return_fullexperiment(project_name, exp_name))
+        exp_names_list = response.json().get(self.path + "/names")
+        log.info(f"Experiment names: {exp_names_list}")
+        experiments = [self.get_fullExperiment(project_name, exp_name) for exp_name in exp_names_list]
 
         response = requests.get(self.path + project_name + "/details")
         proj_dict = response.json()
@@ -116,23 +111,22 @@ class API_interface:
                             meta=proj_dict.get("meta"))
         return project
 
-    def check_project_exists(self, project_name: str):
+    def check_project_exists(self, project_name: str) -> bool:
         response = requests.get(self.path + "names")  # returns a list of strings
         names = response.json().get("names")
         if project_name in names:
             return True
         else:
-            print("Project with that name is not present in the database")
+            log.warning(f"Project {project_name} is not present in the database")
             return False
 
-    def check_experiment_exists(self, project_name: str, experiment_name: str):
+    def check_experiment_exists(self, project_name: str, experiment_name: str) -> bool:
         response = requests.get(self.path + project_name + "/names")
-        names = response.json().get("names")  # may have to json.dumps()
-
+        names = response.json().get("names")
         if experiment_name in names:
             return True
         else:
-            print("Experiment with that name is not present in the database")
+            log.warning(f"Experiment {experiment_name} not present in the database")
             return False
 
     def insert_project(self, project: d.Project):
@@ -141,8 +135,7 @@ class API_interface:
         # check if project exists. If not initialise it 
         if not self.check_project_exists(project_name=project.get_name()):
             self.init_project(project)
-        temp = project.return_experiments()
-        for experiment in temp:
+        for experiment in project.return_experiments():
             response_out.append(self.insert_experiment(project.get_name(), experiment))
         return response_out
 
@@ -162,8 +155,7 @@ class API_interface:
     # initialize experiment
     def init_experiment(self, project_id, experiment: d.Experiment):
         request_body = d.simpleRequestBody(name=experiment.get_name(), meta=experiment.get_meta(), author="a")
-        print("request body")
-        print(request_body)
+        log.info(f"Request body {request_body}")
         response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment",
                                  json=request_body.convertJSON())  # updates the experiment variables
         return response
