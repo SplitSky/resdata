@@ -214,7 +214,7 @@ async def create_user(user_data : d.User_Request_Body): # permission variable to
             "disabled" : True,
             "permission" : [],
             "salt" : salt_init,
-            "expiry" : datetime.datetime.now(datetime.timezone.utc)
+            "expiry" : str(datetime.datetime.now(datetime.timezone.utc))
         }
         # enter the document into the database
         auth = client["Authentication"]

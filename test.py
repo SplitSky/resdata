@@ -1,27 +1,20 @@
 import json
-import main as mn
 import random
-from datetime import date
+from datetime import datetime, timezone
+import time
 
-#### this file contains the functions used for generating testing data
+now = datetime.now(timezone.utc)
+# now is current date
+time.sleep(2)
 
-def create_test_file_project(filename_id, structure, project_name, author_name):
-    '''
-    filename_in         string       name of json file
-    structure           list         list containing the number of experiments and datasts
-    '''
 
-    x = []
-    y = []
-    y2 = []
-    for i in range(0,100):
-        x.append(i)
-        y.append(random.randint(0,100))
-        y2.append(random.randint(0,100))
+token = datetime.now(timezone.utc)
+token_db = str(token)
+token = datetime.fromisoformat(token_db)
+# token is db token
 
-    test_data_3D = [x,y,y2]
-    experiments = []
-    datasets = []
 
-    datasets_dict = {}
-    experiments_dict = {}
+if token > now:
+    print("Yes")
+else:
+    print("No")

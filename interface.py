@@ -61,11 +61,6 @@ class API_interface():
 
     def return_fullexperiment(self, project_name: str, experiment_name: str):
         # call api to find the names of all datasets in the experiment
-        print("Printing variables")
-        print(self.path)
-        print(project_name)
-        print(experiment_name)
-
         response = requests.get(self.path + project_name + "/names") # request the names of the datasets connected to experiment
         print(type(response.json()))
         names_dict = response.json()
@@ -177,13 +172,13 @@ class API_interface():
 
     def create_user(self, username, password):
         # insert the user into the database
-        
+        # this function should also hash the user password 
 
 
-    def login(username, password):
+    def generate_token(self,username, password):
         basic = HTTPBasicAuth(username, password)
-        response = requests.get(self.path + "login", auth=basic)
-        return response
+        response = requests.get(self.path + "/generate_token", auth=basic)
+        return response # returns a token dict
 
 def main():
     project_name = "S_Church"
