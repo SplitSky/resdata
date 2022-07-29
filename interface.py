@@ -5,7 +5,7 @@ import datastructure as d
 from requests.auth import HTTPBasicAuth
 import testing as t # this import should be removed for deployment
 # storage in database is done using nested dictionaries
- # testing
+# testing
 
 class API_interface():
     def __init__(self, path_in):
@@ -148,7 +148,7 @@ class API_interface():
 
     ### groups and managing access to them
 
-    def create_group(self, user : d.User_Request_Body):
+    #def create_group(self, user : d.User_Request_Body):
         # return names of user's experiments and loose datasets. Print as tree
         
         # take an input of indexes of names to include in the group
@@ -156,28 +156,29 @@ class API_interface():
         # retrieve user id
         
         # insert document in group
-        a = 1
         
-    def discard_group(self, user : d.User_Request_Body):
+    #def discard_group(self, user : d.User_Request_Body):
         # return tree of group
         
         # ask for confirmation
 
         # remove the group entry in the database
-        a = 2
+     #   a = 2
 
-    def share_group_read_only(self, user : d.User_Request_Body, username):
+    #def share_group_read_only(self, user : d.User_Request_Body, username):
         # check if user exists
 
         # append share to the group
 
-    def share_group_full(self, user : d.User_Request_Body, username):
+    #def share_group_full(self, user : d.User_Request_Body, username):
         # check if user exists
 
         # append author to the group
 
     def create_user(self, username, password):
         # insert the user into the database
+        
+
 
     def login(username, password):
         basic = HTTPBasicAuth(username, password)
