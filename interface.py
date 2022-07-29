@@ -134,13 +134,13 @@ class API_interface():
 
     ### initialize project
     def init_project(self, project: d.Project):
-        request_body = d.Simple_Request_body(name=project.get_name(),meta=project.get_meta(), author=project.get_author())
+        request_body = d.simpleRequestBody(name=project.get_name(), meta=project.get_meta(), author=project.get_author())
         response = requests.post(self.path + project.get_name() + "/set_project", json=request_body.convertJSON()) # updates the project variables
         return response
 
     ### initialize experiment
     def init_experiment(self,project_id ,experiment : d.Experiment):
-        request_body = d.Simple_Request_body(name=experiment.get_name(),meta=experiment.get_meta(), author="a")
+        request_body = d.simpleRequestBody(name=experiment.get_name(), meta=experiment.get_meta(), author="a")
         print("request body")
         print(request_body)
         response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables

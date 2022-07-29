@@ -164,7 +164,7 @@ async def return_experiment_details(project_id, experiment_id):
 
 
 @app.post("/{project_id}/{experiment_id}/set_experiment")
-async def update_experiment_data(project_id, experiment_id, data_in: d.Simple_Request_body):
+async def update_experiment_data(project_id, experiment_id, data_in: d.simpleRequestBody):
     project = client[project_id]
     experiment = project[experiment_id]
     temp = data_in.get_variables()
@@ -178,7 +178,7 @@ async def update_experiment_data(project_id, experiment_id, data_in: d.Simple_Re
 
 
 @app.post("/{project_id}/set_project")
-async def update_project_data(project_id, data_in: d.Simple_Request_body):
+async def update_project_data(project_id, data_in: d.simpleRequestBody):
     project = client[project_id]
     collection = project["config"]  # collection containing project variables
     temp = data_in.get_variables()
@@ -231,7 +231,7 @@ async def return_project_data(project_id):
 # functions managing authentication
 @app.get("{username}/{hash_init}/authenticate")
 async def create_user(
-        user_data: d.User_Request_Body):  # permission variable to be removed and added to the admin interface
+        user_data: d.userRequestBody):  # permission variable to be removed and added to the admin interface
     # variables
     username = user_data.get_username()
     hash_init = user_data.get_hash()
