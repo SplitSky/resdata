@@ -93,4 +93,4 @@ def load_file_dataset(filename_out):
         dataset = d.Dataset(name=json_string.get("name"), data=json_string.get("data"), meta=json_string.get("meta"),
                             data_type=json_string.get("data_type"))
         file.close()
-    return dataset
+    return 

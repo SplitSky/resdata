@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
+from fastapi.security import HTTPBasicCredentials
 import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
@@ -6,6 +7,11 @@ import datastructure as d
 import json
 import hashlib as h
 import random
+import datetime
+from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+from jose import jwt, JWTError
+
+
 '''
 the project parameters are stored in their own database called "config"
 They are updated in the update_project_data call
@@ -14,14 +20,11 @@ project = database
 experiment = collection
 dataset = document 
 
-
-
 '''
 
 #string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority" # local databse for PSI
 #string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
 string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
-
 client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
 db = client.test
 
@@ -31,49 +34,7 @@ client = MongoClient(string)
 #db = client["test_struct"] # defines database called test 
 #db = client["dev_struct"]
 app = FastAPI()
-
-### authentication functions which return whether the user is allowed or not
-def check_username_exists(username):
-    auth = client["Authentication"]
-    users = auth["Users"]
-    result = users.find_one({"username" : username})
-    if result == None:
-        return False
-    else:
-        return True
-
-# returns True or False
-# hashing done using shake_256
-def authenticate(username, password):
-    # look up the Users database to see if the user exists.
-    auth = client["Authentication"]
-    users = auth["Users"]
-    result = users.find_one({"username" : username})
-    # if it exists check if the password matches the hash
-    if result == None:
-        return False
-    # if yes return True
-    else:
-        # user is found
-        # validate password
-        hash_result = result.get("hash")
-        if hash_result == h.shake_256(password):
-            return True
-        else:
-            return False
-    # if fails at any point return False and "Failed to Authenticate" message
-
-def return_final_hash(username, hash_init):
-    auth = client["Authentication"]
-    users = auth["Users"]
-    result = users.find_one({"username" : username})
-    if result != None:
-        salt = result.get("salt")
-        return h.shake_256(salt + hash_init)
     
-
-
-
 # functions that work
 @app.get("/")
 async def connection_test(): # works like main
@@ -209,42 +170,136 @@ async def return_project_data(project_id):
 '''
 # 1. create a group using an object
 @app.post("{group_name}/{username}/{hash_init}/group_init")
-async def create_group(group_name, username, hash_init, group_init, group : d.Group)
+async def create_group(username, hash_init, group : d.Group):
+    ### authentication
+
+    ### end authentication
     # compose the group document
-    experiments = 
+    group_json = {
+        "name" : group.get_name(),
+        "authors" : group.get_authors(),
+        "meta" : group.get_meta(),
+        "experiments" : group.get_experiments(),
+        "datasets" : group.get_datasets()
+    }
     # insert 
 
 
-### functions managing authentication
-@app.get("{username}/{hash_init}/authenticate")
-async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
-    # variables
-    username = user_data.get_username()
-    hash_init = user_data.get_hash()
-    permission = user_data.get_permission()
+##### functions managing authentication
 
-    # see if user already exists
-    result = check_username_exists(username)
-    if result:
-        return {"message" : "User already exists"}
+
+##@app.get("{username}/{hash_init}/authenticate")
+##async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
+##    # variables
+##    username = user_data.get_username()
+##    hash_init = user_data.get_password()
+##    user = User_Auth(username, hash_init, client)
+##
+##    # see if user already exists
+##    result = user.check_username_exists()
+##    if result:
+##        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+##                            detail="User already exists",
+##                            headers={"WWW-Authenticate" : "Bearer"})
+##    else:
+##        # generate salt and insert it into database
+##        salt_init = random.SystemRandom().getrandbits(256)
+##        temp = h.shake_256() 
+##        password = str(salt_init) + hash_init
+##
+##        temp.update(password.encode('utf8'))
+##        # open database and insert a user document
+##        user_json = {
+##            "username" : username,
+##            "hash" : temp.digest(64), # 64 length digest of the hash
+##            "full_name" : user_data.get_full_name(),
+##            "email" : user_data.get_email(),
+##            "disabled" : True,
+##            "permission" : [],
+##            "salt" : salt_init,
+##            "expiry" : str(datetime.datetime.now(datetime.timezone.utc))
+##        }
+##        # enter the document into the database
+##        auth = client["Authentication"]
+##        users = auth["Users"]
+##        users.insert_one(user_json)
+##        raise HTTPException(status_code=status.HTTP_200_OK)
+
+
+### API call generating the token -> returns a token
+@app.get("/generate_token", response_model=d.Token)
+async def login_for_access_token(credentials : HTTPBasicCredentials):
+    user_in = d.User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
+    user = User_Auth(user_in.get_username(), user_in.get_hash_in(), client) 
+    if user.check_username_exists():
+        if user.check_password_valid():
+            # authentication complete
+            access_token_expires = datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            temp = user.create_access_token({"username" : user_in.get_username()},expires_delta=access_token_expires)
+            expiry_date = datetime.datetime.now(datetime.timezone.utc) + access_token_expires
+
+            # update user data
+            auth = client["Authentication"]
+            users = auth["Users"]
+            result = users.find_one({"username" : user_in.get_username()})
+            if result != None:
+                # updates the database to verify the user generated a token
+                user.activate_user()
+                users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
+                return d.Token(access_token=temp, token_type="bearer")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="The credentials failed to validate"
+    )
+
+### API call validating the token
+
+@app.post("{username}/validate_token")
+async def validate_token(token : d.Token):
+    # check if token is not expired and if user exists
+    payload = jwt.decode(token.get_token(), SECRET_KEY, algorithms=[ALGORITHM])
+    if payload.get("sub") == None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token is invalid"
+        )
     else:
-        # generate salt and insert it into database
-        salt_init = random.SystemRandom().getrandbits(256)
-        temp = h.shake_256() 
-        password = str(salt_init) + hash_init
-
-        temp.update(password.encode('utf8'))
-        # open database and insert a user document
-        user_json = {
-            "username" : username,
-            "hash" : temp.digest(64), # 64 length digest of the hash
-            "permission" : permission
-        }
-        # enter the document into the database
+        username = payload.get("sub")
+    user = User_Auth(username, "None", client)
+    if user.check_username_exists():
+        # access database and validate the token by looking up username
         auth = client["Authentication"]
         users = auth["Users"]
-        users.insert_one(user_json)
-        return {"message" : "User created"}
 
-        
+        result = users.find_one({"username" : username})
+        # see if user exists
+        if result != None:
+            token_in_db = result.get("token") # returns the hashed password from database
+            # hashes the password in and compares
+            if token_in_db == token.get_token(): #### change to digest comparison to stop timing attack 
+                # the user has the matching token
+                # get the expiry time from database
+                expiry = datetime.datetime.fromisoformat(result.get("expiry")) # converts string to date
+                if datetime.datetime.now(datetime.timezone.utc) <= expiry: # check if token is not expired
+                    raise HTTPException(
+                        status_code=status.HTTP_200_OK,
+                        detail="User authenticated",
+                    )
+                else:
+                    # deactivate the user
+                    user.deactive_user()
+                    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="User doesn't exist",
+        headers={"WWW-Authenticate" : "Bearer"}
+    )
 
+# API call creating a user using User_Auth class
+@app.get("{full_name}/{email}/create_user")
+async def create_user(full_name, email,credentials : HTTPBasicCredentials):
+    username = credentials.username
+    password = credentials.password
+    user = User_Auth(username, password,client)
+    response = user.add_user(full_name, email)
+    return {"message" : response}

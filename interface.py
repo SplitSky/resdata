@@ -2,14 +2,16 @@ import json
 import requests
 from datetime import date
 import datastructure as d
-
+from requests.auth import HTTPBasicAuth
 import testing as t # this import should be removed for deployment
-# storage in database is done using nested dictionaries
 
+# storage in database is done using nested dictionaries
+# testing
 
 class API_interface():
     def __init__(self, path_in):
         self.path = path_in
+        self.token = ""
 
     def check_connection(self):
         response = requests.get(self.path)
@@ -61,11 +63,6 @@ class API_interface():
 
     def return_fullexperiment(self, project_name: str, experiment_name: str):
         # call api to find the names of all datasets in the experiment
-        print("Printing variables")
-        print(self.path)
-        print(project_name)
-        print(experiment_name)
-
         response = requests.get(self.path + project_name + "/names") # request the names of the datasets connected to experiment
         print(type(response.json()))
         names_dict = response.json()
@@ -146,6 +143,47 @@ class API_interface():
         response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables
         return response 
 
+    ### groups and managing access to them
+
+    #def create_group(self, user : d.User_Request_Body):
+        # return names of user's experiments and loose datasets. Print as tree
+        
+        # take an input of indexes of names to include in the group
+
+        # retrieve user id
+        
+        # insert document in group
+        
+    #def discard_group(self, user : d.User_Request_Body):
+        # return tree of group
+        
+        # ask for confirmation
+
+        # remove the group entry in the database
+     #   a = 2
+
+    #def share_group_read_only(self, user : d.User_Request_Body, username):
+        # check if user exists
+
+        # append share to the group
+
+    #def share_group_full(self, user : d.User_Request_Body, username):
+        # check if user exists
+
+        # append author to the group
+
+    def create_user(self, username, password, full_name, email):
+        # insert the user into the database
+        # this function should also hash the user password
+        # full name + email + /create_user
+        basic = HTTPBasicAuth(username, password)
+        response = requests.get(self.path + full_name + "/" + email + "/create_user", auth=basic)
+        return {"message" : response} 
+
+    def generate_token(self,username, password):
+        basic = HTTPBasicAuth(username, password)
+        response = requests.get(self.path + "/generate_token", auth=basic)
+        return response # returns a token dict
 
 def main():
     project_name = "S_Church"
@@ -153,23 +191,46 @@ def main():
     author_name = "S.Church" 
     filename = "test.json"
     path = "http://127.0.0.1:8000/"
+    full_name = "Stephen Church"
+    
+    # t is testing for generating test data
+    # ui is API interface class
+
+
+    ### populate the database with 2 projects
     
     t.create_test_file_project(filename, [1,1], project_name, author_name)
     project_in = t.load_file_project(filename)
-    ui = API_interface(path)
+    ui = API_interface(path) ## initialise
 
     ui.check_connection()
     # insert project
 
-    print("Inserting Project")
-    temp = ui.insert_project(project=project_in)
-    print("Response:")
-    print(temp)
-    
-    print("Returning Project")
-    temp = ui.get_project_names()
-    #temp = ui.return_fullproject(project_in.get_name())
-    print(temp)
+    username = "splitsky"
+    password = "wombat"
+    full_name = "Tomasz Neska"
+    email = "wombat_combat@gmail.com"
+
+
+    # create user
+    response = ui.create_user(username=username,password=password,full_name=full_name,email=email)
+    print(response.get("message"))
+
+    # login
+    response = ui.generate_token(username=username, password=password)
+
+   ## insert project after validation
+
+   # print("Inserting Project")
+   # temp = ui.insert_project(project=project_in)
+   # print("Response:")
+   # print(temp)
+   # 
+   # print("Returning Project")
+   # temp = ui.get_project_names()
+   # #temp = ui.return_fullproject(project_in.get_name())
+   # print(temp)
+
 
 
 main()
