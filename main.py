@@ -7,7 +7,7 @@ import json
 import hashlib as h
 import random
 import datetime
-import security as s
+from security import User_Auth
 
 
 '''
@@ -222,17 +222,79 @@ async def create_user(user_data : d.User_Request_Body): # permission variable to
         users.insert_one(user_json)
         raise HTTPException(status_code=status.HTTP_200_OK)
 
-@app.post("/token", response_model=s.Token)
-async def login_for_access_token(form_data: s.OAuth2PasswordRequestForm = s.Depends()):
-    user = s.User_Auth(form_data.username, form_data.password)
-    if not user.check_username_exists():
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = datetime.timedelta(minutes=s.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = s.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+
+### API call generating the token
+@app.get("/generate_token", response_model=Token)
+async def login_for_access_token(credentials : HTTPBasicCredentials):
+    user_in = User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
+    user = User_Auth(user_in.get_username(), user_in.get_hash_in()) 
+    if user.check_username_exists():
+        if user.check_password_valid():
+            # authentication complete
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            temp = user.create_access_token({"username" : user_in.get_username()},expires_delta=access_token_expires)
+            expiry_date = datetime.now(timezone.utc) + access_token_expires
+
+            # update user data
+            auth = client["Authentication"]
+            users = auth["Users"]
+            result = users.find_one({"username" : user_in.get_username()})
+            if result != None:
+                # updates the database to verify the user generated a token
+                user.activate_user()
+                users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
+                return Token(access_token=temp, token_type="bearer")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="The credentials failed to validate"
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+
+### API call validating the token
+@app.post("{username}/validate_token")
+async def validate_token(token : Token):
+    # check if token is not expired and if user exists
+    payload = jwt.decode(token.get_token(), SECRET_KEY, algorithms=[ALGORITHM])
+    if payload.get("sub") == None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token is invalid"
+        )
+    else:
+        username = payload.get("sub")
+    user = User_Auth(username, "None")
+    if user.check_username_exists():
+        # access database and validate the token by looking up username
+        auth = client["Authentication"]
+        users = auth["Users"]
+
+        result = users.find_one({"username" : username})
+        # see if user exists
+        if result != None:
+            token_in_db = result.get("token") # returns the hashed password from database
+            # hashes the password in and compares
+            if token_in_db == token.get_token(): #### change to digest comparison to stop timing attack 
+                # the user has the matching token
+                # get the expiry time from database
+                expiry = datetime.fromisoformat(result.get("expiry")) # converts string to date
+                if datetime.now(timezone.utc) <= expiry: # check if token is not expired
+                    raise HTTPException(
+                        status_code=status.HTTP_200_OK,
+                        detail="User authenticated",
+                    )
+                else:
+                    # deactivate the user
+                    user.deactive_user()
+                    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="User doesn't exist",
+        headers={"WWW-Authenticate" : "Bearer"}
+    )
+
+@app.get("{full_name}/{email}/create_user")
+async def create_user_2(full_name, email,credentials : HTTPBasicCredentials):
+    username = credentials.username
+    password = credentials.password
+    user = User_Auth(username, password)
+    response = user.add_user(full_name, email)
+    return {"message" : response}

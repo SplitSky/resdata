@@ -1,8 +1,6 @@
 ### this file contains the class which describes the datastructure
-
 from pydantic import BaseModel
 from enum import Enum
-import datetime
 ### enum for permissions
 class Permission(Enum):
     admin = "admin"

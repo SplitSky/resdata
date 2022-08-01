@@ -172,13 +172,13 @@ class API_interface():
 
         # append author to the group
 
-    def create_user(self, username, password):
+    def create_user(self, username, password, full_name, email):
         # insert the user into the database
         # this function should also hash the user password
-
-        response = requests.get(, auth=basic)
-        
-
+        # full name + email + /create_user
+        basic = HTTPBasicAuth(username, password)
+        response = requests.get(self.path + full_name + "/" + email + "/create_user", auth=basic)
+        return {"message" : response} 
 
     def generate_token(self,username, password):
         basic = HTTPBasicAuth(username, password)
@@ -191,23 +191,46 @@ def main():
     author_name = "S.Church" 
     filename = "test.json"
     path = "http://127.0.0.1:8000/"
+    full_name = "Stephen Church"
+    
+    # t is testing for generating test data
+    # ui is API interface class
+
+
+    ### populate the database with 2 projects
     
     t.create_test_file_project(filename, [1,1], project_name, author_name)
     project_in = t.load_file_project(filename)
-    ui = API_interface(path)
+    ui = API_interface(path) ## initialise
 
     ui.check_connection()
     # insert project
 
-    print("Inserting Project")
-    temp = ui.insert_project(project=project_in)
-    print("Response:")
-    print(temp)
-    
-    print("Returning Project")
-    temp = ui.get_project_names()
-    #temp = ui.return_fullproject(project_in.get_name())
-    print(temp)
+    username = "splitsky"
+    password = "wombat"
+    full_name = "Tomasz Neska"
+    email = "wombat_combat@gmail.com"
+
+
+    # create user
+    response = ui.create_user(username=username,password=password,full_name=full_name,email=email)
+    print(response.get("message"))
+
+    # login
+    response = ui.generate_token(username=username, password=password)
+
+   ## insert project after validation
+
+   # print("Inserting Project")
+   # temp = ui.insert_project(project=project_in)
+   # print("Response:")
+   # print(temp)
+   # 
+   # print("Returning Project")
+   # temp = ui.get_project_names()
+   # #temp = ui.return_fullproject(project_in.get_name())
+   # print(temp)
+
 
 
 main()
