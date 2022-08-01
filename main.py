@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status
+from fastapi.security import HTTPBasicCredentials
 import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
@@ -7,7 +8,8 @@ import json
 import hashlib as h
 import random
 import datetime
-from security import User_Auth
+from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+from jose import jwt, JWTError
 
 
 '''
@@ -23,7 +25,6 @@ dataset = document
 #string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority" # local databse for PSI
 #string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
 string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
-
 client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
 db = client.test
 
@@ -184,56 +185,58 @@ async def create_group(username, hash_init, group : d.Group):
     # insert 
 
 
-### functions managing authentication
-@app.get("{username}/{hash_init}/authenticate")
-async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
-    # variables
-    username = user_data.get_username()
-    hash_init = user_data.get_password()
-    user = s.User_Auth(username, hash_init)
-
-    # see if user already exists
-    result = user.check_username_exists()
-    if result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="User already exists",
-                            headers={"WWW-Authenticate" : "Bearer"})
-    else:
-        # generate salt and insert it into database
-        salt_init = random.SystemRandom().getrandbits(256)
-        temp = h.shake_256() 
-        password = str(salt_init) + hash_init
-
-        temp.update(password.encode('utf8'))
-        # open database and insert a user document
-        user_json = {
-            "username" : username,
-            "hash" : temp.digest(64), # 64 length digest of the hash
-            "full_name" : user_data.get_full_name(),
-            "email" : user_data.get_email(),
-            "disabled" : True,
-            "permission" : [],
-            "salt" : salt_init,
-            "expiry" : str(datetime.datetime.now(datetime.timezone.utc))
-        }
-        # enter the document into the database
-        auth = client["Authentication"]
-        users = auth["Users"]
-        users.insert_one(user_json)
-        raise HTTPException(status_code=status.HTTP_200_OK)
+##### functions managing authentication
 
 
-### API call generating the token
-@app.get("/generate_token", response_model=Token)
+##@app.get("{username}/{hash_init}/authenticate")
+##async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
+##    # variables
+##    username = user_data.get_username()
+##    hash_init = user_data.get_password()
+##    user = User_Auth(username, hash_init, client)
+##
+##    # see if user already exists
+##    result = user.check_username_exists()
+##    if result:
+##        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+##                            detail="User already exists",
+##                            headers={"WWW-Authenticate" : "Bearer"})
+##    else:
+##        # generate salt and insert it into database
+##        salt_init = random.SystemRandom().getrandbits(256)
+##        temp = h.shake_256() 
+##        password = str(salt_init) + hash_init
+##
+##        temp.update(password.encode('utf8'))
+##        # open database and insert a user document
+##        user_json = {
+##            "username" : username,
+##            "hash" : temp.digest(64), # 64 length digest of the hash
+##            "full_name" : user_data.get_full_name(),
+##            "email" : user_data.get_email(),
+##            "disabled" : True,
+##            "permission" : [],
+##            "salt" : salt_init,
+##            "expiry" : str(datetime.datetime.now(datetime.timezone.utc))
+##        }
+##        # enter the document into the database
+##        auth = client["Authentication"]
+##        users = auth["Users"]
+##        users.insert_one(user_json)
+##        raise HTTPException(status_code=status.HTTP_200_OK)
+
+
+### API call generating the token -> returns a token
+@app.get("/generate_token", response_model=d.Token)
 async def login_for_access_token(credentials : HTTPBasicCredentials):
-    user_in = User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
-    user = User_Auth(user_in.get_username(), user_in.get_hash_in()) 
+    user_in = d.User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
+    user = User_Auth(user_in.get_username(), user_in.get_hash_in(), client) 
     if user.check_username_exists():
         if user.check_password_valid():
             # authentication complete
-            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token_expires = datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             temp = user.create_access_token({"username" : user_in.get_username()},expires_delta=access_token_expires)
-            expiry_date = datetime.now(timezone.utc) + access_token_expires
+            expiry_date = datetime.datetime.now(datetime.timezone.utc) + access_token_expires
 
             # update user data
             auth = client["Authentication"]
@@ -243,15 +246,16 @@ async def login_for_access_token(credentials : HTTPBasicCredentials):
                 # updates the database to verify the user generated a token
                 user.activate_user()
                 users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
-                return Token(access_token=temp, token_type="bearer")
+                return d.Token(access_token=temp, token_type="bearer")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="The credentials failed to validate"
     )
 
 ### API call validating the token
+
 @app.post("{username}/validate_token")
-async def validate_token(token : Token):
+async def validate_token(token : d.Token):
     # check if token is not expired and if user exists
     payload = jwt.decode(token.get_token(), SECRET_KEY, algorithms=[ALGORITHM])
     if payload.get("sub") == None:
@@ -261,7 +265,7 @@ async def validate_token(token : Token):
         )
     else:
         username = payload.get("sub")
-    user = User_Auth(username, "None")
+    user = User_Auth(username, "None", client)
     if user.check_username_exists():
         # access database and validate the token by looking up username
         auth = client["Authentication"]
@@ -275,8 +279,8 @@ async def validate_token(token : Token):
             if token_in_db == token.get_token(): #### change to digest comparison to stop timing attack 
                 # the user has the matching token
                 # get the expiry time from database
-                expiry = datetime.fromisoformat(result.get("expiry")) # converts string to date
-                if datetime.now(timezone.utc) <= expiry: # check if token is not expired
+                expiry = datetime.datetime.fromisoformat(result.get("expiry")) # converts string to date
+                if datetime.datetime.now(datetime.timezone.utc) <= expiry: # check if token is not expired
                     raise HTTPException(
                         status_code=status.HTTP_200_OK,
                         detail="User authenticated",
@@ -291,10 +295,11 @@ async def validate_token(token : Token):
         headers={"WWW-Authenticate" : "Bearer"}
     )
 
+# API call creating a user using User_Auth class
 @app.get("{full_name}/{email}/create_user")
-async def create_user_2(full_name, email,credentials : HTTPBasicCredentials):
+async def create_user(full_name, email,credentials : HTTPBasicCredentials):
     username = credentials.username
     password = credentials.password
-    user = User_Auth(username, password)
+    user = User_Auth(username, password,client)
     response = user.add_user(full_name, email)
     return {"message" : response}
