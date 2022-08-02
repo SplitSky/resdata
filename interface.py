@@ -2,21 +2,18 @@ import json
 import requests
 from datetime import date
 import datastructure as d
-from requests.auth import HTTPBasicAuth
-from fastapi import status
 
+import testing as t # this import should be removed for deployment
 # storage in database is done using nested dictionaries
-# testing
+
 
 class API_interface():
     def __init__(self, path_in):
         self.path = path_in
-        self.token = ""
 
     def check_connection(self):
         response = requests.get(self.path)
-        dict_out = response.json()
-        if dict_out.get("message") == status.HTTP_200_OK:
+        if response == 200:
             return True
         else:
             return False
@@ -24,19 +21,14 @@ class API_interface():
     def insert_dataset(self,project_name : str, experiment_name : str, dataset_in: d.Dataset):
         response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_in.get_name(), json=dataset_in.convertJSON())
         print("Inserting single dataset")
-        print("response code: " + str(response))
-        print("response content: ")
-        print(response.json())
         # convert to object and return
         temp = response.json()
         temp = json.loads(temp)
         return temp       
 
     def return_fulldataset(self,project_name: str, experiment_name : str, dataset_name: str):
+        print("Retrieving dataset") 
         response = requests.get(url=self.path+project_name+"/"+experiment_name+"/"+dataset_name)
-        print("Retrieving single dataset")
-        print("response code: + str(response)")
-        print("content of the dataset: ")
         print(response.json())
         temp = response.json()
         temp = json.loads(temp)
@@ -44,6 +36,7 @@ class API_interface():
         return dataset # returns an object of DataSet class
 
     def insert_experiment(self, project_name : str, experiment: d.Experiment):
+        print("Inserting experiment")
         # takes in the experiment object 
         # perform multiple calls to create an experiment directory and then
         # insert datasets one by one
@@ -64,11 +57,23 @@ class API_interface():
 
     def return_fullexperiment(self, project_name: str, experiment_name: str):
         # call api to find the names of all datasets in the experiment
-        response = requests.get(self.path + project_name + "/names") # request the names of the datasets connected to experiment
+        print("Returning experiment")
+        print("Printing variables")
+        print(self.path)
+        print(project_name)
+        print(experiment_name)
+
+        response = requests.get(self.path + project_name +"/"+experiment_name +"/names") # request the names of the datasets connected to experiment
         print(type(response.json()))
         names_dict = response.json()
         names_list = names_dict.get("names")
         datasets = []
+        print("Names in return_fullexperiment")
+        print("names_list")
+        print(names_list)
+        print("names_dict")
+        print(names_dict)
+
         for name in names_list:
             datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each datasets and return the contents -> then add the contents to an object and return the object
@@ -78,9 +83,10 @@ class API_interface():
         return experiment
 
     def return_fullproject(self, project_name: str):
-        response = requests.get(self.path + project_name)
-        exp_names_dict = response.json()
-        exp_names_list = exp_names_dict.get(self.path + "/names")
+        # request a list of all experiments within the project
+        print("returning project")
+        response = requests.get(self.path + project_name +"/names") # returns experiment names
+        exp_names_list = response.json().get("names")
         print("Experiment names: ")
         print(exp_names_list)
         experiments = []
@@ -127,7 +133,9 @@ class API_interface():
     def get_project_names(self):
         response = requests.get(self.path + "names")
         list = response.json() # this returns a python dictionary
+        print("project_names : " + str(list))
         return list.get("names")
+
 
     ### initialize project
     def init_project(self, project: d.Project):
@@ -137,56 +145,10 @@ class API_interface():
 
     ### initialize experiment
     def init_experiment(self,project_id ,experiment : d.Experiment):
-        request_body = d.Simple_Request_body(name=experiment.get_name(),meta=experiment.get_meta(), author="a")
-        print("request body")
+        request_body = d.Dataset(name=experiment.get_name(),meta=experiment.get_meta(), data_type="configuration file", data=[])
+        print("initialising experiment request body")
         print(request_body)
         response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables
         return response 
-
-    ### groups and managing access to them
-
-    #def create_group(self, user : d.User_Request_Body):
-        # return names of user's experiments and loose datasets. Print as tree
-        
-        # take an input of indexes of names to include in the group
-
-        # retrieve user id
-        
-        # insert document in group
-        
-    #def discard_group(self, user : d.User_Request_Body):
-        # return tree of group
-        
-        # ask for confirmation
-
-        # remove the group entry in the database
-     #   a = 2
-
-    #def share_group_read_only(self, user : d.User_Request_Body, username):
-        # check if user exists
-
-        # append share to the group
-
-    #def share_group_full(self, user : d.User_Request_Body, username):
-        # check if user exists
-
-        # append author to the group
-
-    def create_user(self, username, password):
-        # insert the user into the database
-        # this function should also hash the user password
-        # full name + email + /create_user
-        print("Adding user")
-        #user = d.User_Request_Body(username=username, hash="", full_name=full_name, email=email)
-        basic = HTTPBasicAuth(username, password)
-        response = requests.post(self.path + "create_user", auth=basic)
-        print("Response")
-        print(response)
-        return {"message" : response}
-
-    def generate_token(self,username, password):
-        basic = HTTPBasicAuth(username, password)
-        response = requests.get(self.path + "generate_token", auth=basic)
-        return response # returns a token dict
 
 

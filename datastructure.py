@@ -1,10 +1,6 @@
 ### this file contains the class which describes the datastructure
-from pydantic import BaseModel
-from enum import Enum
-### enum for permissions
-class Permission(Enum):
-    admin = "admin"
 
+from pydantic import BaseModel
 
 # the baseline for data storage. Each measurement is a node in terms of a dataset
 class Dataset(BaseModel):
@@ -115,104 +111,13 @@ class Simple_Request_body(BaseModel):
     meta : str | None = None
     author : str
 
-    def get_variables(self):
-        return [self.name, self.meta, self.author]
+    #def get_variables(self):
+    #    return [self.name, self.meta, self.author]
 
     def convertJSON(self):
         json_dict = {
             "name" : self.name,
             "meta" : self.meta,
             "author" : self.author
-        }
-        return json_dict
-
-class User_Request_Body(BaseModel):
-    username : str
-    hash : str
-    full_name : str
-    email : str
-    # permissions are given separately
-    def get_username(self):
-        return self.username
-    def get_password(self):
-        return self.hash
-    def get_full_name(self):
-        return self.full_name
-    def get_email(self):
-        return self.email
-    def get_hash(self):
-        return self.hash
-
-class Token(BaseModel):
-    access_token : str
-    token_type : str
-    def get_token(self):
-        return self.access_token
-
-class User(BaseModel):
-    username : str
-    email : str | None = None
-    full_name : str | None = None
-    hash_in : str
-
-    def get_username(self):
-        return self.username
-
-    def get_email(self):
-        return self.email
-
-    def get_full_name(self):
-        return self.full_name
-
-    def get_hash_in(self):
-        return self.hash_in
-
-    def dict(self):
-        return {
-            "username" : self.username,
-            "email" : self.email,
-            "full_name" : self.email,
-            "hash_in" : self.hash_in
-        }
-
-class UserInDB(User):
-    hashed_password: str
-    disabled: bool
-
-
-class Group(BaseModel):
-    name : str
-    authors : list[str]
-    share : list [str]
-    meta : list[str]
-    experiments : list[str] # full experiments attached to the group
-    datasets : list[str] # loose datasets attache
-
-    # get functions
-    def get_authors(self):
-        return self.authors
-
-    def get_meta(self):
-        return self.meta
-
-    def get_experiments(self):
-        return self.experiments
-
-    def get_datasets(self):
-        return self.get_datasets
-
-    def get_name(self):
-        return self.name
-
-    def get_share(self):
-        return self.share
-
-    def convertJSON(self):
-        json_dict = {
-            "authors" : self.authors,
-            "share" : self.share,
-            "meta" : self.meta,
-            "experiments" : self.experiments,
-            "datasets" : self.datasets
         }
         return json_dict

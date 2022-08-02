@@ -1,32 +1,22 @@
-from fastapi import FastAPI, HTTPException, status
-from fastapi.security import HTTPBasicCredentials
+from fastapi import FastAPI
 import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
 import datastructure as d
 import json
-import hashlib as h
-import random
-import datetime
-from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
-from jose import jwt, JWTError
-
-import logging # debugging tools
-
 
 '''
 the project parameters are stored in their own database called "config"
 They are updated in the update_project_data call
-
 project = database
 experiment = collection
 dataset = document 
-
 '''
 
 #string = "mongodb+srv://" + var.username + ":" + var.password + "@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority" # local databse for PSI
 #string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
 string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
+
 client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
 db = client.test
 
@@ -36,24 +26,24 @@ client = MongoClient(string)
 #db = client["test_struct"] # defines database called test 
 #db = client["dev_struct"]
 app = FastAPI()
-    
+
 # functions that work
 @app.get("/")
 async def connection_test(): # works like main
     try:
-        thing = client.server_info
-        return {"message" : status.HTTP_200_OK, "server_info" : thing}
+        thing = str(client.server_info)
     except:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection wasn't successful")
+        thing = "failed to connect"
+    return {"message" : thing}
 # end get
 
 # 8. Call to return a result full dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
-@app.get("/{project_id}/{experiment_id}/{dataset_id}/get_dataset")
+@app.get("/{project_id}/{experiment_id}/{dataset_id}")
 async def return_dataset(project_id, experiment_id, dataset_id):
     project = client[project_id] # database
     experiment = project[experiment_id] # collection
     #dataset = experiment[dataset_id] # document
-    temp_return = {}
+    temp_return = []
     temp = experiment.find({"name" : dataset_id}) # returns document 
     if temp == None:
         return {"message" : "no data found"}
@@ -65,10 +55,10 @@ async def return_dataset(project_id, experiment_id, dataset_id):
                 "meta" : dataset.get("meta"),
                 "data_type" : dataset.get("data_type")
             }
-            temp_return[dataset.get("name")] = dict_struct
+            temp_return.append(dict_struct)
         return {"datasets data" : temp_return}
 
-@app.post("/{project_id}/{experiment_id}/{dataset_id}/insert_dataset")
+@app.post("/{project_id}/{experiment_id}/{dataset_id}")
 
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
@@ -94,14 +84,14 @@ async def return_all_experiment_names(project_id):
     return {"names" : names_temp}
 
 # 7. Call to return all dataset names for an experiment - "/{project_id}/{experiment_id}/" - get
-@app.get("/{project_id}/{experiment_id}/names")
+@app.get("/{project_id}/{experiment_id}")
 async def return_all_dataset_names(project_id, experiment_id):
     project = client[project_id]
     experiment = project[experiment_id]
     names_temp = []
     for dataset in experiment.find():
         names_temp.append(dataset.get("name"))
-    return {"dataset names" : names_temp}
+    return {"names" : names_temp}
 
 @app.get("/{project_id}/{experiment_id}/details") # returns the details without the data
 async def return_experiment_details(project_id, experiment_id):
@@ -119,27 +109,29 @@ async def return_experiment_details(project_id, experiment_id):
         return json_dict
 
 @app.post("/{project_id}/{experiment_id}/set_experiment")
-async def update_experiment_data(project_id, experiment_id, data_in : d.Simple_Request_body):
+async def update_experiment_data(project_id, experiment_id, data_in : d.Dataset):
     project = client[project_id]
+    print("The experiment update function is running")
     experiment = project[experiment_id]
-    temp = data_in.get_variables()
-    json_dict = {
-        "ref" : "config", # called a ref to avoid confusion with experiment variable name
-        "name" : temp[0],
-        "meta" : temp[1]
-    }
-    experiment.insert_one(json_dict)
-    return json_dict
+   # json_dict = {
+   #     "ref" : "config", # called a ref to avoid confusion with experiment variable name
+   #     "name" : data_in.name,
+   #     "meta" : data_in.meta,
+   #     "data type" : "configuration data"
+   # }
+   # experiment.insert_one(json_dict)
+   # return json_dict
+    experiment.insert_one(data_in.convertJSON())
+    return data_in.convertJSON()
 
 @app.post("/{project_id}/set_project")
 async def update_project_data(project_id, data_in : d.Simple_Request_body):
     project = client[project_id]
     collection = project["config"] # collection containing project variables
-    temp = data_in.get_variables()
     json_dict = {
-        "name" : temp[0],
-        "meta" : temp[1],
-        "author" : temp[2],
+        "name" : data_in.name,
+        "meta" : data_in.meta,
+        "author" : data_in.author,
         "data" : []
     }
     collection.insert_one(json_dict)
@@ -160,153 +152,3 @@ async def return_project_data(project_id):
             "author" : python_dict.get("author")
         }
         return json_dict
-
-### functions managing grouping of existing datasets and experiments
-'''
-1. create a group using a list of names
-2. remove the group
-3. add a dataset to a group
-4. remove a dataset from a group
-5. add an experiment to a group
-6. remove an experiment from  a group
-'''
-# 1. create a group using an object
-@app.post("/{group_name}/{username}/{hash_init}/group_init")
-async def create_group(username, hash_init, group : d.Group):
-    ### authentication
-
-    ### end authentication
-    # compose the group document
-    group_json = {
-        "name" : group.get_name(),
-        "authors" : group.get_authors(),
-        "meta" : group.get_meta(),
-        "experiments" : group.get_experiments(),
-        "datasets" : group.get_datasets()
-    }
-    # insert 
-
-
-##### functions managing authentication
-
-
-##@app.get("{username}/{hash_init}/authenticate")
-##async def create_user(user_data : d.User_Request_Body): # permission variable to be removed and added to the admin interface
-##    # variables
-##    username = user_data.get_username()
-##    hash_init = user_data.get_password()
-##    user = User_Auth(username, hash_init, client)
-##
-##    # see if user already exists
-##    result = user.check_username_exists()
-##    if result:
-##        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-##                            detail="User already exists",
-##                            headers={"WWW-Authenticate" : "Bearer"})
-##    else:
-##        # generate salt and insert it into database
-##        salt_init = random.SystemRandom().getrandbits(256)
-##        temp = h.shake_256() 
-##        password = str(salt_init) + hash_init
-##
-##        temp.update(password.encode('utf8'))
-##        # open database and insert a user document
-##        user_json = {
-##            "username" : username,
-##            "hash" : temp.digest(64), # 64 length digest of the hash
-##            "full_name" : user_data.get_full_name(),
-##            "email" : user_data.get_email(),
-##            "disabled" : True,
-##            "permission" : [],
-##            "salt" : salt_init,
-##            "expiry" : str(datetime.datetime.now(datetime.timezone.utc))
-##        }
-##        # enter the document into the database
-##        auth = client["Authentication"]
-##        users = auth["Users"]
-##        users.insert_one(user_json)
-##        raise HTTPException(status_code=status.HTTP_200_OK)
-
-
-### API call generating the token -> returns a token
-@app.get("/generate_token", response_model=d.Token)
-async def login_for_access_token(credentials : HTTPBasicCredentials):
-    user_in = d.User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
-    user = User_Auth(user_in.get_username(), user_in.get_hash_in(), client) 
-    if user.check_username_exists():
-        if user.check_password_valid():
-            # authentication complete
-            access_token_expires = datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            temp = user.create_access_token({"username" : user_in.get_username()},expires_delta=access_token_expires)
-            expiry_date = datetime.datetime.now(datetime.timezone.utc) + access_token_expires
-
-            # update user data
-            auth = client["Authentication"]
-            users = auth["Users"]
-            result = users.find_one({"username" : user_in.get_username()})
-            if result != None:
-                # updates the database to verify the user generated a token
-                user.activate_user()
-                users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
-                return d.Token(access_token=temp, token_type="bearer")
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="The credentials failed to validate"
-    )
-
-### API call validating the token
-
-@app.post("/{username}/validate_token")
-async def validate_token(token : d.Token):
-    # check if token is not expired and if user exists
-    payload = jwt.decode(token.get_token(), SECRET_KEY, algorithms=[ALGORITHM])
-    if payload.get("sub") == None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Token is invalid"
-        )
-    else:
-        username = payload.get("sub")
-    user = User_Auth(username, "None", client)
-    if user.check_username_exists():
-        # access database and validate the token by looking up username
-        auth = client["Authentication"]
-        users = auth["Users"]
-
-        result = users.find_one({"username" : username})
-        # see if user exists
-        if result != None:
-            token_in_db = result.get("token") # returns the hashed password from database
-            # hashes the password in and compares
-            if token_in_db == token.get_token(): #### change to digest comparison to stop timing attack 
-                # the user has the matching token
-                # get the expiry time from database
-                expiry = datetime.datetime.fromisoformat(result.get("expiry")) # converts string to date
-                if datetime.datetime.now(datetime.timezone.utc) <= expiry: # check if token is not expired
-                    raise HTTPException(
-                        status_code=status.HTTP_200_OK,
-                        detail="User authenticated",
-                    )
-                else:
-                    # deactivate the user
-                    user.deactive_user()
-                    
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="User doesn't exist",
-        headers={"WWW-Authenticate" : "Bearer"}
-    )
-
-# API call creating a user using User_Auth class
-@app.post("/create_user")
-async def create_user(credentials : HTTPBasicCredentials):
-    username = credentials.username
-    password = credentials.password
-    user = User_Auth(username, password,client)
-    response = user.add_user(None, None)
-    return {"message" : response}
-
-# API call to update the user with other details
-@app.post("/update_user_details")
-async def update_user(user_data : d.User_Request_Body):
-    username = user_data
