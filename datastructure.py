@@ -167,6 +167,14 @@ class User(BaseModel):
     def get_hash_in(self):
         return self.hash_in
 
+    def dict(self):
+        return {
+            "username" : self.username,
+            "email" : self.email,
+            "full_name" : self.email,
+            "hash_in" : self.hash_in
+        }
+
 class UserInDB(User):
     hashed_password: str
     disabled: bool

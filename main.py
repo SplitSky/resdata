@@ -11,6 +11,8 @@ import datetime
 from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
 
+import logging # debugging tools
+
 
 '''
 the project parameters are stored in their own database called "config"
@@ -39,14 +41,14 @@ app = FastAPI()
 @app.get("/")
 async def connection_test(): # works like main
     try:
-        thing = str(client.server_info)
+        thing = client.server_info
+        return {"message" : status.HTTP_200_OK, "server_info" : thing}
     except:
-        thing = "failed to connect"
-    return {"message" : thing}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection wasn't successful")
 # end get
 
 # 8. Call to return a result full dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
-@app.get("/{project_id}/{experiment_id}/{dataset_id}")
+@app.get("/{project_id}/{experiment_id}/{dataset_id}/get_dataset")
 async def return_dataset(project_id, experiment_id, dataset_id):
     project = client[project_id] # database
     experiment = project[experiment_id] # collection
@@ -66,7 +68,7 @@ async def return_dataset(project_id, experiment_id, dataset_id):
             temp_return[dataset.get("name")] = dict_struct
         return {"datasets data" : temp_return}
 
-@app.post("/{project_id}/{experiment_id}/{dataset_id}")
+@app.post("/{project_id}/{experiment_id}/{dataset_id}/insert_dataset")
 
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
@@ -92,7 +94,7 @@ async def return_all_experiment_names(project_id):
     return {"names" : names_temp}
 
 # 7. Call to return all dataset names for an experiment - "/{project_id}/{experiment_id}/" - get
-@app.get("/{project_id}/{experiment_id}")
+@app.get("/{project_id}/{experiment_id}/names")
 async def return_all_dataset_names(project_id, experiment_id):
     project = client[project_id]
     experiment = project[experiment_id]
@@ -169,7 +171,7 @@ async def return_project_data(project_id):
 6. remove an experiment from  a group
 '''
 # 1. create a group using an object
-@app.post("{group_name}/{username}/{hash_init}/group_init")
+@app.post("/{group_name}/{username}/{hash_init}/group_init")
 async def create_group(username, hash_init, group : d.Group):
     ### authentication
 
@@ -254,7 +256,7 @@ async def login_for_access_token(credentials : HTTPBasicCredentials):
 
 ### API call validating the token
 
-@app.post("{username}/validate_token")
+@app.post("/{username}/validate_token")
 async def validate_token(token : d.Token):
     # check if token is not expired and if user exists
     payload = jwt.decode(token.get_token(), SECRET_KEY, algorithms=[ALGORITHM])
@@ -296,10 +298,15 @@ async def validate_token(token : d.Token):
     )
 
 # API call creating a user using User_Auth class
-@app.get("{full_name}/{email}/create_user")
-async def create_user(full_name, email,credentials : HTTPBasicCredentials):
+@app.post("/create_user")
+async def create_user(credentials : HTTPBasicCredentials):
     username = credentials.username
     password = credentials.password
     user = User_Auth(username, password,client)
-    response = user.add_user(full_name, email)
+    response = user.add_user(None, None)
     return {"message" : response}
+
+# API call to update the user with other details
+@app.post("/update_user_details")
+async def update_user(user_data : d.User_Request_Body):
+    username = user_data

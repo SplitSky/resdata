@@ -6,6 +6,34 @@ author_name = "S.Church"
 filename = "test.json"
 path = "http://127.0.0.1:8000/"
 
+username = "splitsky"
+password = "wombat"
+full_name = "Tomasz Neska"
+email = "wombat@gmail.com"
+
+# check connection
+ui = API_interface(path)
+print(ui.check_connection())
+
+# insert user
+
+#ui.create_user(username, password)
+
+# validate user
+
+
+# insert project using the token
+
+
+# wait for the token to expire
+
+
+# try to insert project again
+
+
+
+
+
 # Create a test project
 t.create_test_file_project(filename, [1, 1], project_name, author_name)
 # Load the project
@@ -21,3 +49,5 @@ print(temp)
 print("Returning Project")
 temp = ui.get_project_names()
 print(temp)
+
+

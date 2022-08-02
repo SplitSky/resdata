@@ -9,7 +9,7 @@ import hashlib as h
 from variables import secret_key, algorithm, access_token_expire
 import random
 #from passlib.context import CryptContext
-
+import logging
 # declare constants for the 
 
 SECRET_KEY = secret_key
@@ -41,10 +41,10 @@ class User_Auth(object):
             
     def return_final_hash(self, salt_in):
         if salt_in != None:
-            password = salt_in + self.password
+            password = str(salt_in) + self.password
             temp = h.shake_256()
             temp.update(password.encode('utf8'))
-            return temp.digest(64)
+            return temp.hexdigest(64) # return a string
         else:
 
             auth = self.client["Authentication"]
@@ -60,7 +60,7 @@ class User_Auth(object):
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail = "User doesn't exist"
                 )
-            return temp.digest(64)
+            return temp.hexdigest(64) # return a string from bytes
 
     def create_access_token(self,data: dict, expires_delta: timedelta | None = None):
         to_encode = data.copy()
@@ -113,7 +113,7 @@ class User_Auth(object):
                 "full_name" : full_name,
                 "email" : email,
                 "disabled" : True,
-                "salt" : salt_init,
+                "salt" : str(salt_init),
                 "expiry" : str(datetime.now(timezone.utc))
             }
             result = users.insert_one(user_dict)
