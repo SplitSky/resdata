@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 import hashlib as hash
 import variables as var
 from pymongo.mongo_client import MongoClient
@@ -38,7 +38,7 @@ async def connection_test(): # works like main
 # end get
 
 # 8. Call to return a result full dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
-@app.get("/{project_id}/{experiment_id}/{dataset_id}")
+@app.get("/{project_id}/{experiment_id}/{dataset_id}/return_dataset")
 async def return_dataset(project_id, experiment_id, dataset_id):
     project = client[project_id] # database
     experiment = project[experiment_id] # collection
@@ -58,7 +58,7 @@ async def return_dataset(project_id, experiment_id, dataset_id):
             temp_return.append(dict_struct)
         return {"datasets data" : temp_return}
 
-@app.post("/{project_id}/{experiment_id}/{dataset_id}")
+@app.post("/{project_id}/{experiment_id}/{dataset_id}/insert_dataset")
 
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
@@ -81,10 +81,12 @@ async def returm_all_project_names():
 async def return_all_experiment_names(project_id):
     project = client[project_id] # return collection of experiments
     names_temp = project.list_collection_names()
+    names_temp.remove("config") # removes the config entry from the experiments list
+
     return {"names" : names_temp}
 
 # 7. Call to return all dataset names for an experiment - "/{project_id}/{experiment_id}/" - get
-@app.get("/{project_id}/{experiment_id}")
+@app.get("/{project_id}/{experiment_id}/names")
 async def return_all_dataset_names(project_id, experiment_id):
     project = client[project_id]
     experiment = project[experiment_id]
@@ -93,22 +95,25 @@ async def return_all_dataset_names(project_id, experiment_id):
         names_temp.append(dataset.get("name"))
     return {"names" : names_temp}
 
-@app.get("/{project_id}/{experiment_id}/details") # returns the details without the data
+@app.get("/{project_id}/{experiment_id}/details") # returns the details without the data -> this function is not used
 async def return_experiment_details(project_id, experiment_id):
     project = client[project_id]
     experiment = project[experiment_id]
-    result = experiment.find_one({"ref" : "config"}) # returns json object
+    result = experiment.find_one({"data_type" : "configuration file"}) # returns json object
     if result == None:
-        return {"message" : "Experiment not found found. Experiment not initialised"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment was not initialised"
+        )
     else:
         python_dict = json.loads(result)
         json_dict = {
             "name" : python_dict.get("name"),
             "meta" : python_dict.get("meta")
         }
-        return json_dict
+        return json.dumps(json_dict)
 
-@app.post("/{project_id}/{experiment_id}/set_experiment")
+@app.post("/{project_id}/{experiment_id}/set_experiment") # this function is redundant and can be replaced with insert dataset
 async def update_experiment_data(project_id, experiment_id, data_in : d.Dataset):
     project = client[project_id]
     print("The experiment update function is running")
@@ -135,7 +140,7 @@ async def update_project_data(project_id, data_in : d.Simple_Request_body):
         "data" : []
     }
     collection.insert_one(json_dict)
-    return json_dict
+    return json.dumps(json_dict)
 
 @app.get("/{project_id}/details")
 async def return_project_data(project_id):
@@ -145,10 +150,9 @@ async def return_project_data(project_id):
     if result == None:
         return {"message" : "No config found. Project not initialised"}
     else:
-        python_dict = json.loads(result)
         json_dict = {
-            "name" : python_dict.get("name"),
-            "meta" : python_dict.get("meta"),
-            "author" : python_dict.get("author")
+            "name" : result.get("name"),
+            "meta" : result.get("meta"),
+            "author" : result.get("author")
         }
-        return json_dict
+        return json.dumps(json_dict)

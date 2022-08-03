@@ -19,7 +19,7 @@ class API_interface():
             return False
 
     def insert_dataset(self,project_name : str, experiment_name : str, dataset_in: d.Dataset):
-        response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_in.get_name(), json=dataset_in.convertJSON())
+        response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_in.get_name()+"/insert_dataset", json=dataset_in.convertJSON())
         print("Inserting single dataset")
         # convert to object and return
         temp = response.json()
@@ -28,12 +28,16 @@ class API_interface():
 
     def return_fulldataset(self,project_name: str, experiment_name : str, dataset_name: str):
         print("Retrieving dataset") 
-        response = requests.get(url=self.path+project_name+"/"+experiment_name+"/"+dataset_name)
+        response = requests.get(url=self.path+project_name+"/"+experiment_name+"/"+dataset_name+"/return_dataset")
         print(response.json())
         temp = response.json()
-        temp = json.loads(temp)
-        dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"), data_type=temp.get("data_type"))
-        return dataset # returns an object of DataSet class
+        temp = temp.get("datasets data") # returns the list of dataset dictionaries
+        temp = temp[0] # simplify the return of the variable
+        print("temp")
+        print(temp)
+        print("The dataset returned")
+        
+        return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),data_type=temp.get("data_type"))
 
     def insert_experiment(self, project_name : str, experiment: d.Experiment):
         print("Inserting experiment")
@@ -58,34 +62,41 @@ class API_interface():
     def return_fullexperiment(self, project_name: str, experiment_name: str):
         # call api to find the names of all datasets in the experiment
         print("Returning experiment")
-        print("Printing variables")
-        print(self.path)
-        print(project_name)
-        print(experiment_name)
-
+        # return the list of datasets
         response = requests.get(self.path + project_name +"/"+experiment_name +"/names") # request the names of the datasets connected to experiment
-        print(type(response.json()))
         names_dict = response.json()
         names_list = names_dict.get("names")
         datasets = []
+        
         print("Names in return_fullexperiment")
         print("names_list")
         print(names_list)
         print("names_dict")
         print(names_dict)
+        exp_name = "default"
+        exp_meta = ["default"]
+
 
         for name in names_list:
-            datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
+            temp = self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name)
+            if temp.get_datatype() == "configuration file":
+                # update experiment parameters
+                exp_name = temp.name
+                exp_meta = temp.meta
+            else:
+                datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each datasets and return the contents -> then add the contents to an object and return the object
-        response = requests.get(self.path + project_name + "/" + experiment_name + "/details")
-        exp_dict = json.loads(response.json())
-        experiment = d.Experiment(name=exp_dict.get("name"),children=datasets, meta=exp_dict.get("meta"))
+        
+        print("exp dict")
+        exp_dict = response.json()
+        print(exp_dict)
+        experiment = d.Experiment(name=exp_name,children=datasets, meta=exp_meta)
         return experiment
 
     def return_fullproject(self, project_name: str):
         # request a list of all experiments within the project
         print("returning project")
-        response = requests.get(self.path + project_name +"/names") # returns experiment names
+        response = requests.get(self.path + project_name +"/names") # returns experiment names including config
         exp_names_list = response.json().get("names")
         print("Experiment names: ")
         print(exp_names_list)
@@ -94,7 +105,9 @@ class API_interface():
             experiments.append(self.return_fullexperiment(project_name, exp_name))
 
         response = requests.get(self.path + project_name + "/details")
-        proj_dict = response.json()
+        print("response: " + str(response))
+        proj_dict = json.loads(response.json()) # conversion into dict
+        
         project = d.Project(name=proj_dict.get("name"),author=proj_dict.get("author") ,groups=experiments ,meta=proj_dict.get("meta") )
         return project
 
@@ -110,7 +123,6 @@ class API_interface():
     def check_experiment_exists(self, project_name: str, experiment_name : str):
         response = requests.get(self.path + project_name +"/names")
         names = response.json().get("names") # may have to json.dumps()
-
         if experiment_name in names:
             return True
         else:
@@ -145,10 +157,13 @@ class API_interface():
 
     ### initialize experiment
     def init_experiment(self,project_id ,experiment : d.Experiment):
-        request_body = d.Dataset(name=experiment.get_name(),meta=experiment.get_meta(), data_type="configuration file", data=[])
+        #request_body = d.Dataset(name=experiment.get_name(),meta=experiment.get_meta(), data_type="configuration file", data=[])
         print("initialising experiment request body")
-        print(request_body)
-        response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables
-        return response 
+        #print(request_body)
+        #response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables
+        #return response
+        dataset_in = d.Dataset(name=experiment.name,data=[],meta=[],data_type="configuration file")
+        # insert special dataset
+        self.insert_dataset(project_name=project_id, experiment_name=experiment.name,dataset_in=dataset_in)
 
 

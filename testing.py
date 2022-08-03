@@ -28,7 +28,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     experiments = []
     datasets = []
 
-    meta_temp = str(date.today())
+    meta_temp = [str(date.today())]
     for j in range(0,structure[1],1):
         dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
         datasets.append(dataset)
@@ -46,7 +46,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
 
 def create_test_file_dataset(filename_in, dataset_name):
 
-    meta_temp = str(date.today())
+    meta_temp = [str(date.today())]
     x = []
     y = []
     y2 = []

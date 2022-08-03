@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class Dataset(BaseModel):
     name: str
     data: list # list of numbers or bits
-    meta: str | None = None
+    meta: list[str] | None = None
     data_type: str
 
     def convertJSON(self): # converts it into nested dictionary
@@ -14,7 +14,7 @@ class Dataset(BaseModel):
             "name" : self.name,
             "meta" : self.meta,
             "data_type" : self.data_type,
-            "data" : self.data # this list can be serialised 
+            "data" : self.data, # this list can be serialised 
         }
         return json_dict
 
@@ -37,7 +37,7 @@ class Dataset(BaseModel):
 class Experiment(BaseModel):
     name: str
     children: list[Dataset] # dictionary of data sets each with ID
-    meta: str | None = None # implemented union as optional variable
+    meta: list[str] | None = None # implemented union as optional variable
     
     def convertJSON(self): # returns a nested python dictionary
         temp_dict = {}

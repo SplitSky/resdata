@@ -13,10 +13,10 @@ def inserting_project_test():
 
     ui.check_connection()
 
-    #print("Inserting Project")
-    #temp = ui.insert_project(project_in)
-    #print("Response: ")
-    #print(temp)
+    print("Inserting Project")
+    temp = ui.insert_project(project_in)
+    print("Response: ")
+    print(temp)
 
     print("Returning project")
     temp = ui.get_project_names()
