@@ -72,7 +72,6 @@ class API_interface():
                 # update experiment parameters
                 exp_name = temp.name
                 exp_meta = temp.meta
-                print("THIS FUNCTION IS BEING RUN")
             else:
                 datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each datasets and return the contents -> then add the contents to an object and return the object
@@ -145,7 +144,7 @@ class API_interface():
         #request_body = d.Dataset(name=experiment.get_name(),meta=experiment.get_meta(), data_type="configuration file", data=[])
         #response = requests.post(self.path + project_id + "/" + experiment.get_name() + "/set_experiment", json=request_body.convertJSON()) # updates the experiment variables
         #return response
-        dataset_in = d.Dataset(name=experiment.name,data=[],meta=experiment.meta,data_type="configuration file")
+        dataset_in = d.Dataset(name=experiment.name,data=[],meta=[],data_type="configuration file")
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name,dataset_in=dataset_in)
 

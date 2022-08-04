@@ -30,14 +30,14 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
 
     meta_temp = [str(date.today())]
     for j in range(0,structure[1],1):
-        dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset", meta=meta_temp)
+        dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset", meta=["dataset metadata"])
         datasets.append(dataset)
 
     for i in range(0,structure[0],1):
-        experiment = d.Experiment(name="experiment_" + str(i), children=datasets, meta=meta_temp)
+        experiment = d.Experiment(name="experiment_" + str(i), children=datasets, meta=["experiment metadata"])
         experiments.append(experiment)
     
-    project = d.Project(name=project_name, author=author_name, groups=experiments, meta="This is a test")
+    project = d.Project(name=project_name, author=author_name, groups=experiments, meta=["project metadata"])
     with open(filename_in, 'w') as file:
         json.dump(project.convertJSON(),file)
         file.close()
@@ -66,9 +66,6 @@ def load_file_project(filename_out): # returns a project object from file
     with open(filename_out, 'r') as file:
         python_dict = json.load(file)
         #python_dict = json.loads(json_string)
-        print("The data type is: " + str(type(python_dict)))
-        print("contents of the file: ")
-        print(python_dict)
         groups_temp = []
         for i, experiment in python_dict.get("groups").items():
             # iterate over datasets
@@ -85,7 +82,6 @@ def load_file_project(filename_out): # returns a project object from file
 def load_file_dataset(filename_out):
     with open(filename_out, 'r') as file:
         json_string = json.load(file)
-        print("The data type is: " + str(type(json_string)))
         dataset = d.Dataset(name=json_string.get("name") , data=json_string.get("data"), meta= json_string.get("meta"), data_type=json_string.get("data_type"))
         file.close()
     return dataset
