@@ -17,8 +17,8 @@ dataset = document
 #string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
 string = "mongodb+srv://"+var.username+":"+var.password+"@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
 
-client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
-db = client.test
+#client = MongoClient("mongodb+srv://splitsky:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority")
+#db = client.test
 
 
 
@@ -32,9 +32,10 @@ app = FastAPI()
 async def connection_test(): # works like main
     try:
         thing = str(client.server_info)
+        return True
     except:
-        thing = "failed to connect"
-    return {"message" : thing}
+        return False
+    
 # end get
 
 # 8. Call to return a result full dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
@@ -118,14 +119,6 @@ async def update_experiment_data(project_id, experiment_id, data_in : d.Dataset)
     project = client[project_id]
     print("The experiment update function is running")
     experiment = project[experiment_id]
-   # json_dict = {
-   #     "ref" : "config", # called a ref to avoid confusion with experiment variable name
-   #     "name" : data_in.name,
-   #     "meta" : data_in.meta,
-   #     "data type" : "configuration data"
-   # }
-   # experiment.insert_one(json_dict)
-   # return json_dict
     experiment.insert_one(data_in.convertJSON())
     return data_in.convertJSON()
 

@@ -69,7 +69,7 @@ class Project(BaseModel):
     name: str
     author: str
     groups: list[Experiment]
-    meta: str | None = None
+    meta: list[str] | None = None
 
     def convertJSON(self): # returns a dictionary
         temp_dict = {}
@@ -104,11 +104,15 @@ class Project(BaseModel):
 
     def get_meta(self):
         return self.meta
-
+    def print_data(self):
+        for exp in self.groups:
+            string_out = exp.convertJSON()
+            print("printing experiment: ")
+            print(string_out)
 
 class Simple_Request_body(BaseModel):
     name : str
-    meta : str | None = None
+    meta : list[str] | None = None
     author : str
 
     #def get_variables(self):
