@@ -5,6 +5,18 @@ from pymongo.mongo_client import MongoClient
 import datastructure as d
 import json
 
+# authentication imports
+from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+from jose import jwt, JWTError
+from fastapi.security import HTTPBasicCredentials
+from datetime import datetime, timezone, timedelta
+# define permanent variables
+ACCESS_TOKEN_EXPIRE_MINUTES = var.access_token_expire
+SECRET_KEY = var.secret_key
+ALGORITHM = var.algorithm
+
+
+
 '''
 the project parameters are stored in their own database called "config"
 They are updated in the update_project_data call
@@ -31,7 +43,7 @@ app = FastAPI()
 @app.get("/")
 async def connection_test(): # works like main
     try:
-        thing = str(client.server_info)
+        client.server_info
         return True
     except:
         return False
@@ -149,3 +161,86 @@ async def return_project_data(project_id):
             "author" : result.get("author")
         }
         return json.dumps(json_dict)
+
+# authentication
+
+# API call creating a user using User_Auth class
+@app.post("/create_user")
+async def create_user(user : d.User):
+    auth_obj = User_Auth(user.username, user.hash_in,client)
+    response = auth_obj.add_user(user.full_name, user.email)
+    if response:
+        # succesfully created user
+        return {"message" : "User Succesfully created"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User already exists"
+        )
+
+# API call for validating a user token
+@app.post("{username}/validate_token")
+async def validate_token(token : d.Token):
+    # check if token is not expired and if user exists
+    payload = jwt.decode(token.access_token, SECRET_KEY, algorithms=[ALGORITHM])
+    if payload.get("sub") == None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token is invalid"
+        )
+    else:
+        username = payload.get("sub")
+    user = User_Auth(username, "None", client)
+    if user.check_username_exists():
+        # access database and validate the token by looking up username
+        auth = client["Authentication"]
+        users = auth["Users"]
+
+        result = users.find_one({"username" : username})
+        # see if user exists
+        if result != None:
+            token_in_db = result.get("token") # returns the hashed password from database
+            # hashes the password in and compares
+            if token_in_db == token.access_token: #### change to digest comparison to stop timing attack 
+                # the user has the matching token
+                # get the expiry time from database
+                expiry = datetime.fromisoformat(result.get("expiry")) # converts string to date
+                if datetime.now(timezone.utc) <= expiry: # check if token is not expired
+                    raise HTTPException(
+                        status_code=status.HTTP_200_OK,
+                        detail="User authenticated",
+                    )
+                else:
+                    # deactivate the user
+                    user.deactive_user()
+                    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="User doesn't exist",
+        headers={"WWW-Authenticate" : "Bearer"}
+    )
+# API call generating the token -> returns a token
+@app.get("/generate_token", response_model=d.Token)
+async def login_for_access_token(credentials : HTTPBasicCredentials):
+    user_in = d.User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
+    user = User_Auth(user_in.get_username(), user_in.get_hash_in(), client) 
+    if user.check_username_exists():
+        if user.check_password_valid():
+            # authentication complete
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            temp = user.create_access_token({"username" : user_in.get_username()},expires_delta=access_token_expires)
+            expiry_date = datetime.now(timezone.utc) + access_token_expires
+
+            # update user data
+            auth = client["Authentication"]
+            users = auth["Users"]
+            result = users.find_one({"username" : user_in.get_username()})
+            if result != None:
+                # updates the database to verify the user generated a token
+                user.activate_user()
+                users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
+                return d.Token(access_token=temp, token_type="bearer")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="The credentials failed to validate"
+    )

@@ -125,3 +125,17 @@ class Simple_Request_body(BaseModel):
             "author" : self.author
         }
         return json_dict
+
+# Token used in authentication
+class Token(BaseModel):
+    access_token : str
+    token_type : str
+
+# user class used for authentication
+class User(BaseModel):
+    username : str
+    hash_in : str | None = None
+    email : str
+    full_name : str
+    
+

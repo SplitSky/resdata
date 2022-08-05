@@ -2,10 +2,18 @@ import json
 import requests
 from datetime import date
 import datastructure as d
+import hashlib as h
 
 import testing as t # this import should be removed for deployment
 # storage in database is done using nested dictionaries
 
+
+# hash function used in the API
+def return_hash(password : str):
+    # this function only hashes the password for sending purposes
+    temp = h.shake_256()
+    temp.update(password.encode('utf8'))
+    return temp.hexdigest(64)
 
 class API_interface():
     def __init__(self, path_in):
@@ -154,6 +162,26 @@ class API_interface():
         response = response.json()
         names = response.get("names")
         if dataset_id in names:
+            return True
+        else:
+            return False
+
+# authentication functions
+    def create_user(self, username_in, password_in, email, full_name):
+        # generate hash
+        hash = return_hash(password=password_in)
+        user = d.User(username=username_in, hash_in=hash, email=email, full_name=full_name)
+        
+        #user_out = json.dumps(user.dict())
+        user_out = user.dict()
+
+        # API call to create user
+        response = requests.post(self.path + "create_user", json=user_out)
+        
+        print("status code" + str(response.status_code))
+        
+        if response.status_code == 200:
+            # the user already exists
             return True
         else:
             return False

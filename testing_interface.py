@@ -24,14 +24,23 @@ class TestClass:
         temp = ui.return_fullproject(project_name=project_in.get_name())
         assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
 
-#    def test_2(self):
-#        # check connection
-#        ui = API_interface(path)
-#        assert ui.check_connection() == True
-#
-#    def test_3(self):
-#        # creating a user test
-#
+    def test_2(self):
+        # check connection
+        ui = API_interface(path)
+        assert ui.check_connection() == True
+
+    def test_3(self):
+        username = "test_user"
+        password = "wombat"
+        email = "wombatCombat@email.com"
+        fullName = "Wombat Smith"
+
+        # creating a user test
+        ui = API_interface(path)
+        response = ui.create_user(username_in=username, password_in=password,email=email ,full_name= fullName)
+        print("response2" + str(response))
+        assert response == True
+
 #    def test_4(self):
 #        # authentication of a user and an insertion of database
 #
@@ -41,4 +50,10 @@ class TestClass:
 #    def test_6(self):
 #        # authentication of a usr and an insertion of a project
 
+def main():
+    thing = TestClass()
+    thing.test_3()
+
+
+main()
 

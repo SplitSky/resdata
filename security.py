@@ -106,7 +106,6 @@ class User_Auth(object):
         
         # check user exists
         if not self.check_username_exists():
-
             user_dict = {
                 "username" : self.username,
                 "hash" : self.return_final_hash(salt_init),
@@ -116,12 +115,13 @@ class User_Auth(object):
                 "salt" : str(salt_init),
                 "expiry" : str(datetime.now(timezone.utc))
             }
-            result = users.insert_one(user_dict)
-            return result
+            users.insert_one(user_dict)
+            return True
         else:
-            raise HTTPException(
-                status_code=status.HTTP_302_FOUND,
-                detail = "User already exists"
-            )
+            return False # returns boolean to raise exception in api call
+            #raise HTTPException(
+            #    status_code=status.HTTP_302_FOUND,
+            #    detail = "User already exists"
+            #)
 
 
