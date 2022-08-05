@@ -41,8 +41,15 @@ class TestClass:
         print("response2" + str(response))
         assert response == True
 
-#    def test_4(self):
-#        # authentication of a user and an insertion of database
+    def test_4(self):
+        # authentication of a user and an insertion of database
+        username = "test_user"
+        password = "wombat"
+        email = "wombatCombat@email.com"
+        fullName = "Wombat Smith"
+
+        ui = API_interface(path)
+        ui.generate_token(username, password)
 #
 #    def test_5(self):
 #        # authentication of a user and an insertion of an experiment

@@ -222,23 +222,22 @@ async def validate_token(token : d.Token):
 # API call generating the token -> returns a token
 @app.get("/generate_token", response_model=d.Token)
 async def login_for_access_token(credentials : HTTPBasicCredentials):
-    user_in = d.User(username=credentials.username , hash_in=credentials.password) # remove the object declaration once the authentiation method is standardised
-    user = User_Auth(user_in.get_username(), user_in.get_hash_in(), client) 
+    user = User_Auth(credentials.username, credentials.password, client) 
     if user.check_username_exists():
         if user.check_password_valid():
             # authentication complete
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            temp = user.create_access_token({"username" : user_in.get_username()},expires_delta=access_token_expires)
+            temp = user.create_access_token({"username" :credentials.username},expires_delta=access_token_expires)
             expiry_date = datetime.now(timezone.utc) + access_token_expires
 
             # update user data
             auth = client["Authentication"]
             users = auth["Users"]
-            result = users.find_one({"username" : user_in.get_username()})
+            result = users.find_one({"username" : credentials.username})
             if result != None:
                 # updates the database to verify the user generated a token
                 user.activate_user()
-                users.find_one_and_update({"username": user_in.get_username()}, {"expire" : str(expiry_date)})
+                users.find_one_and_update({"username": credentials.username}, {"expire" : str(expiry_date)})
                 return d.Token(access_token=temp, token_type="bearer")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

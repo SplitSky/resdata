@@ -46,7 +46,6 @@ class User_Auth(object):
             temp.update(password.encode('utf8'))
             return temp.hexdigest(64) # return a string
         else:
-
             auth = self.client["Authentication"]
             users = auth["Users"]
             result = users.find_one({"username" : self.username})

@@ -3,8 +3,8 @@ import requests
 from datetime import date
 import datastructure as d
 import hashlib as h
+from requests.auth import HTTPBasicAuth
 
-import testing as t # this import should be removed for deployment
 # storage in database is done using nested dictionaries
 
 
@@ -16,9 +16,10 @@ def return_hash(password : str):
     return temp.hexdigest(64)
 
 class API_interface():
+
     def __init__(self, path_in):
         self.path = path_in
-
+        self.token = ""
     def check_connection(self):
         response = requests.get(self.path)
         if response == 200:
@@ -85,7 +86,6 @@ class API_interface():
                 datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each datasets and return the contents -> then add the contents to an object and return the object
         
-        exp_dict = response.json()
         experiment = d.Experiment(name=exp_name,children=datasets, meta=exp_meta)
         return experiment
 
@@ -185,3 +185,9 @@ class API_interface():
             return True
         else:
             return False
+
+    def generate_token(self, username, password):
+        # if the username and password match return true
+        hash_in = return_hash(password)
+        credentials = HTTPBasicAuth(username=username ,password=hash_in)
+        self.token = requests.post("/generate_token", auth=credentials) # generates token
