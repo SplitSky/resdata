@@ -134,8 +134,8 @@ class Token(BaseModel):
 # user class used for authentication
 class User(BaseModel):
     username : str
-    hash_in : str | None = None
-    email : str
-    full_name : str
+    hash_in : str
+    email : str | None = None
+    full_name : str | None = None
     
 

@@ -220,26 +220,21 @@ async def validate_token(token : d.Token):
         headers={"WWW-Authenticate" : "Bearer"}
     )
 # API call generating the token -> returns a token
-@app.get("/generate_token", response_model=d.Token)
-async def login_for_access_token(credentials : HTTPBasicCredentials):
-    user = User_Auth(credentials.username, credentials.password, client) 
+@app.post("/generate_token", response_model=d.Token)
+async def login_for_access_token(credentials : d.User):
+    user = User_Auth(credentials.username, credentials.hash_in, client) 
     if user.check_username_exists():
         if user.check_password_valid():
             # authentication complete
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            temp = user.create_access_token({"username" :credentials.username},expires_delta=access_token_expires)
-            expiry_date = datetime.now(timezone.utc) + access_token_expires
-
-            # update user data
-            auth = client["Authentication"]
-            users = auth["Users"]
-            result = users.find_one({"username" : credentials.username})
-            if result != None:
-                # updates the database to verify the user generated a token
-                user.activate_user()
-                users.find_one_and_update({"username": credentials.username}, {"expire" : str(expiry_date)})
-                return d.Token(access_token=temp, token_type="bearer")
+            temp_token = user.create_access_token({"username" :credentials.username},expires_delta=access_token_expires)
+            # create_access_token acitvates user and sets expiry date in database
+            return d.Token(access_token=temp_token, token_type="bearer")
+    # token fails authentication
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="The credentials failed to validate"
     )
+
+
+

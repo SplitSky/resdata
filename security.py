@@ -35,17 +35,19 @@ class User_Auth(object):
             pass_in_db = result.get("hash") # returns the hashed password from database
             # hashes the password in and compares
             if pass_in_db == self.return_final_hash(None):
-                return True
+                return result
             else:
                 return False
             
     def return_final_hash(self, salt_in):
         if salt_in != None:
+            # user provided salt
             password = str(salt_in) + self.password
             temp = h.shake_256()
             temp.update(password.encode('utf8'))
             return temp.hexdigest(64) # return a string
         else:
+            # fetch the salt from the database
             auth = self.client["Authentication"]
             users = auth["Users"]
             result = users.find_one({"username" : self.username})
@@ -69,7 +71,24 @@ class User_Auth(object):
             expire = datetime.utcnow() + timedelta(minutes=30)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+       
+        authentication_exception = HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="The user doesn't exist. Can't generate token"
+        )
+        # update the token in the database
+        auth = self.client["Authentication"]
+        users = auth["Users"]
+        #temp_list = [{"disabled" : False} , {"token" : encoded_jwt} , {"expiry" : expire}]
+
+        temp_list = [{'$set': {'disabled': False}}, {'$set' : {'token' : encoded_jwt}}, {'$set' : {"expiry" : expire}}]
+
+        for change in temp_list:
+            result = users.find_one_and_update({"username" : self.username}, change)
+            if result == None:
+                raise authentication_exception
         return encoded_jwt
+
     
     def check_username_exists(self):
         auth = self.client["Authentication"]
@@ -112,7 +131,8 @@ class User_Auth(object):
                 "email" : email,
                 "disabled" : True,
                 "salt" : str(salt_init),
-                "expiry" : str(datetime.now(timezone.utc))
+                "expiry" : str(datetime.now(timezone.utc)),
+                "token" : ""
             }
             users.insert_one(user_dict)
             return True

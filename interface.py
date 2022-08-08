@@ -4,6 +4,7 @@ from datetime import date
 import datastructure as d
 import hashlib as h
 from requests.auth import HTTPBasicAuth
+from fastapi import status
 
 # storage in database is done using nested dictionaries
 
@@ -22,7 +23,7 @@ class API_interface():
         self.token = ""
     def check_connection(self):
         response = requests.get(self.path)
-        if response == 200:
+        if response == status.HTTP_200_OK:
             return True
         else:
             return False
@@ -189,5 +190,9 @@ class API_interface():
     def generate_token(self, username, password):
         # if the username and password match return true
         hash_in = return_hash(password)
-        credentials = HTTPBasicAuth(username=username ,password=hash_in)
-        self.token = requests.post("/generate_token", auth=credentials) # generates token
+        credentials = d.User(username=username ,hash_in=hash_in)
+        response = requests.post(self.path + "generate_token", json=credentials.dict()) # generates token
+        temp = response.json() # loads json into dict
+        self.token = temp.get("access_token")
+
+

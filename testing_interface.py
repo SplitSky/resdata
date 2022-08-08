@@ -27,40 +27,53 @@ class TestClass:
     def test_2(self):
         # check connection
         ui = API_interface(path)
-        assert ui.check_connection() == True
+        ui.check_connection()
 
     def test_3(self):
-        username = "test_user"
-        password = "wombat"
+        username = "string"
+        password = "string"
         email = "wombatCombat@email.com"
         fullName = "Wombat Smith"
-
         # creating a user test
         ui = API_interface(path)
         response = ui.create_user(username_in=username, password_in=password,email=email ,full_name= fullName)
         print("response2" + str(response))
-        assert response == True
 
     def test_4(self):
-        # authentication of a user and an insertion of database
+        # authentication of user and returns a token
         username = "test_user"
         password = "wombat"
-        email = "wombatCombat@email.com"
-        fullName = "Wombat Smith"
-
         ui = API_interface(path)
         ui.generate_token(username, password)
-#
-#    def test_5(self):
-#        # authentication of a user and an insertion of an experiment
-#
-#    def test_6(self):
-#        # authentication of a usr and an insertion of a project
+
+    def test_5(self):
+        # authentication of a user using the token
+        username = "test_user"
+        password = "wombat"
+        ui = API_interface(path)
+        ui.generate_token(username, password)
+        
+        # insert a project
+        filename = "authenticated_test.json"
+        project_name = "T_Neska"
+        author_name = "T.Neska"
+
+        t.create_test_file_project(filename, [1,1], project_name, author_name)
+        project_in = t.load_file_project(filename) 
+        ui.insert_project(project_in)
+
+
+
+    def test_6(self):
+        # insertion of the project with failed authentication
+        username = "test_user"
+        password = "not_wombat"
+        ui = API_interface(path)
+        ui.generate_token(username, password)
+
 
 def main():
     thing = TestClass()
-    thing.test_3()
-
-
+    thing.test_5()
 main()
 
