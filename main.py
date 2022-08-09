@@ -10,7 +10,6 @@ from pymongo.mongo_client import MongoClient
 # Project imports
 import datastructure as d
 import variables as var
-
 # authentication imports
 from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 
@@ -51,9 +50,9 @@ async def return_dataset(project_id, experiment_id, dataset_id, user : d.User):
 
 
 
-    project = client[project_id] # database
-    experiment = project[experiment_id] # collection
-    #dataset = experiment[dataset_id] # document
+    project = client[project_id]  # database
+    experiment = project[experiment_id]  # collection
+    # dataset = experiment[dataset_id] # document
     temp_return = []
     temp = experiment.find({"name": dataset_id})  # returns document
     if temp is None:
@@ -229,7 +228,7 @@ async def validate_token(token: d.Token):
             if token_in_db == token.access_token:
                 # the user has the matching token
                 # get the expiry time from database
-                expiry = datetime.fromisoformat(result.get("expiry")) # converts string to date
+                expiry = datetime.fromisoformat(result.get("expiry"))  # converts string to date
                 if datetime.utcnow() <= expiry: # check if token is not expired
                     print("user authenticated")
                     raise HTTPException(
@@ -255,8 +254,9 @@ async def login_for_access_token(credentials: d.User):
         if user.check_password_valid():
             # authentication complete
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            temp_token = user.create_access_token(expires_delta=access_token_expires)
-            # create_access_token acitvates user and sets expiry date in database
+            temp_token = user.create_access_token(
+                                                  expires_delta=access_token_expires)
+            # create_access_token activates user and sets expiry date in database
             return d.Token(access_token=temp_token, token_type="bearer")
     # token fails authentication
     raise HTTPException(

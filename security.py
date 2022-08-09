@@ -89,6 +89,7 @@ class User_Auth(object):
             if result is None:
                 raise authentication_exception
         return encoded_jwt
+
     def check_username_exists(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
@@ -140,7 +141,7 @@ class User_Auth(object):
             # raise HTTPException(
             #    status_code=status.HTTP_302_FOUND,
             #    detail = "User already exists"
-            #)
+            # )
     def fetch_token(self):
         # fetches the token associated with the user
         auth = self.client["Authentication"]

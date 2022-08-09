@@ -1,11 +1,14 @@
-import json
-import requests
-import datastructure as d
 import hashlib as h
+import json
+
+import requests
 from fastapi import status
 
+import datastructure as d
+
+
 # storage in database is done using nested dictionaries
-# authentication
+
 
 # hash function used in the API
 def return_hash(password: str):
@@ -29,7 +32,7 @@ class API_interface:
         else:
             return False
 
-    def insert_dataset(self,project_name : str, experiment_name : str, dataset_in: d.Dataset):
+    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset):
         # set credentials for authentication
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username, permission="write").dict()] # assign admin permissions for new dataset the user adds
@@ -38,11 +41,11 @@ class API_interface:
         print(response)
         return response
 
-    def return_fulldataset(self,project_name: str, experiment_name : str, dataset_name: str):
+    def return_fulldataset(self, project_name: str, experiment_name: str, dataset_name: str):
         user_in = d.User(username=self.username, hash_in=self.token)
         response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_name+"/return_dataset", json=user_in.dict())
         temp = response.json()
-        temp = temp.get("datasets data") # returns the list of dataset dictionaries
+        temp = temp.get("datasets data")  # returns the list of dataset dictionaries
         temp = temp[0] # fetches one dataset matching the name
         print("dataset returned body : ")
         print(temp)
@@ -159,12 +162,12 @@ class API_interface:
         return response
 
     # initialize experiment
-    def init_experiment(self,project_id ,experiment : d.Experiment):
+    def init_experiment(self, project_id, experiment: d.Experiment):
         # insert dataset function validates as it is the only function which inserts things into the database.
         # Author data is just the username and the permission of the user entering it
         dataset_in = d.Dataset(name=experiment.name,data=[],meta=experiment.meta,data_type="configuration file",author=[d.Author(name=self.username, permission="write").dict()])
         # insert special dataset
-        self.insert_dataset(project_name=project_id, experiment_name=experiment.name,dataset_in=dataset_in)
+        self.insert_dataset(project_name=project_id, experiment_name=experiment.name, dataset_in=dataset_in)
 
     def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str):
         response = requests.get(self.path + project_id + "/" + experiment_id + "/names")
@@ -192,9 +195,9 @@ class API_interface:
         # generates the token for the session and allows for further interaction with the database
         hash_in = return_hash(password)
         self.username = username
-        credentials = d.User(username=username ,hash_in=hash_in)
-        response = requests.post(self.path + "generate_token", json=credentials.dict()) # generates token
-        temp = response.json() # loads json into dict
+        credentials = d.User(username=username, hash_in=hash_in)
+        response = requests.post(self.path + "generate_token", json=credentials.dict())  # generates token
+        temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
 
     def try_authenticate(self):

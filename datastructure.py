@@ -21,13 +21,13 @@ class Dataset(BaseModel):
     username: Union[str, NoneType] = None
     token: Union[str, NoneType] = None
 
-    def convertJSON(self): # converts it into nested dictionary
+    def convertJSON(self):  # converts it into nested dictionary
         # this function skips over the username and token variables
         python_dict = {
-            "name" : self.name,
-            "meta" : self.meta,
-            "data_type" : self.data_type,
-            "data" : self.data, # this list can be serialised
+            "name": self.name,
+            "meta": self.meta,
+            "data_type": self.data_type,
+            "data": self.data,  # this list can be serialised
             "author" : self.author
         }
         return python_dict
@@ -94,7 +94,7 @@ class Experiment(BaseModel):
 class Project(BaseModel):
     name: str
     author: str
-    groups: Union[List[Experiment], NoneType] = None
+    groups: Union[List[Experiment],NoneType] = None
     meta: Union[List[str], NoneType] = None
 
     def convertJSON(self):  # returns a dictionary
