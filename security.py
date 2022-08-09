@@ -1,22 +1,24 @@
-from fastapi import Depends, FastAPI, HTTPException, status
-#from fastapi.security import OAuth2PasswordBearer
-from datetime import datetime, timedelta, timezone
-from fastapi import Depends, FastAPI, HTTPException, status
-#from fastapi.security import OAuth2PasswordBearer, HTTPBasicCredentials
-from jose import JWTError, jwt
-#from main import app, client # imports of api variables
+from __future__ import annotations
+
+# imports of api variables
 import hashlib as h
-from variables import secret_key, algorithm, access_token_expire
 import random
-#from passlib.context import CryptContext
+from datetime import datetime, timedelta, timezone
+from fastapi import HTTPException, status
+from jose import jwt
+
+from variables import secret_key, algorithm, access_token_expire
+
 import logging
 from secrets import compare_digest
-# declare constants for the 
+# declare constants for the
 
 SECRET_KEY = secret_key
 ALGORITHM = algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = access_token_expire
-### User verification object
+
+
+# User verification object
 class User_Auth(object):
     def __init__(self, username_in, password_in, db_client_in):
         self.username = username_in
@@ -27,32 +29,32 @@ class User_Auth(object):
         # lookup the database for user
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one({"username" : self.username})
+        result = users.find_one({"username": self.username})
         # see if user exists
-        if result == None:
+        if result is None:
             return False
         # if yes verify password
         else:
-            pass_in_db = result.get("hash") # returns the hashed password from database
+            pass_in_db = result.get("hash")  # returns the hashed password from database
             # hashes the password in and compares
             if pass_in_db == self.return_final_hash(None):
                 return result
             else:
                 return False
-            
+
     def return_final_hash(self, salt_in):
-        if salt_in != None:
+        if salt_in is not None:
             # user provided salt
             password = str(salt_in) + self.password
             temp = h.shake_256()
             temp.update(password.encode('utf8'))
-            return temp.hexdigest(64) # return a string
+            return temp.hexdigest(64)  # return a string
         else:
             # fetch the salt from the database
             auth = self.client["Authentication"]
             users = auth["Users"]
-            result = users.find_one({"username" : self.username})
-            if result != None:
+            result = users.find_one({"username": self.username})
+            if result is not None:
                 salt = result.get("salt")
                 temp = h.shake_256()
                 password = salt + self.password
@@ -60,11 +62,11 @@ class User_Auth(object):
             else:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail = "User doesn't exist"
+                    detail="User doesn't exist"
                 )
-            return temp.hexdigest(64) # return a string from bytes
+            return temp.hexdigest(64)  # return a string from bytes
 
-    def create_access_token(self,data: dict, expires_delta: timedelta | None = None):
+    def create_access_token(self, data: dict, expires_delta: timedelta | None = None):
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
@@ -72,39 +74,38 @@ class User_Auth(object):
             expire = datetime.utcnow() + timedelta(minutes=30)
         to_encode.update({"exp" : expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-       
+
         authentication_exception = HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="The user doesn't exist. Can't generate token"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="The user doesn't exist. Can't generate token"
         )
         # update the token in the database
         auth = self.client["Authentication"]
         users = auth["Users"]
-        #temp_list = [{"disabled" : False} , {"token" : encoded_jwt} , {"expiry" : expire}]
+        # temp_list = [{"disabled" : False} , {"token" : encoded_jwt} , {"expiry" : expire}]
 
-        temp_list = [{'$set': {'disabled': False}}, {'$set' : {'token' : encoded_jwt}}, {'$set' : {"expiry" : expire}}]
+        temp_list = [{'$set': {'disabled': False}}, {'$set': {'token': encoded_jwt}}, {'$set': {"expiry": expire}}]
 
         for change in temp_list:
-            result = users.find_one_and_update({"username" : self.username}, change)
-            if result == None:
+            result = users.find_one_and_update({"username": self.username}, change)
+            if result is None:
                 raise authentication_exception
         return encoded_jwt
 
-    
     def check_username_exists(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one({"username" : self.username})
-        if result == None:
+        result = users.find_one({"username": self.username})
+        if result is None:
             return False
-        else: 
+        else:
             return True
 
     def activate_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one_and_update({"username" : self.username}, {"disabled" : False})
-        if result == None: # failed to find user
+        result = users.find_one_and_update({"username": self.username}, {"disabled": False})
+        if result is None:  # failed to find user
             return False
         else:
             return True
@@ -112,8 +113,8 @@ class User_Auth(object):
     def deactive_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one_and_update({"username" : self.username}, {"disabled" : True})
-        if result == None:
+        result = users.find_one_and_update({"username": self.username}, {"disabled": True})
+        if result is None:
             return False
         else:
             return True
@@ -122,24 +123,24 @@ class User_Auth(object):
         auth = self.client["Authentication"]
         users = auth["Users"]
         salt_init = random.SystemRandom().getrandbits(256)
-        
+
         # check user exists
         if not self.check_username_exists():
             user_dict = {
-                "username" : self.username,
-                "hash" : self.return_final_hash(salt_init),
-                "full_name" : full_name,
-                "email" : email,
-                "disabled" : True,
-                "salt" : str(salt_init),
-                "expiry" : datetime.now(timezone.utc),
-                "token" : ""
+                "username": self.username,
+                "hash": self.return_final_hash(salt_init),
+                "full_name": full_name,
+                "email": email,
+                "disabled": True,
+                "salt": str(salt_init),
+                "expiry": str(datetime.now(timezone.utc)),
+                "token": ""
             }
             users.insert_one(user_dict)
             return True
         else:
-            return False # returns boolean to raise exception in api call
-            #raise HTTPException(
+            return False  # returns boolean to raise exception in api call
+            # raise HTTPException(
             #    status_code=status.HTTP_302_FOUND,
             #    detail = "User already exists"
             #)
@@ -174,7 +175,7 @@ class User_Auth(object):
             # username recovered successfully
         except JWTError:
             raise credentials_exception
-        
+
         if username == self.username:
             # user name matches the token
             # check the token matches the one in the database
