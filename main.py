@@ -77,6 +77,15 @@ async def return_dataset(project_id, experiment_id, dataset_id):
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
     project_temp = client[project_id] # returns the project - database
     experiment_temp = project_temp[experiment_id] # calls the experiment collection 
+    temp = item.return_credentials()
+    user = User_Auth(username_in=temp[0],password_in=temp[1], db_client_in=client)
+    # authenticate user using the security module or raise exception
+    if not user.authenticate_token():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="The token failed to authenticate"    
+        )
+
     experiment_temp.insert_one(item.convertJSON()) # data insert into database
     return json.dumps(item.convertJSON()) # return for verification
 # end def
@@ -227,7 +236,7 @@ async def login_for_access_token(credentials : d.User):
         if user.check_password_valid():
             # authentication complete
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            temp_token = user.create_access_token({"username" :credentials.username},expires_delta=access_token_expires)
+            temp_token = user.create_access_token({"sub" :credentials.username},expires_delta=access_token_expires)
             # create_access_token acitvates user and sets expiry date in database
             return d.Token(access_token=temp_token, token_type="bearer")
     # token fails authentication

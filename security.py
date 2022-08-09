@@ -10,6 +10,7 @@ from variables import secret_key, algorithm, access_token_expire
 import random
 #from passlib.context import CryptContext
 import logging
+from secrets import compare_digest
 # declare constants for the 
 
 SECRET_KEY = secret_key
@@ -69,7 +70,7 @@ class User_Auth(object):
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=30)
-        to_encode.update({"exp": expire})
+        to_encode.update({"exp" : expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
        
         authentication_exception = HTTPException(
@@ -131,7 +132,7 @@ class User_Auth(object):
                 "email" : email,
                 "disabled" : True,
                 "salt" : str(salt_init),
-                "expiry" : str(datetime.now(timezone.utc)),
+                "expiry" : datetime.now(timezone.utc),
                 "token" : ""
             }
             users.insert_one(user_dict)
@@ -142,5 +143,51 @@ class User_Auth(object):
             #    status_code=status.HTTP_302_FOUND,
             #    detail = "User already exists"
             #)
+    def fetch_token(self):
+        # fetches the token associated with the user
+        auth = self.client["Authentication"]
+        users = auth["Users"]
+        result = users.find_one({"username" : self.username})
+        return result.get("token")
+
+    def fetch_user(self):
+        auth = self.client["Authentication"]
+        users = auth["Users"]
+        result = users.find_one({"username" : self.username})
+        return result
 
 
+    def authenticate_user(self):
+        # self.password contains the token value
+        # decode token
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        try:
+            payload = jwt.decode(self.password, SECRET_KEY, algorithms=[ALGORITHM])
+            # payload contains the username and expiry date of the token as a string
+            username = payload.get("sub")
+            if username is None:
+                raise credentials_exception
+            # username recovered successfully
+        except JWTError:
+            raise credentials_exception
+        
+        if username == self.username:
+            # user name matches the token
+            # check the token matches the one in the database
+            fetched_user = self.fetch_user() # fetches the user data
+            if fetched_user == None:
+                raise credentials_exception
+
+            if compare_digest(self.password, fetched_user.get("token")): # compares tokens
+                # successfully compared tokens
+                # check the token is valid
+                now = datetime.now(timezone.utc)
+                if now > datetime.fromisoformat(fetched_user.get("expiry")):
+                    # user successfully validated
+                    return True
+
+        raise credentials_exception

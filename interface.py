@@ -7,7 +7,10 @@ from requests.auth import HTTPBasicAuth
 from fastapi import status
 
 # storage in database is done using nested dictionaries
-
+# authentication
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
+from requests.auth import HTTPBasicAuth
 
 # hash function used in the API
 def return_hash(password : str):
@@ -29,6 +32,7 @@ class API_interface():
             return False
 
     def insert_dataset(self,project_name : str, experiment_name : str, dataset_in: d.Dataset):
+        
         response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_in.get_name()+"/insert_dataset", json=dataset_in.convertJSON())
         temp = response.json() # loads the json return
         temp = json.loads(temp) # converts it into python dict

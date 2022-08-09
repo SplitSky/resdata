@@ -8,6 +8,9 @@ class Dataset(BaseModel):
     data: list # list of numbers or bits
     meta: list[str] | None = None
     data_type: str
+    # variables used in authentication
+    username: str | None = None
+    token : str | None = None
 
     def convertJSON(self): # converts it into nested dictionary
         json_dict = {
@@ -17,6 +20,12 @@ class Dataset(BaseModel):
             "data" : self.data, # this list can be serialised 
         }
         return json_dict
+
+    def return_credentials(self):
+        return [self.username, self.token]
+
+
+    # TODO: The functions should be removed and replaced with self.name etc
 
     def return_name(self):
         return self.name
