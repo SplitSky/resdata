@@ -1,31 +1,30 @@
 import json
 import requests
-from datetime import date
 import datastructure as d
 import hashlib as h
-from requests.auth import HTTPBasicAuth
 from fastapi import status
 
 # storage in database is done using nested dictionaries
 # authentication
-from requests.auth import HTTPBasicAuth
 
 # hash function used in the API
-def return_hash(password : str):
+def return_hash(password: str):
     # this function only hashes the password for sending purposes
     temp = h.shake_256()
     temp.update(password.encode('utf8'))
     return temp.hexdigest(64)
 
-class API_interface():
+
+class API_interface:
 
     def __init__(self, path_in):
         self.path = path_in
         self.token = ""
         self.username = ""
+
     def check_connection(self):
         response = requests.get(self.path)
-        if response == status.HTTP_200_OK:
+        if response.status_code == status.HTTP_200_OK:
             return True
         else:
             return False
@@ -51,15 +50,16 @@ class API_interface():
         print(temp.get("name"))
         return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),data_type=temp.get("data_type"), author=temp.get("author"))
 
-    def insert_experiment(self, project_name : str, experiment: d.Experiment):
+    def insert_experiment(self, project_name: str, experiment: d.Experiment):
         # takes in the experiment object 
         # perform multiple calls to create an experiment directory and then
         # insert datasets one by one
         experiment_name = experiment.get_name()
         # check if experiment exists:
-        if self.check_experiment_exists(project_name,experiment_name) == False:
+        if not self.check_experiment_exists(project_name, experiment_name):
             # if it doesn't initialise it
             self.init_experiment(project_name, experiment)
+
         # init the experiment
         response = []
         temp = experiment.return_datasets()
@@ -75,54 +75,56 @@ class API_interface():
     def return_fullexperiment(self, project_name: str, experiment_name: str):
         # call api to find the names of all datasets in the experiment
         # return the list of datasets
-        response = requests.get(self.path + project_name +"/"+experiment_name +"/names") # request the names of the datasets connected to experiment
+        response = requests.get(
+            self.path + project_name + "/" + experiment_name + "/names")
         names_dict = response.json()
         names_list = names_dict.get("names")
         datasets = []
-        
+
         exp_name = "default"
         exp_meta = ["default"]
 
-
         for name in names_list:
-            temp = self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name)
+            temp = self.return_fulldataset(project_name=project_name, experiment_name=experiment_name,
+                                           dataset_name=name)
             if temp.get_datatype() == "configuration file":
                 # update experiment parameters
                 exp_name = temp.name
                 exp_meta = temp.meta
-                print("THIS FUNCTION IS BEING RUN")
             else:
-                datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
-        # call api for each datasets and return the contents -> then add the contents to an object and return the object
-        
-        experiment = d.Experiment(name=exp_name,children=datasets, meta=exp_meta)
+                datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name,
+                                                        dataset_name=name))
+        # call api for each dataset and return the contents -> then add the contents to an object and return the object
+
+        experiment = d.Experiment(name=exp_name, children=datasets, meta=exp_meta)
         return experiment
 
     def return_fullproject(self, project_name: str):
         # request a list of all experiments within the project
-        response = requests.get(self.path + project_name +"/names") # returns experiment names including config
+        response = requests.get(self.path + project_name + "/names")  # returns experiment names including config
         exp_names_list = response.json().get("names")
         experiments = []
-        for exp_name in exp_names_list: ### return names function returns type none
+        for exp_name in exp_names_list:
             experiments.append(self.return_fullexperiment(project_name, exp_name))
 
         response = requests.get(self.path + project_name + "/details")
-        proj_dict = json.loads(response.json()) # conversion into dict
-        
-        project = d.Project(name=proj_dict.get("name"),author=proj_dict.get("author") ,groups=experiments ,meta=proj_dict.get("meta") )
+        proj_dict = json.loads(response.json())  # conversion into dict
+
+        project = d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
+                            meta=proj_dict.get("meta"))
         return project
 
-    def check_project_exists(self,project_name : str):
-        response = requests.get(self.path+ "names") # returns a list of strings
+    def check_project_exists(self, project_name: str):
+        response = requests.get(self.path + "names")  # returns a list of strings
         names = response.json().get("names")
         if project_name in names:
             return True
         else:
             return False
 
-    def check_experiment_exists(self, project_name: str, experiment_name : str):
-        response = requests.get(self.path + project_name +"/names")
-        names = response.json().get("names") # may have to json.dumps()
+    def check_experiment_exists(self, project_name: str, experiment_name: str):
+        response = requests.get(self.path + project_name + "/names")
+        names = response.json().get("names")  # may have to json.dumps()
         if experiment_name in names:
             return True
         else:
@@ -132,32 +134,31 @@ class API_interface():
         response_out = []
         # set project in database
         # check if project exists. If not initialise it 
-        if self.check_project_exists(project_name=project.name) == False:
-            self.init_project(project)
+        if self.check_project_exists(project_name=project.get_name()):
+            raise RuntimeError('Project Already exists')
+        self.init_project(project)
 
         temp = project.return_experiments()
-        for experiment in temp:
-            response_out.append(self.insert_experiment(project.name,experiment))
+        if temp is not None:
+            for experiment in temp:
+                response_out.append(self.insert_experiment(project.get_name(), experiment))
         return response_out
 
-    ## two functions to return names of the experiment and the names of the project
+    # two functions to return names of the experiment and the names of the project
 
     def get_project_names(self):
         response = requests.get(self.path + "names")
-        list = response.json() # this returns a python dictionary
+        list = response.json()  # this returns a python dictionary
         return list.get("names")
 
-
-    ### initialize project
+    # initialize project
     def init_project(self, project: d.Project):
-        print("initializing")
-        request_body = d.Simple_Request_body(name=project.name,meta=project.meta, author=project.author)
-        print("Request body")
-        print(request_body)
-        response = requests.post(self.path + project.get_name() + "/set_project", json=request_body.convertJSON()) # updates the project variables
+        request_body = d.Simple_Request_body(name=project.name, meta=project.meta, author=project.author)
+        response = requests.post(self.path + project.get_name() + "/set_project",
+                                 json=request_body.convertJSON())  # updates the project variables
         return response
 
-    ### initialize experiment
+    # initialize experiment
     def init_experiment(self,project_id ,experiment : d.Experiment):
         # insert dataset function validates as it is the only function which inserts things into the database.
         # Author data is just the username and the permission of the user entering it
@@ -165,7 +166,7 @@ class API_interface():
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name,dataset_in=dataset_in)
 
-    def check_dataset_exists(self, project_id : str, experiment_id : str, dataset_id : str):
+    def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str):
         response = requests.get(self.path + project_id + "/" + experiment_id + "/names")
         response = response.json()
         names = response.get("names")
@@ -174,20 +175,18 @@ class API_interface():
         else:
             return False
 
-# authentication functions
+    # authentication functions
     def create_user(self, username_in, password_in, email, full_name):
         # generate hash
         hash = return_hash(password=password_in)
         user = d.User(username=username_in, hash_in=hash, email=email, full_name=full_name)
-        
-        #user_out = json.dumps(user.dict())
+
+        # user_out = json.dumps(user.dict())
         user_out = user.dict()
 
         # API call to create user
         response = requests.post(self.path + "create_user", json=user_out)
-        
-        print("status code" + str(response.status_code))
-        
+
         if response.status_code == 200:
             # the user already exists
             return True
@@ -218,5 +217,5 @@ class API_interface():
 
         response = requests.post(self.path + "testing_stuff", json=dataset.dict())
         return response
-        
+
 
