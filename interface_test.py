@@ -1,53 +1,30 @@
 from interface import API_interface
-import testing as t
+import datastructure as ds
 
-project_name = "S_Church"
-author_name = "S.Church"
-filename = "test.json"
 path = "http://127.0.0.1:8000/"
+username, password, email, fullname = 'patrick', 'patrick', 'patrick', 'patrick'
 
-username = "splitsky"
-password = "wombat"
-full_name = "Tomasz Neska"
-email = "wombat@gmail.com"
-
-# check connection
+# 0) Connect to API
 ui = API_interface(path)
-print(ui.check_connection())
 
-# insert user
+# 1) Check connection
+print(f"Testing connection: {ui.check_connection()}")
 
-#ui.create_user(username, password)
+# 2) insert user
+if ui.create_user(username, password, email, fullname):
+    print('Created user')
+else:
+    print('User already exists, continuing')
 
-# validate user
+# 3) Create token
+ui.generate_token(username, password)
 
+# 4) insert project using the token
+project = ds.Project(name='test_project', author='patrick')
+try:
+    ui.insert_project(project)
+except RuntimeError:
+    print('Project already exists, continuing')
+    pass
 
-# insert project using the token
-
-
-# wait for the token to expire
-
-
-# try to insert project again
-
-
-
-
-
-# Create a test project
-t.create_test_file_project(filename, [1, 1], project_name, author_name)
-# Load the project
-project_in = t.load_file_project(filename)
-# Connect to API
-ui = API_interface(path)
-ui.check_connection()
-# insert project
-print("Inserting Project")
-temp = ui.insert_project(project=project_in)
-print("Response:")
-print(temp)
-print("Returning Project")
-temp = ui.get_project_names()
-print(temp)
-
-
+# 5) try to insert project again

@@ -12,7 +12,6 @@ class TestClass:
         author_name = "S.Church"
         filename = "test.json"
 
-    
         t.create_test_file_project(filename, [1,1], project_name, author_name)
         project_in = t.load_file_project(filename)
         
