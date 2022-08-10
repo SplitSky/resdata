@@ -19,8 +19,8 @@ class Dataset(BaseModel):
     data_type: str
     author : List[dict]
     # variables used in authentication
-    username: str | None = None
-    token : str | None = None
+    username: Union[str, NoneType] = None
+    token: Union[str, NoneType] = None
 
     def convertJSON(self): # converts it into nested dictionary
         # this function skips over the username and token variables
@@ -41,6 +41,7 @@ class Dataset(BaseModel):
         self.token = token
 
     # TODO: The functions should be removed and replaced with self.name etc
+# TODO: The functions should be removed and replaced with self.name etc
 
     def return_name(self):
         return self.name
@@ -94,7 +95,7 @@ class Experiment(BaseModel):
 class Project(BaseModel):
     name: str
     author: str
-    groups: Union[List[Experiment],NoneType] = None
+    groups: Union[List[Experiment], NoneType] = None
     meta: Union[List[str], NoneType] = None
 
     def convertJSON(self):  # returns a dictionary
@@ -165,7 +166,7 @@ class Token(BaseModel):
 class User(BaseModel):
     username: str
     hash_in: str
-    email: Union[str,NoneType] = None
+    email: Union[str, NoneType] = None
     full_name: Union[str, NoneType] = None
 
 
