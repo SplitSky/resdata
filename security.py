@@ -72,7 +72,7 @@ class User_Auth(object):
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=30)
-        to_encode.update({"exp" : expire})
+        to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
         authentication_exception = HTTPException(
@@ -143,20 +143,20 @@ class User_Auth(object):
             # raise HTTPException(
             #    status_code=status.HTTP_302_FOUND,
             #    detail = "User already exists"
-            #)
+            # )
+
     def fetch_token(self):
         # fetches the token associated with the user
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one({"username" : self.username})
+        result = users.find_one({"username": self.username})
         return result.get("token")
 
     def fetch_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one({"username" : self.username})
+        result = users.find_one({"username": self.username})
         return result
-
 
     def authenticate_user(self):
         # self.password contains the token value
@@ -177,13 +177,13 @@ class User_Auth(object):
             raise credentials_exception
 
         if username == self.username:
-            # user name matches the token
+            # username matches the token
             # check the token matches the one in the database
-            fetched_user = self.fetch_user() # fetches the user data
-            if fetched_user == None:
+            fetched_user = self.fetch_user()  # fetches the user data
+            if fetched_user is None:
                 raise credentials_exception
 
-            if compare_digest(self.password, fetched_user.get("token")): # compares tokens
+            if compare_digest(self.password, fetched_user.get("token")):  # compares tokens
                 # successfully compared tokens
                 # check the token is valid
                 now = datetime.now(timezone.utc)
