@@ -64,15 +64,14 @@ class User_Auth(object):
                 )
             return temp.hexdigest(64) # return a string from bytes
 
-    def create_access_token(self,data: dict, expires_delta: timedelta | None = None):
-        to_encode = data.copy()
+    def create_access_token(self, expires_delta: timedelta | None = None):
+
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=30)
-        to_encode.update({"exp" : expire})
+        to_encode = {'sub' : self.username, 'expiry' : str(expire)}
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-       
         authentication_exception = HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="The user doesn't exist. Can't generate token"
@@ -80,16 +79,13 @@ class User_Auth(object):
         # update the token in the database
         auth = self.client["Authentication"]
         users = auth["Users"]
-        #temp_list = [{"disabled" : False} , {"token" : encoded_jwt} , {"expiry" : expire}]
-
         temp_list = [{'$set': {'disabled': False}}, {'$set' : {'token' : encoded_jwt}}, {'$set' : {"expiry" : expire}}]
-
+        # update the user database fields
         for change in temp_list:
             result = users.find_one_and_update({"username" : self.username}, change)
             if result == None:
                 raise authentication_exception
         return encoded_jwt
-
     
     def check_username_exists(self):
         auth = self.client["Authentication"]
@@ -103,7 +99,7 @@ class User_Auth(object):
     def activate_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one_and_update({"username" : self.username}, {"disabled" : False})
+        result = users.find_one_and_update({"username" : self.username}, {'$set' : {"disabled" : False}})
         if result == None: # failed to find user
             return False
         else:
@@ -112,7 +108,7 @@ class User_Auth(object):
     def deactive_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one_and_update({"username" : self.username}, {"disabled" : True})
+        result = users.find_one_and_update({"username" : self.username}, {'$set' : {"disabled" : True}})
         if result == None:
             return False
         else:
@@ -157,7 +153,7 @@ class User_Auth(object):
         return result
 
 
-    def authenticate_user(self):
+    def authenticate_token(self):
         # self.password contains the token value
         # decode token
         credentials_exception = HTTPException(
@@ -173,6 +169,7 @@ class User_Auth(object):
                 raise credentials_exception
             # username recovered successfully
         except JWTError:
+            self.deactive_user()
             raise credentials_exception
         
         if username == self.username:
@@ -181,13 +178,19 @@ class User_Auth(object):
             fetched_user = self.fetch_user() # fetches the user data
             if fetched_user == None:
                 raise credentials_exception
-
             if compare_digest(self.password, fetched_user.get("token")): # compares tokens
                 # successfully compared tokens
                 # check the token is valid
+                # check the token expiry date matches the one in the database
+                if not fetched_user.get("expiry") == payload.get("expiry"):
+                    raise credentials_exception
                 now = datetime.now(timezone.utc)
+                # check the token is not expired
                 if now > datetime.fromisoformat(fetched_user.get("expiry")):
                     # user successfully validated
+                    # activate user
+                    self.activate_user()
                     return True
-
+        # deactivate user
+        self.deactive_user()
         raise credentials_exception

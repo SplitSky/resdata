@@ -13,6 +13,7 @@ class Dataset(BaseModel):
     token : str | None = None
 
     def convertJSON(self): # converts it into nested dictionary
+        # this function skips over the username and token variables
         json_dict = {
             "name" : self.name,
             "meta" : self.meta,
@@ -24,6 +25,9 @@ class Dataset(BaseModel):
     def return_credentials(self):
         return [self.username, self.token]
 
+    def set_credentials(self, username, token):
+        self.username = username
+        self.token = token
 
     # TODO: The functions should be removed and replaced with self.name etc
 
