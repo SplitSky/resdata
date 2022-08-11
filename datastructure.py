@@ -48,7 +48,7 @@ class Dataset(BaseModel):
 
 class Experiment(BaseModel):
     name: str
-    children: List[Dataset]  # dictionary of data sets each with ID
+    children: Union[List[Dataset], NoneType] = None
     meta: Union[List[str], NoneType] = None  # implemented union as optional variable
 
     def convertJSON(self):  # returns a nested python dictionary
