@@ -27,4 +27,6 @@ except RuntimeError:
     print('Project already exists, continuing')
     pass
 
-# 5) try to insert project again
+# 5) insert experiment
+experiment = ds.Experiment()
+ui.init_experiment('test_project')
