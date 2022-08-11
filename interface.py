@@ -57,6 +57,11 @@ class API_interface():
         # insert datasets one by one
         experiment_name = experiment.get_name()
         # check if experiment exists:
+        # check if the user has write priviledge for the project.
+        # else terminate
+        # TODO: need to add authentication on project level for insertion
+
+
         if self.check_experiment_exists(project_name,experiment_name) == False:
             # if it doesn't initialise it
             self.init_experiment(project_name, experiment)
@@ -109,7 +114,7 @@ class API_interface():
         response = requests.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json()) # conversion into dict
         
-        project = d.Project(name=proj_dict.get("name"),author=proj_dict.get("author") ,groups=experiments ,meta=proj_dict.get("meta") )
+        project = d.Project(name=proj_dict.get("name"),creator=proj_dict.get("creator") ,groups=experiments ,meta=proj_dict.get("meta"), author=proj_dict.get("author"))
         return project
 
     def check_project_exists(self,project_name : str):
@@ -151,7 +156,7 @@ class API_interface():
     ### initialize project
     def init_project(self, project: d.Project):
         print("initializing")
-        request_body = d.Simple_Request_body(name=project.name,meta=project.meta, author=project.author)
+        request_body = d.Simple_Request_body(name=project.name,meta=project.meta, creator=project.creator,author=[d.Author(name=self.username,permission="write").dict()])
         print("Request body")
         print(request_body)
         response = requests.post(self.path + project.get_name() + "/set_project", json=request_body.convertJSON()) # updates the project variables
