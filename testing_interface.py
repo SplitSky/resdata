@@ -20,7 +20,7 @@ class TestClass:
         temp = ui.insert_project(project_in)
         temp = ui.get_project_names()
         
-        temp = ui.return_fullproject(project_name=project_in.get_name())
+        temp = ui.return_full_project(project_name=project_in.get_name())
         assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
 
     def test_2(self):

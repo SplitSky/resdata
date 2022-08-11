@@ -1,28 +1,28 @@
+# Datastructure imports
 import json
 from datetime import datetime, timezone, timedelta
 
+# Server and client imports
 from fastapi import FastAPI, HTTPException, status
 from jose import jwt
 from pymongo.mongo_client import MongoClient
 
+# Project imports
 import datastructure as d
 import variables as var
+
 # authentication imports
 from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 
-'''
-the project parameters are stored in their own database called "config"
-They are updated in the update_project_data call
-project = database
-experiment = collection
-dataset = document 
-'''
-
+#########################
+# Connect to the backend
 string = f"mongodb+srv://{var.username}:{var.password}@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
-
 client = MongoClient(string)
+# Initialize API
 app = FastAPI()
 
+
+#########################
 
 # functions that work
 @app.get("/")
@@ -61,10 +61,10 @@ async def return_dataset(project_id, experiment_id, dataset_id):
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/insert_dataset")
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
-    project_temp = client[project_id] # returns the project - database
-    experiment_temp = project_temp[experiment_id] # calls the experiment collection 
+    project_temp = client[project_id]  # returns the project - database
+    experiment_temp = project_temp[experiment_id]  # calls the experiment collection
     temp = item.return_credentials()
-    user = User_Auth(username_in=temp[0],password_in=temp[1], db_client_in=client)
+    user = User_Auth(username_in=temp[0], password_in=temp[1], db_client_in=client)
     # authenticate user using the security module or raise exception
     if not user.authenticate_token():
         raise HTTPException(
@@ -72,8 +72,10 @@ async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
             detail="The token failed to authenticate"
         )
 
-    experiment_temp.insert_one(item.convertJSON()) # data insert into database
-    return json.dumps(item.convertJSON()) # return for verification
+    experiment_temp.insert_one(item.convertJSON())  # data insert into database
+    return json.dumps(item.convertJSON())  # return for verification
+
+
 # end def
 # end post
 

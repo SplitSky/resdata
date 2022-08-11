@@ -9,9 +9,9 @@ import datastructure as d
 
 # storage in database is done using nested dictionaries
 # authentication
-from oauthlib.oauth2 import BackendApplicationClient
-from requests_oauthlib import OAuth2Session
-from requests.auth import HTTPBasicAuth
+# from oauthlib.oauth2 import BackendApplicationClient
+# from requests_oauthlib import OAuth2Session
+# from requests.auth import HTTPBasicAuth
 
 # hash function used in the API
 def return_hash(password: str):
@@ -43,7 +43,7 @@ class API_interface:
         temp = json.loads(temp)  # converts it into python dict
         return temp
 
-    def return_fulldataset(self, project_name: str, experiment_name: str, dataset_name: str):
+    def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):
         response = requests.get(
             url=self.path + project_name + "/" + experiment_name + "/" + dataset_name + "/return_dataset")
         temp = response.json()
@@ -75,7 +75,7 @@ class API_interface:
         # call to initialise experiment and return structure
         return response
 
-    def return_fullexperiment(self, project_name: str, experiment_name: str):
+    def return_full_experiment(self, project_name: str, experiment_name: str):
         # call api to find the names of all datasets in the experiment
         # return the list of datasets
         response = requests.get(
@@ -88,27 +88,27 @@ class API_interface:
         exp_meta = ["default"]
 
         for name in names_list:
-            temp = self.return_fulldataset(project_name=project_name, experiment_name=experiment_name,
-                                           dataset_name=name)
+            temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
+                                            dataset_name=name)
             if temp.get_datatype() == "configuration file":
                 # update experiment parameters
                 exp_name = temp.name
                 exp_meta = temp.meta
             else:
-                datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name,
-                                                        dataset_name=name))
+                datasets.append(self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
+                                                         dataset_name=name))
         # call api for each dataset and return the contents -> then add the contents to an object and return the object
 
         experiment = d.Experiment(name=exp_name, children=datasets, meta=exp_meta)
         return experiment
 
-    def return_fullproject(self, project_name: str):
+    def return_full_project(self, project_name: str):
         # request a list of all experiments within the project
         response = requests.get(self.path + project_name + "/names")  # returns experiment names including config
         exp_names_list = response.json().get("names")
         experiments = []
         for exp_name in exp_names_list:
-            experiments.append(self.return_fullexperiment(project_name, exp_name))
+            experiments.append(self.return_full_experiment(project_name, exp_name))
 
         response = requests.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json())  # conversion into dict
@@ -151,8 +151,8 @@ class API_interface:
 
     def get_project_names(self):
         response = requests.get(self.path + "names")
-        list = response.json()  # this returns a python dictionary
-        return list.get("names")
+        project_list = response.json()  # this returns a python dictionary
+        return project_list.get("names")
 
     # initialize project
     def init_project(self, project: d.Project):
@@ -180,20 +180,15 @@ class API_interface:
     # authentication functions
     def create_user(self, username_in, password_in, email, full_name):
         # generate hash
-        hash = return_hash(password=password_in)
-        user = d.User(username=username_in, hash_in=hash, email=email, full_name=full_name)
+        user_hash = return_hash(password=password_in)
+        user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)
 
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
 
         # API call to create user
         response = requests.post(self.path + "create_user", json=user_out)
-
-        if response.status_code == 200:
-            # the user already exists
-            return True
-        else:
-            return False
+        return response.status_code == 200
 
     def generate_token(self, username, password):
         # if the username and password match return true

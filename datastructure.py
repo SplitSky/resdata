@@ -1,13 +1,9 @@
 # this file contains the class which describes the datastructure
 from __future__ import annotations
-
 from typing import Union, List
-
 from pydantic import BaseModel
-
-
-# the baseline for data storage. Each measurement is a node in terms of a dataset
 from pydantic.typing import NoneType
+# the baseline for data storage. Each measurement is a node in terms of a dataset
 
 
 class Dataset(BaseModel):
