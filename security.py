@@ -5,11 +5,10 @@ import hashlib as h
 import random
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
-from jose import jwt
+from jose import jwt, JWTError
 
 from variables import secret_key, algorithm, access_token_expire
 
-import logging
 from secrets import compare_digest
 # declare constants for the
 
