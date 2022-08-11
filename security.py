@@ -128,7 +128,7 @@ class User_Auth(object):
                 "email" : email,
                 "disabled" : True,
                 "salt" : str(salt_init),
-                "expiry" : datetime.now(timezone.utc),
+                "expiry" : datetime.utcnow(),
                 "token" : ""
             }
             users.insert_one(user_dict)
@@ -182,11 +182,9 @@ class User_Auth(object):
                 # successfully compared tokens
                 # check the token is valid
                 # check the token expiry date matches the one in the database
-                if not fetched_user.get("expiry") == payload.get("expiry"):
-                    raise credentials_exception
-                now = datetime.now(timezone.utc)
+                now = datetime.utcnow()
                 # check the token is not expired
-                if now > datetime.fromisoformat(fetched_user.get("expiry")):
+                if now < fetched_user.get("expiry"):
                     # user successfully validated
                     # activate user
                     self.activate_user()

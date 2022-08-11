@@ -33,23 +33,23 @@ class API_interface():
     def insert_dataset(self,project_name : str, experiment_name : str, dataset_in: d.Dataset):
         # set credentials for authentication
         dataset_in.set_credentials(self.username, self.token)
+        dataset_in.author = [d.Author(name=self.username, permission="write").dict()] # assign admin permissions for new dataset the user adds
         response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_in.get_name()+"/insert_dataset", json=dataset_in.dict())
         print("response in insert dataset")
         print(response)
-        
-        #temp = response.json() # loads the json return
-        #temp = json.loads(temp) # converts it into python dict
-        
-        return response       
+        return response
 
     def return_fulldataset(self,project_name: str, experiment_name : str, dataset_name: str):
         user_in = d.User(username=self.username, hash_in=self.token)
         response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_name+"/return_dataset", json=user_in.dict())
         temp = response.json()
         temp = temp.get("datasets data") # returns the list of dataset dictionaries
-        temp = temp[0] # simplify the return of the variable
-        
-        return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),data_type=temp.get("data_type"))
+        temp = temp[0] # fetches one dataset matching the name
+        print("dataset returned body : ")
+        print(temp)
+        print("dataset return name: ")
+        print(temp.get("name"))
+        return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),data_type=temp.get("data_type"), author=temp.get("author"))
 
     def insert_experiment(self, project_name : str, experiment: d.Experiment):
         # takes in the experiment object 
@@ -60,7 +60,6 @@ class API_interface():
         if self.check_experiment_exists(project_name,experiment_name) == False:
             # if it doesn't initialise it
             self.init_experiment(project_name, experiment)
-        
         # init the experiment
         response = []
         temp = experiment.return_datasets()
@@ -160,7 +159,9 @@ class API_interface():
 
     ### initialize experiment
     def init_experiment(self,project_id ,experiment : d.Experiment):
-        dataset_in = d.Dataset(name=experiment.name,data=[],meta=experiment.meta,data_type="configuration file")
+        # insert dataset function validates as it is the only function which inserts things into the database.
+        # Author data is just the username and the permission of the user entering it
+        dataset_in = d.Dataset(name=experiment.name,data=[],meta=experiment.meta,data_type="configuration file",author=[d.Author(name=self.username, permission="write").dict()])
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name,dataset_in=dataset_in)
 
@@ -211,7 +212,7 @@ class API_interface():
         full_name = "Shmek Johnson"
         self.create_user(username, password, email, full_name)
         self.generate_token(username, password)
-        dataset = d.Dataset(name="auth_test", data=[1,2,3], meta=["Auth meta"], data_type="testing shit")
+        dataset = d.Dataset(name="auth_test", data=[1,2,3], meta=["Auth meta"], data_type="testing", author=[d.Author(name="wombat",permission="write").dict()])
         dataset.set_credentials(username, self.token)
         print(dataset.json())
 

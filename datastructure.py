@@ -1,6 +1,8 @@
 ### this file contains the class which describes the datastructure
 
 from pydantic import BaseModel
+from enum import Enum
+import json
 
 # the baseline for data storage. Each measurement is a node in terms of a dataset
 class Dataset(BaseModel):
@@ -8,19 +10,21 @@ class Dataset(BaseModel):
     data: list # list of numbers or bits
     meta: list[str] | None = None
     data_type: str
+    author : list[dict]
     # variables used in authentication
     username: str | None = None
     token : str | None = None
 
     def convertJSON(self): # converts it into nested dictionary
         # this function skips over the username and token variables
-        json_dict = {
+        python_dict = {
             "name" : self.name,
             "meta" : self.meta,
             "data_type" : self.data_type,
-            "data" : self.data, # this list can be serialised 
+            "data" : self.data, # this list can be serialised
+            "author" : self.author
         }
-        return json_dict
+        return python_dict
 
     def return_credentials(self):
         return [self.username, self.token]
@@ -51,7 +55,7 @@ class Experiment(BaseModel):
     name: str
     children: list[Dataset] # dictionary of data sets each with ID
     meta: list[str] | None = None # implemented union as optional variable
-    
+
     def convertJSON(self): # returns a nested python dictionary
         temp_dict = {}
         i = 0
@@ -150,5 +154,19 @@ class User(BaseModel):
     hash_in : str
     email : str | None = None
     full_name : str | None = None
-    
 
+class permission(Enum):
+    #ADMIN = "admin"
+    WRITE = "write"
+    READ = "read"
+    PUBLIC = "public"
+
+class Author(BaseModel):
+    # object used for representing the author of a dataset, experiment, project
+    name : str
+    permission : str
+
+    def load_data(self,dict_in): # initialises the author object from json
+        #temp = json.loads(json_in)
+        self.name = dict_in.get("name")
+        self.permission = dict_in.get("permission")
