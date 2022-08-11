@@ -3,11 +3,9 @@ from __future__ import annotations
 from typing import Union, List
 from pydantic import BaseModel
 from enum import Enum
-import json
-
-
-# the baseline for data storage. Each measurement is a node in terms of a dataset
 from pydantic.typing import NoneType
+
+
 # the baseline for data storage. Each measurement is a node in terms of a dataset
 
 
@@ -16,7 +14,7 @@ class Dataset(BaseModel):
     data: List  # list of numbers or bits
     meta: Union[List[str], NoneType] = None
     data_type: str
-    author : List[dict]
+    author: List[dict]
     # variables used in authentication
     username: Union[str, NoneType] = None
     token: Union[str, NoneType] = None
@@ -28,7 +26,7 @@ class Dataset(BaseModel):
             "meta": self.meta,
             "data_type": self.data_type,
             "data": self.data,  # this list can be serialised
-            "author" : self.author
+            "author": self.author
         }
         return python_dict
 
@@ -40,7 +38,7 @@ class Dataset(BaseModel):
         self.token = token
 
     # TODO: The functions should be removed and replaced with self.name etc
-# TODO: The functions should be removed and replaced with self.name etc
+    # TODO: The functions should be removed and replaced with self.name etc
 
     def return_name(self):
         return self.name
@@ -94,7 +92,7 @@ class Experiment(BaseModel):
 class Project(BaseModel):
     name: str
     author: str
-    groups: Union[List[Experiment],NoneType] = None
+    groups: Union[List[Experiment], NoneType] = None
     meta: Union[List[str], NoneType] = None
 
     def convertJSON(self):  # returns a dictionary
@@ -170,17 +168,18 @@ class User(BaseModel):
 
 
 class permission(Enum):
-    #ADMIN = "admin"
+    # ADMIN = "admin"
     WRITE = "write"
     READ = "read"
     PUBLIC = "public"
 
+
 class Author(BaseModel):
     # object used for representing the author of a dataset, experiment, project
-    name : str
-    permission : str
+    name: str
+    permission: str
 
-    def load_data(self,dict_in): # initialises the author object from json
-        #temp = json.loads(json_in)
+    def load_data(self, dict_in):  # initialises the author object from json
+        # temp = json.loads(json_in)
         self.name = dict_in.get("name")
         self.permission = dict_in.get("permission")

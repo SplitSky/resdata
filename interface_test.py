@@ -29,4 +29,4 @@ except RuntimeError:
 
 # 5) insert experiment
 experiment = ds.Experiment()
-ui.init_experiment('test_project')
+ui.init_experiment('test_project', experiment)

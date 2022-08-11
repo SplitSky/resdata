@@ -3,13 +3,14 @@ from __future__ import annotations
 # imports of api variables
 import hashlib as h
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
 
 from variables import secret_key, algorithm, access_token_expire
 
 from secrets import compare_digest
+
 # declare constants for the
 
 SECRET_KEY = secret_key
@@ -65,12 +66,12 @@ class User_Auth(object):
                 )
             return temp.hexdigest(64)  # return a string from bytes
 
-    def create_access_token(self,  expires_delta: timedelta | None = None):
+    def create_access_token(self, expires_delta: timedelta | None = None):
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=30)
-        to_encode = {'sub' : self.username, 'expiry' : str(expire)}
+        to_encode = {'sub': self.username, 'expiry': str(expire)}
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
         authentication_exception = HTTPException(
@@ -81,9 +82,8 @@ class User_Auth(object):
         auth = self.client["Authentication"]
         users = auth["Users"]
 
-
         temp_list = [{'$set': {'disabled': False}}, {'$set': {'token': encoded_jwt}}, {'$set': {"expiry": expire}}]
-# update the user database fields
+        # update the user database fields
         for change in temp_list:
             result = users.find_one_and_update({"username": self.username}, change)
             if result is None:
@@ -102,7 +102,7 @@ class User_Auth(object):
     def activate_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one_and_update({"username": self.username}, {'$set' : {"disabled": False}})
+        result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": False}})
         if result is None:  # failed to find user
             return False
         else:
@@ -111,7 +111,7 @@ class User_Auth(object):
     def deactive_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
-        result = users.find_one_and_update({"username": self.username}, {'$set' : {"disabled": True}})
+        result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": True}})
         if result is None:
             return False
         else:
@@ -142,6 +142,7 @@ class User_Auth(object):
             #    status_code=status.HTTP_302_FOUND,
             #    detail = "User already exists"
             # )
+
     def fetch_token(self):
         # fetches the token associated with the user
         auth = self.client["Authentication"]
