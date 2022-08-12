@@ -11,10 +11,10 @@ from pydantic.typing import NoneType
 
 class Dataset(BaseModel):
     name: str
-    data: List  # list of numbers or bits
+    data: Union[List, int]  # list of numbers or bits
     meta: Union[List[str], NoneType] = None
     data_type: str
-    author: List[dict]
+    author: Union[List[dict],NoneType] = None
     # variables used in authentication
     username: Union[str, NoneType] = None
     token: Union[str, NoneType] = None

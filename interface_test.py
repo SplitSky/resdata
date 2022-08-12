@@ -3,6 +3,7 @@ import datastructure as ds
 
 path = "http://127.0.0.1:8000/"
 username, password, email, fullname = 'patrick', 'patrick', 'patrick', 'patrick'
+project_name = 'test_project'
 
 # 0) Connect to API
 ui = API_interface(path)
@@ -20,7 +21,7 @@ else:
 ui.generate_token(username, password)
 
 # 4) insert project using the token
-project = ds.Project(name='test_project', author='patrick')
+project = ds.Project(name=project_name, author='patrick')
 try:
     ui.insert_project(project)
 except RuntimeError:
@@ -29,4 +30,17 @@ except RuntimeError:
 
 # 5) insert experiment
 experiment = ds.Experiment(name='PL')
-ui.init_experiment('test_project', experiment)
+try:
+    ui.init_experiment(project_name, experiment)
+except KeyError:
+    print("Experiment already exists")
+    pass
+
+# 6) Insert a few dataset
+for i in range(5):
+    d = ds.Dataset(name=f"ID{i}", data=i, data_type="int")
+    print(f'Inserting set {i}')
+    ui.insert_dataset(project_name=project_name, experiment_name='PL', dataset_in=d)
+
+# 7) fetch data
+ui.return_full_experiment(project_name=project_name,experiment_name="PL")

@@ -154,9 +154,9 @@ class API_interface:
 
     # initialize experiment
     def init_experiment(self, project_id: str, experiment: d.Experiment) -> None:
-        # insert dataset function validates as it is the only function which inserts things into the database.
-        # Author data is just the username and the permission of the user entering it
-        # TODO: Check if experiment already exists
+        """Initialize a new experiment"""
+        if self.check_experiment_exists(project_id,experiment.name):
+            raise KeyError(f"Experiment '{project_id}/{experiment.name}' exists")
         dataset_in = d.Dataset(name=experiment.name, data=[],
                                meta=experiment.meta,
                                data_type="configuration file",
@@ -164,14 +164,9 @@ class API_interface:
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name, dataset_in=dataset_in)
 
-    def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str):
+    def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
         response = requests.get(self.path + project_id + "/" + experiment_id + "/names")
-        response = response.json()
-        names = response.get("names")
-        if dataset_id in names:
-            return True
-        else:
-            return False
+        return dataset_id in response.json().get("names")
 
     # authentication functions
     def create_user(self, username_in, password_in, email, full_name):

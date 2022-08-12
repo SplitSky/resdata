@@ -71,21 +71,12 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User):
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/insert_dataset")
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
-    project_temp = client[project_id]  # returns the project - database
-    experiment_temp = project_temp[experiment_id]  # calls the experiment collection
+    experiment_temp = client[project_id][experiment_id]  # calls the experiment collection
     temp = item.return_credentials()
     user = User_Auth(username_in=temp[0], password_in=temp[1], db_client_in=client)
     # authenticate user using the security module or raise exception
-    print("Authenticate_token : ")
-    print(user.authenticate_token())
     if user.authenticate_token() is False:
         return json.dumps({"message": False})
-    # raise HTTPException(
-    #     status_code=status.HTTP_401_UNAUTHORIZED,
-    #     detail="The token failed to authenticate"
-    # )
-    print("Data inserted into database")
-    print(item.convertJSON())
     experiment_temp.insert_one(item.convertJSON())  # data insert into database
     return json.dumps(item.convertJSON())  # return for verification
 
