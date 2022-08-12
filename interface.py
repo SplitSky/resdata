@@ -1,5 +1,7 @@
 import hashlib as h
 import json
+from typing import List
+
 import requests
 from fastapi import status
 import datastructure as d
@@ -16,26 +18,28 @@ def return_hash(password: str):
 
 ###############################
 class API_interface:
-
+    #####
     def __init__(self, path_in: str) -> None:
         self.path: str = path_in
         self.token: str = ""
         self.username: str = ""
 
-    def check_connection(self):
+    #####
+    def check_connection(self) -> bool:
         """Test API connection to the server"""
         response = requests.get(self.path)
         return response.status_code == status.HTTP_200_OK
 
-    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset):
+    #####
+    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> None:
         # set credentials for authentication
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username,
                                       permission="write").dict()]
-        return requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset',
-                             json=dataset_in.dict())
+        requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
 
-    def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):
+    #####
+    def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str) -> d.Dataset:
         user_in = d.User(username=self.username, hash_in=self.token)
         response = requests.post(
             url=self.path + project_name + "/" + experiment_name + "/" + dataset_name + "/return_dataset",
@@ -44,29 +48,20 @@ class API_interface:
         return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                          data_type=temp.get("data_type"), author=temp.get("author"))
 
-    def insert_experiment(self, project_name: str, experiment: d.Experiment):
-        # takes in the experiment object 
-        # perform multiple calls to create an experiment directory and then
-        # insert datasets one by one
-        experiment_name = experiment.get_name()
-        # check if experiment exists:
+    #####
+    def insert_experiment(self, project_name: str, experiment: d.Experiment) -> List:
+        experiment_name = experiment.name
         if not self.check_experiment_exists(project_name, experiment_name):
-            # if it doesn't initialise it
             self.init_experiment(project_name, experiment)
-
         # init the experiment
         response = []
-        temp = experiment.return_datasets()
-        for dataset in temp:
-            # for each dataset in experiment call API
-            # check if the dataset already exists. If it does don't append
+        for dataset in experiment.children:
             if not self.check_dataset_exists(project_name, experiment_name, dataset.name):
                 response.append(self.insert_dataset(project_name, experiment_name, dataset))
-                # skips the insertion of the datasets that already exist
-        # call to initialise experiment and return structure
         return response
 
-    def return_full_experiment(self, project_name: str, experiment_name: str):
+    #####
+    def return_full_experiment(self, project_name: str, experiment_name: str) -> d.Experiment:
         # call api to find the names of all datasets in the experiment
         # return the list of datasets
         response = requests.get(
@@ -81,7 +76,7 @@ class API_interface:
         for name in names_list:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
-            if temp.get_datatype() == "configuration file":
+            if temp.data_type == "configuration file":
                 # update experiment parameters
                 exp_name = temp.name
                 exp_meta = temp.meta
@@ -155,7 +150,7 @@ class API_interface:
     # initialize experiment
     def init_experiment(self, project_id: str, experiment: d.Experiment) -> None:
         """Initialize a new experiment"""
-        if self.check_experiment_exists(project_id,experiment.name):
+        if self.check_experiment_exists(project_id, experiment.name):
             raise KeyError(f"Experiment '{project_id}/{experiment.name}' exists")
         dataset_in = d.Dataset(name=experiment.name, data=[],
                                meta=experiment.meta,
@@ -189,20 +184,3 @@ class API_interface:
         response = requests.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
-
-    def try_authenticate(self):
-        # test function
-        # send empty database and extract the username and password and give results of authenticate user password
-        username = "shmek_the_legend"
-        password = "i_like_wombat"
-        email = "adwknjhd"
-        full_name = "Shmek Johnson"
-        self.create_user(username, password, email, full_name)
-        self.generate_token(username, password)
-        dataset = d.Dataset(name="auth_test", data=[1, 2, 3], meta=["Auth meta"], data_type="testing",
-                            author=[d.Author(name="wombat", permission="write").dict()])
-        dataset.set_credentials(username, self.token)
-        print(dataset.json())
-
-        response = requests.post(self.path + "testing_stuff", json=dataset.dict())
-        return response

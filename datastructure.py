@@ -1,20 +1,18 @@
 # this file contains the class which describes the datastructure
-from __future__ import annotations
 from typing import Union, List
 from pydantic import BaseModel
 from enum import Enum
 from pydantic.typing import NoneType
-
 
 # the baseline for data storage. Each measurement is a node in terms of a dataset
 
 
 class Dataset(BaseModel):
     name: str
-    data: Union[List, int]  # list of numbers or bits
+    data: Union[List, int]
     meta: Union[List[str], NoneType] = None
     data_type: str
-    author: Union[List[dict],NoneType] = None
+    author: Union[List[dict], NoneType] = None
     # variables used in authentication
     username: Union[str, NoneType] = None
     token: Union[str, NoneType] = None
@@ -37,25 +35,6 @@ class Dataset(BaseModel):
         self.username = username
         self.token = token
 
-    # TODO: The functions should be removed and replaced with self.name etc
-    # TODO: The functions should be removed and replaced with self.name etc
-
-    def return_name(self):
-        return self.name
-
-    # get functions
-    def get_name(self):
-        return self.name
-
-    def get_data(self):
-        return self.data
-
-    def get_meta(self):
-        return self.meta
-
-    def get_datatype(self):
-        return self.data_type
-
 
 class Experiment(BaseModel):
     name: str
@@ -76,17 +55,6 @@ class Experiment(BaseModel):
             "datasets": temp_dict  # datatype is dictionary -> double nested
         }
         return json_dict
-
-    def return_datasets(self):  # change the names of those functions to get
-        return self.children  # returns a list of objects
-
-    def get_name(self):
-        return self.name
-
-    def get_meta(self):
-        return self.meta
-
-        # this class is the root node of the data structure
 
 
 class Project(BaseModel):
@@ -116,24 +84,8 @@ class Project(BaseModel):
         self.meta = dict_in.get("meta")
         self.groups = dict_in.get("groups")
 
-    def return_experiments(self):  # return a list of objects
-        return self.groups
-
-    # get functions
-    def get_name(self):
-        return self.name
-
-    def get_author(self):
-        return self.author
-
-    def get_meta(self):
-        return self.meta
-
-    def print_data(self):
-        for exp in self.groups:
-            string_out = exp.convertJSON()
-            print("printing experiment: ")
-            print(string_out)
+    def __str__(self) -> str:
+        return str([exp.convertJSON() for exp in self.groups])
 
 
 class Simple_Request_body(BaseModel):
@@ -168,7 +120,6 @@ class User(BaseModel):
 
 
 class permission(Enum):
-    # ADMIN = "admin"
     WRITE = "write"
     READ = "read"
     PUBLIC = "public"
