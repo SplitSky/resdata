@@ -138,6 +138,7 @@ dmypy.json
 /.idea/vcs.xml
 =======
 variables.py
+example_data/*
 notes.txt
 test.py
 

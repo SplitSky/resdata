@@ -32,7 +32,7 @@ class API_interface:
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username,
                                       permission="write").dict()]
-        return requests.post(url=f'{self.path}{project_name}/{experiment_name}/{dataset_in.get_name()}/insert_dataset',
+        return requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset',
                              json=dataset_in.dict())
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):

@@ -10,7 +10,7 @@ class TestClass:
         # to run this test purge the database from test entries otherwise the data generated won't be updated.
         project_name = "S_Church"
         author_name = "S.Church"
-        filename = "Test_code/test.json"
+        filename = "example_data/test.json"
 
         t.create_test_file_project(filename, [1,1], project_name, author_name)
         project_in = t.load_file_project(filename)
