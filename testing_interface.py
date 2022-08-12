@@ -28,7 +28,8 @@ class TestClass:
         print("token is: ")
         print(ui.token)
         temp = ui.insert_project(project_in)
-        temp = ui.get_project_names()
+        # TODO: only return the project and experiment names that the user has permission to access
+        #temp = ui.get_project_names()
         
         temp = ui.return_fullproject(project_name=project_in.get_name())
         #assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated

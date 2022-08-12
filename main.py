@@ -112,6 +112,7 @@ async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
 # 5. Call to return a list of all projects "/" - get
 @app.get("/names")
 async def returm_all_project_names():
+    # TODO: Add filtering based on permission
     return {"names" : client.list_database_names()}
 # end def
 # end get
@@ -122,6 +123,8 @@ async def return_all_experiment_names(project_id):
     project = client[project_id] # return collection of experiments
     names_temp = project.list_collection_names()
     names_temp.remove("config") # removes the config entry from the experiments list
+
+    # filters based on permission
 
     return {"names" : names_temp}
 
@@ -168,6 +171,7 @@ async def update_project_data(project_id, data_in : d.Simple_Request_body):
     json_dict = {
         "name" : data_in.name,
         "meta" : data_in.meta,
+        "creator" : data_in.creator,
         "author" : data_in.author,
         "data" : []
     }
@@ -185,6 +189,7 @@ async def return_project_data(project_id):
         json_dict = {
             "name" : result.get("name"),
             "meta" : result.get("meta"),
+            "creator" : result.get("creator"),
             "author" : result.get("author")
         }
         return json.dumps(json_dict)

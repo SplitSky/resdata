@@ -69,10 +69,10 @@ def load_file_project(filename_out): # returns a project object from file
         python_dict = json.load(file)
         #python_dict = json.loads(json_string)
         groups_temp = []
-        for i, experiment in python_dict.get("groups").items():
+        for experiment in python_dict.get("groups"):
             # iterate over datasets
             datasets_temp = []
-            for j, dataset in experiment.get("datasets").items():
+            for dataset in experiment.get("children"):
                 datasets_temp.append(d.Dataset(name=dataset.get("name"), data=dataset.get("data") , data_type=dataset.get("data_type"), meta=dataset.get("meta"),author=dataset.get("author")))
             groups_temp.append(d.Experiment(name= experiment.get("name"),children= datasets_temp,meta=experiment.get("meta")))
         project = d.Project(name=python_dict.get("name"),author=python_dict.get("author"),groups=groups_temp,meta=python_dict.get("meta"),creator=python_dict.get("creator")) # initialise empty project
