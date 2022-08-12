@@ -20,17 +20,13 @@ class TestClass:
         password = "marsupial"
         email = "marsupial1@gmail.com"
         full_name = "not_wombat"
-        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+        #ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
         # add credentials to interface
         ui.generate_token(username, password)
         print("finished authenticating")
         print("token is: ")
         print(ui.token)
-        temp = ui.insert_project(project_in)
-        # TODO: only return the project and experiment names that the user has permission to access
-        #temp = ui.get_project_names()
-
-        temp = ui.return_fullproject(project_name=project_in.get_name())
+        print(ui.return_fullproject(project_name=project_in.get_name()).json())
         # assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
 
     def test_2(self):

@@ -145,15 +145,11 @@ async def returm_all_project_names(author : d.Author):
 
 # 6. Call to return all experiment names for a project - "/{project_id}/" - get
 @app.get("/{project_id}/names")
-async def return_all_experiment_names(project_id, author : d.Author):
+async def return_all_experiment_names(project_id):
     project = client[project_id]  # return collection of experiments
     names_temp = project.list_collection_names()
     names_temp.remove("config")  # removes the config entry from the experiments list
-
-
-
-    # filters based on permission
-
+    print(names_temp)
     return {"names": names_temp}
 
 
