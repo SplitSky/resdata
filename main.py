@@ -84,22 +84,17 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User):
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/insert_dataset")
 # 1. Call to insert a single dataset "/{project_id}/{experiment_id}/{dataset_id}" - post
 async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
-    print("insert single dataset function")
     project_temp = client[project_id]  # returns the project - database
     experiment_temp = project_temp[experiment_id]  # calls the experiment collection
     temp = item.return_credentials()
     user = User_Auth(username_in=temp[0], password_in=temp[1], db_client_in=client)
     # authenticate user using the security module or raise exception
-    print("Authenticate_token : ")
-    print(user.authenticate_token())
     if user.authenticate_token() == False:
         return json.dumps({"message": False})
     # raise HTTPException(
     #     status_code=status.HTTP_401_UNAUTHORIZED,
     #     detail="The token failed to authenticate"
     # )
-    print("Data inserted into database")
-    print(item.convertJSON())
     experiment_temp.insert_one(item.convertJSON())  # data insert into database
     return json.dumps(item.convertJSON())  # return for verification
 
@@ -109,19 +104,55 @@ async def insert_single_dataset(project_id, experiment_id, item: d.Dataset):
 
 # 5. Call to return a list of all projects "/" - get
 @app.get("/names")
-async def returm_all_project_names():
-    return {"names": client.list_database_names()}
+async def returm_all_project_names(author : d.Author):
+    # validate user
+    # check if user was authenticated in and has a valid token
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
 
+    names = client.list_database_names()
+    names_out = []
+    # 'Authentication', 'S_Church', 'admin', 'local'
+    # remove the not data databases
+    names.remove('Authentication')
+    names.remove('admin')
+    names.remove('local')
+    for name in names:
+        # fetch database config file
+        temp_project = client[name]
+        config = temp_project["config"]
+        result = config.find_one()
+        if result == None:
+            raise HTTPException(
+                status_code=status.HTTP_204_NO_CONTENT,
+                detail="The project wasn't initialised properly"
+            )
+        authors = result.get("author")
+        for item in authors:
+            # item is a dictionary
+            if item.get("name") == author.name:
+                names_out.append(name)
 
+        return {"names" : names_out}
 # end def
 # end get
 
 # 6. Call to return all experiment names for a project - "/{project_id}/" - get
 @app.get("/{project_id}/names")
-async def return_all_experiment_names(project_id):
+async def return_all_experiment_names(project_id, author : d.Author):
     project = client[project_id]  # return collection of experiments
     names_temp = project.list_collection_names()
     names_temp.remove("config")  # removes the config entry from the experiments list
+
+
+
+    # filters based on permission
 
     return {"names": names_temp}
 
@@ -129,6 +160,7 @@ async def return_all_experiment_names(project_id):
 # 7. Call to return all dataset names for an experiment - "/{project_id}/{experiment_id}/" - get
 @app.get("/{project_id}/{experiment_id}/names")
 async def return_all_dataset_names(project_id, experiment_id):
+    # TODO: Add a filter to not return the config document storing the experiment variables
     project = client[project_id]
     experiment = project[experiment_id]
     names_temp = []
@@ -173,6 +205,7 @@ async def update_project_data(project_id, data_in: d.Simple_Request_body):
     json_dict = {
         "name": data_in.name,
         "meta": data_in.meta,
+        "creator" : data_in.creator,
         "author": data_in.author,
         "data": []
     }
@@ -191,6 +224,7 @@ async def return_project_data(project_id):
         json_dict = {
             "name": result.get("name"),
             "meta": result.get("meta"),
+            "creator" : result.get("creator"),
             "author": result.get("author")
         }
         return json.dumps(json_dict)

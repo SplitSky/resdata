@@ -191,3 +191,10 @@ class User_Auth(object):
         # deactivate user
         self.deactive_user()
         raise credentials_exception
+
+    def update_disable_status(self):
+        # fetch user and compare the expiry date to now.
+        now = datetime.utcnow()
+        user = self.fetch_user()
+        if user.get("expiry") < now:
+            self.deactive_user()

@@ -35,8 +35,6 @@ class API_interface():
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username, permission="write").dict()] # assign admin permissions for new dataset the user adds
         response = requests.post(url=self.path+project_name+"/"+experiment_name+"/"+dataset_in.get_name()+"/insert_dataset", json=dataset_in.dict())
-        print("response in insert dataset")
-        print(response)
         return response
 
     def return_fulldataset(self,project_name: str, experiment_name : str, dataset_name: str):
@@ -45,10 +43,6 @@ class API_interface():
         temp = response.json()
         temp = temp.get("datasets data") # returns the list of dataset dictionaries
         temp = temp[0] # fetches one dataset matching the name
-        print("dataset returned body : ")
-        print(temp)
-        print("dataset return name: ")
-        print(temp.get("name"))
         return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),data_type=temp.get("data_type"), author=temp.get("author"))
 
     def insert_experiment(self, project_name : str, experiment: d.Experiment):
@@ -57,6 +51,11 @@ class API_interface():
         # insert datasets one by one
         experiment_name = experiment.get_name()
         # check if experiment exists:
+        # check if the user has write priviledge for the project.
+        # else terminate
+        # TODO: need to add authentication on project level for insertion
+
+
         if self.check_experiment_exists(project_name,experiment_name) == False:
             # if it doesn't initialise it
             self.init_experiment(project_name, experiment)
@@ -95,8 +94,7 @@ class API_interface():
                 datasets.append(self.return_fulldataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each datasets and return the contents -> then add the contents to an object and return the object
         
-        experiment = d.Experiment(name=exp_name,children=datasets, meta=exp_meta)
-        return experiment
+        return d.Experiment(name=exp_name,children=datasets, meta=exp_meta)
 
     def return_fullproject(self, project_name: str):
         # request a list of all experiments within the project
@@ -109,8 +107,7 @@ class API_interface():
         response = requests.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json()) # conversion into dict
         
-        project = d.Project(name=proj_dict.get("name"),author=proj_dict.get("author") ,groups=experiments ,meta=proj_dict.get("meta") )
-        return project
+        return d.Project(name=proj_dict.get("name"),creator=proj_dict.get("creator") ,groups=experiments ,meta=proj_dict.get("meta"), author=proj_dict.get("author"))
 
     def check_project_exists(self,project_name : str):
         response = requests.get(self.path+ "names") # returns a list of strings
@@ -141,9 +138,9 @@ class API_interface():
         return response_out
 
     ## two functions to return names of the experiment and the names of the project
-
     def get_project_names(self):
-        response = requests.get(self.path + "names")
+        temp_author = d.Author(name=self.username, permission="read")
+        response = requests.get(self.path + "names",json=temp_author.dict())
         list = response.json() # this returns a python dictionary
         return list.get("names")
 
@@ -151,7 +148,8 @@ class API_interface():
     ### initialize project
     def init_project(self, project: d.Project):
         print("initializing")
-        request_body = d.Simple_Request_body(name=project.name,meta=project.meta, author=project.author)
+        temp = d.Author(name=self.username,permission="write").dict()
+        request_body = d.Simple_Request_body(name=project.name,meta=project.meta, creator=project.creator,author=[temp])
         print("Request body")
         print(request_body)
         response = requests.post(self.path + project.get_name() + "/set_project", json=request_body.convertJSON()) # updates the project variables

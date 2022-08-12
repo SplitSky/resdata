@@ -27,7 +27,8 @@ class TestClass:
         print("token is: ")
         print(ui.token)
         temp = ui.insert_project(project_in)
-        temp = ui.get_project_names()
+        # TODO: only return the project and experiment names that the user has permission to access
+        #temp = ui.get_project_names()
 
         temp = ui.return_fullproject(project_name=project_in.get_name())
         # assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
@@ -81,10 +82,67 @@ class TestClass:
         ui = API_interface(path)
         ui.try_authenticate()
 
+    def test_8(self):
+        # populate the database with projects belonging to different users
+        ui = API_interface(path)
+        # user 1 commits
+        username = "user1"
+        password = "user1_password"
+        email = "user1@email.com"
+        full_name = "user one"
+        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+
+        # insert 2 projects
+        ui.generate_token(username, password) # authenticate
+        filename = "user1.json"
+        project_name = "user1_project1"
+        t.create_test_file_project(filename, [2,3], project_name, username)
+        project_in = t.load_file_project(filename)
+        ui.insert_project(project_in)
+
+        project_name = "user1_project2"
+        t.create_test_file_project(filename, [1,3], project_name, username)
+        project_in = t.load_file_project(filename)
+        ui.insert_project(project_in)
+
+        # user 2 commits
+        username = "user2"
+        password = "user2_password"
+        email = "user1@email.com"
+        full_name = "user one"
+        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+
+        # insert 1 project # inserts the datasets with the same name as the previous project
+        # checks whether the user has write priviledges in the project
+        ui.generate_token(username, password) # authenticate
+        filename = "user2.json"
+        project_name = "user2_project1"
+        t.create_test_file_project(filename, [2,3], project_name, username)
+        project_in = t.load_file_project(filename)
+        ui.insert_project(project_in)
+
+        project_name = "user2_project2"
+        t.create_test_file_project(filename, [1,3], project_name, username)
+        project_in = t.load_file_project(filename)
+        ui.insert_project(project_in)
+
+        # user 3 commits
+        username = "user3"
+        password = "user3_password"
+        email = "user1@email.com"
+        full_name = "user one"
+        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+
+
+
+        # assign user 3 to projects commited by user 1
+    def test_8(self):
+        ui = API_interface(path)
+        ui.username = "wombat"
+        print(ui.get_project_names())
+
 
 def main():
     thing = TestClass()
     thing.test_1()
-
-
 main()

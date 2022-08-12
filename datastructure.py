@@ -91,9 +91,10 @@ class Experiment(BaseModel):
 
 class Project(BaseModel):
     name: str
-    author: str
+    author: List[dict]
     groups: List[Experiment]
     meta: Union[List[str], NoneType] = None
+    creator: str
 
     def convertJSON(self):  # returns a dictionary
         temp_dict = {}
@@ -101,10 +102,9 @@ class Project(BaseModel):
         for group in self.groups:
             temp_dict[i] = group.convertJSON()
             i += 1
-
         json_dict = {
             "name": self.name,
-            "author": self.author,
+            "creator" : self.creator,
             "meta": self.meta,
             "groups": temp_dict
         }
@@ -112,7 +112,7 @@ class Project(BaseModel):
 
     def convertDictionary(self, dict_in):
         self.name = dict_in.get("name")
-        self.author = dict_in.get("author")
+        self.creator = dict_in.get("creator")
         self.meta = dict_in.get("meta")
         self.groups = dict_in.get("groups")
 
@@ -129,17 +129,12 @@ class Project(BaseModel):
     def get_meta(self):
         return self.meta
 
-    def print_data(self):
-        for exp in self.groups:
-            string_out = exp.convertJSON()
-            print("printing experiment: ")
-            print(string_out)
-
 
 class Simple_Request_body(BaseModel):
     name: str
     meta: Union[List[str], NoneType] = None
-    author: str
+    author : List[dict]
+    creator : str
 
     # def get_variables(self):
     #    return [self.name, self.meta, self.author]
@@ -148,6 +143,7 @@ class Simple_Request_body(BaseModel):
         json_dict = {
             "name": self.name,
             "meta": self.meta,
+            "creator" : self.creator,
             "author": self.author
         }
         return json_dict
