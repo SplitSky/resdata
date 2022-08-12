@@ -139,7 +139,8 @@ class API_interface():
 
     ## two functions to return names of the experiment and the names of the project
     def get_project_names(self):
-        response = requests.get(self.path + "names")
+        temp_author = d.Author(name=self.username, permission="read")
+        response = requests.get(self.path + "names",json=temp_author.dict())
         list = response.json() # this returns a python dictionary
         return list.get("names")
 

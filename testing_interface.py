@@ -139,10 +139,14 @@ class TestClass:
 
 
         # assign user 3 to projects commited by user 1
+    def test_8(self):
+        ui = API_interface(path)
+        ui.username = "wombat"
+        print(ui.get_project_names())
 
 
 def main():
     thing = TestClass()
-    thing.test_1()
+    thing.test_8()
 main()
 
