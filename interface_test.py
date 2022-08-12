@@ -28,5 +28,5 @@ except RuntimeError:
     pass
 
 # 5) insert experiment
-experiment = ds.Experiment()
+experiment = ds.Experiment(name='PL')
 ui.init_experiment('test_project', experiment)

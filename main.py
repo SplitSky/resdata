@@ -5,13 +5,15 @@ from datetime import datetime, timedelta
 # Server and client imports
 from fastapi import FastAPI, HTTPException, status
 from jose import jwt
+from pymongo.errors import OperationFailure
 from pymongo.mongo_client import MongoClient
 
 # Project imports
 import datastructure as d
 import variables as var
 # authentication imports
-from security import User_Auth, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+from security import User_Auth
+from variables import secret_key, algorithm, access_token_expire
 
 #########################
 # Connect to the backend
@@ -29,11 +31,10 @@ async def connection_test():  # works like main
     try:
         client.server_info()
         return True
-    except BaseException as E:
+    except OperationFailure:
+        # Likely to be bad password
         return False
 
-
-# end get
 
 # 8. Call to return a result full dataset - "/{project_id}/{experiment_id}/{dataset_id}" - get
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/return_dataset")
@@ -203,7 +204,7 @@ async def create_user(user: d.User):
 @app.post("{username}/validate_token")
 async def validate_token(token: d.Token):
     # check if token is not expired and if user exists
-    payload = jwt.decode(token.access_token, SECRET_KEY, algorithms=[ALGORITHM])
+    payload = jwt.decode(token.access_token, secret_key, algorithms=[algorithm])
     if payload.get("sub") is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -234,7 +235,7 @@ async def validate_token(token: d.Token):
                     )
                 else:
                     # deactivate the user
-                    user.deactive_user()
+                    user.deactivate_user()
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -250,7 +251,7 @@ async def login_for_access_token(credentials: d.User):
     if user.check_username_exists():
         if user.check_password_valid():
             # authentication complete
-            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token_expires = timedelta(minutes=access_token_expire)
             temp_token = user.create_access_token(
                 expires_delta=access_token_expires)
             # create_access_token activates user and sets expiry date in database
@@ -260,20 +261,3 @@ async def login_for_access_token(credentials: d.User):
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="The credentials failed to validate"
     )
-
-
-# TODO: remove this function for deployment
-@app.post("/testing_stuff")
-async def insert_single_dataset_test(item: d.Dataset):
-    temp = item.return_credentials()
-    user = User_Auth(username_in=temp[0], password_in=temp[1], db_client_in=client)
-    # authenticate user using the security module or raise exception
-    if user.authenticate_token() is False:
-        return json.dumps({"message": False})
-    # raise HTTPException(
-    #     status_code=status.HTTP_401_UNAUTHORIZED,
-    #     detail="The token failed to authenticate"
-    # )
-    print("Data inserted into database")
-    print(item.convertJSON())
-    return json.dumps({"message": True})  # return for v

@@ -1,15 +1,11 @@
 import hashlib as h
 import json
-
 import requests
 from fastapi import status
-
 import datastructure as d
 
 
-# storage in database is done using nested dictionaries
-
-
+###############################
 # hash function used in the API
 def return_hash(password: str):
     # this function only hashes the password for sending purposes
@@ -18,44 +14,33 @@ def return_hash(password: str):
     return temp.hexdigest(64)
 
 
+###############################
 class API_interface:
 
-    def __init__(self, path_in):
-        self.path = path_in
-        self.token = ""
-        self.username = ""
+    def __init__(self, path_in: str) -> None:
+        self.path: str = path_in
+        self.token: str = ""
+        self.username: str = ""
 
     def check_connection(self):
+        """Test API connection to the server"""
         response = requests.get(self.path)
-        if response.status_code == status.HTTP_200_OK:
-            return True
-        else:
-            return False
+        return response.status_code == status.HTTP_200_OK
 
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset):
         # set credentials for authentication
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username,
                                       permission="write").dict()]
-        response = requests.post(
-            url=self.path + project_name + "/" + experiment_name + "/" + dataset_in.get_name() + "/insert_dataset",
-            json=dataset_in.dict())
-        print("response in insert dataset")
-        print(response)
-        return response
+        return requests.post(url=f'{self.path}{project_name}/{experiment_name}/{dataset_in.get_name()}/insert_dataset',
+                             json=dataset_in.dict())
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):
         user_in = d.User(username=self.username, hash_in=self.token)
         response = requests.post(
             url=self.path + project_name + "/" + experiment_name + "/" + dataset_name + "/return_dataset",
             json=user_in.dict())
-        temp = response.json()
-        temp = temp.get("datasets data")  # returns the list of dataset dictionaries
-        temp = temp[0]  # fetches one dataset matching the name
-        print("dataset returned body : ")
-        print(temp)
-        print("dataset return name: ")
-        print(temp.get("name"))
+        temp = response.json().get("datasets data")[0]
         return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                          data_type=temp.get("data_type"), author=temp.get("author"))
 
@@ -168,10 +153,13 @@ class API_interface:
         return response
 
     # initialize experiment
-    def init_experiment(self, project_id, experiment: d.Experiment):
+    def init_experiment(self, project_id: str, experiment: d.Experiment) -> None:
         # insert dataset function validates as it is the only function which inserts things into the database.
         # Author data is just the username and the permission of the user entering it
-        dataset_in = d.Dataset(name=experiment.name, data=[], meta=experiment.meta, data_type="configuration file",
+        # TODO: Check if experiment already exists
+        dataset_in = d.Dataset(name=experiment.name, data=[],
+                               meta=experiment.meta,
+                               data_type="configuration file",
                                author=[d.Author(name=self.username, permission="write").dict()])
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name, dataset_in=dataset_in)
