@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Mapping, Any
+from typing import Mapping, Any, Union
+from datetime import datetime, timedelta
+from pydantic.typing import NoneType
 # Crypto
 import hashlib as h
 import random
@@ -10,12 +12,16 @@ from fastapi import HTTPException, status
 from jose import jwt, JWTError
 from pymongo.mongo_client import MongoClient
 # Internal
-from variables import secret_key, algorithm
+from variables import secret_key, algorithm, access_token_expire
+# declare constants for the authentication
+SECRET_KEY = secret_key
+ALGORITHM = algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = access_token_expire
 
 
-# User verification object
-class User_Auth:
-    def __init__(self, username_in: str, password_in: str, db_client_in: MongoClient) -> None:
+### User verification object
+class User_Auth(object):
+    def __init__(self, username_in : str, password_in : str, db_client_in: MongoClient) -> None:
         self.username = username_in
         self.password = password_in
         self.client = db_client_in
@@ -46,7 +52,7 @@ class User_Auth:
             auth = self.client["Authentication"]
             users = auth["Users"]
             result = users.find_one({"username": self.username})
-            if result is not None:
+            if result != None:
                 salt = result.get("salt")
                 temp = h.shake_256()
                 password = salt + self.password
@@ -58,14 +64,13 @@ class User_Auth:
                 )
             return temp.hexdigest(64)  # return a string from bytes
 
-    def create_access_token(self, expires_delta: timedelta = None) -> str:
+    def create_access_token(self, expires_delta: Union[timedelta, NoneType] = None):
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=30)
         to_encode = {'sub': self.username, 'expiry': str(expire)}
-        encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
-
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         authentication_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="The user doesn't exist. Can't generate token"
@@ -88,16 +93,21 @@ class User_Auth:
         result = users.find_one({"username": self.username})
         return result is not None
 
+
     def activate_user(self) -> bool:
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": False}})
-        return result is not None
+        if result == None:  # failed to find user
+            return False
+        else:
+            return True
 
     def deactivate_user(self) -> bool:
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": True}})
+<<<<<<< HEAD
         return result is not None
 
     def add_user(self, full_name: str, email: str) -> bool:
@@ -114,7 +124,7 @@ class User_Auth:
                 "email": email,
                 "disabled": True,
                 "salt": str(salt_init),
-                "expiry": str(datetime.utcnow()),
+                "expiry": datetime.utcnow(),
                 "token": ""
             }
             users.insert_one(user_dict)
@@ -157,8 +167,10 @@ class User_Auth:
             # username matches the token
             # check the token matches the one in the database
             fetched_user = self.fetch_user()  # fetches the user data
+
             if fetched_user is None:
                 raise credentials_exception
+
 
             if compare_digest(self.password, fetched_user.get("token")):  # compares tokens
                 # successfully compared tokens
@@ -174,3 +186,10 @@ class User_Auth:
         # deactivate user
         self.deactivate_user()
         raise credentials_exception
+
+    def update_disable_status(self):
+        # fetch user and compare the expiry date to now.
+        now = datetime.utcnow()
+        user = self.fetch_user()
+        if user.get("expiry") < now:
+            self.deactive_user()

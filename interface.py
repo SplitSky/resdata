@@ -9,6 +9,7 @@ import datastructure as d
 
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
+
     temp = h.shake_256()
     temp.update(password.encode('utf8'))
     return temp.hexdigest(64)
@@ -23,6 +24,7 @@ class API_interface:
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
+
         response = requests.get(self.path)
         return response.status_code == status.HTTP_200_OK
 
@@ -47,6 +49,7 @@ class API_interface:
         """ The function which utilises insert_dataset to recursively insert a full experiment and initialise it if it doesn't exist. """
         experiment_name = experiment.name
         if not self.check_experiment_exists(project_name, experiment_name):
+
             self.init_experiment(project_name, experiment)
         # init the experiment
         response = []
@@ -73,6 +76,7 @@ class API_interface:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
             if temp.data_type == "configuration file":
+
                 # update experiment parameters
                 exp_name = temp.name
                 exp_meta = temp.meta
@@ -83,6 +87,7 @@ class API_interface:
 
         experiment = d.Experiment(name=exp_name, children=datasets, meta=exp_meta)
         return experiment
+
 
     def return_full_project(self, project_name: str):
         """ Utilises the return_experiment function to recursively return the entire project that the user has a permission to view. """
@@ -104,7 +109,7 @@ class API_interface:
         """ Function which returns True if a project exists and False if it doesn't. """
         response = requests.get(self.path + "names")  # returns a list of strings
         names = response.json().get("names")
-        if project_name in names:
+        if names is not None and project_name in names:
             return True
         else:
             return False
@@ -177,7 +182,15 @@ class API_interface:
 
         # API call to create user
         response = requests.post(self.path + "create_user", json=user_out)
-        return response.status_code == 200
+
+
+        print("status code" + str(response.status_code))
+
+        if response.status_code == 200:
+            # the user already exists
+            return True
+        else:
+            return False
 
     def generate_token(self, username, password):
         """ Generates the authentication jwt token used for interacting with the database. """
@@ -188,3 +201,21 @@ class API_interface:
         response = requests.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
+
+
+    def try_authenticate(self):
+        # test function
+        # send empty database and extract the username and password and give results of authenticate user password
+        username = "shmek_the_legend"
+        password = "i_like_wombat"
+        email = "adwknjhd"
+        full_name = "Shmek Johnson"
+        self.create_user(username, password, email, full_name)
+        self.generate_token(username, password)
+        dataset = d.Dataset(name="auth_test", data=[1, 2, 3], meta=["Auth meta"], data_type="testing",
+                            author=[d.Author(name="wombat", permission="write").dict()])
+        dataset.set_credentials(username, self.token)
+        print(dataset.json())
+
+        response = requests.post(self.path + "testing_stuff", json=dataset.dict())
+        return response

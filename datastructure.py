@@ -5,17 +5,20 @@ from enum import Enum
 from pydantic.typing import NoneType
 
 # the baseline for data storage. Each measurement is a node in terms of a dataset
+from pydantic.typing import NoneType
+
 
 
 class Dataset(BaseModel):
     name: str
-    data: Union[list, int]
-    meta: Union[list[str], None] = None
+
+    data: List  # list of numbers or bits
+    meta: Union[List[str], NoneType] = None
     data_type: str
-    author: Union[List[dict], None] = None
+    author: List[dict]
     # variables used in authentication
-    username: Union[str, None] = None
-    token: Union[str, None] = None
+    username: Union[str, NoneType] = None
+    token: Union[str, NoneType] = None
 
     def convertJSON(self):  # converts it into nested dictionary
         # this function skips over the username and token variables
@@ -36,11 +39,11 @@ class Dataset(BaseModel):
         self.token = token
 
 
+
 class Experiment(BaseModel):
     name: str
     children: Union[List[Dataset], None] = None
     meta: Union[List[str], None] = None  # implemented union as optional variable
-
     def convertJSON(self):  # returns a nested python dictionary
         temp_dict = {}
         i = 0
@@ -82,7 +85,7 @@ class Project(BaseModel):
 
     def convertDictionary(self, dict_in):
         self.name = dict_in.get("name")
-        self.author = dict_in.get("author")
+        self.creator = dict_in.get("creator")
         self.meta = dict_in.get("meta")
         self.groups = dict_in.get("groups")
 
@@ -105,6 +108,7 @@ class Simple_Request_body(BaseModel):
         json_dict = {
             "name": self.name,
             "meta": self.meta,
+            "creator" : self.creator,
             "author": self.author
         }
         return json_dict
