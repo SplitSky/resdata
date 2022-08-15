@@ -16,10 +16,10 @@ import datastructure as d
 import variables as var
 """Authentication imports"""
 from security import User_Auth
-from variables import secret_key, algorithm, access_token_expire
+from variables import secret_key, algorithm, access_token_expire, cluster_id
 
 """Connect to the backend variables"""
-string = f"mongodb+srv://{var.username}:{var.password}@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
+string = f"mongodb+srv://{var.username}:{var.password}@cluster0.{cluster_id}.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(string)
 """Initialises the API"""
 app = FastAPI()

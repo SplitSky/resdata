@@ -21,7 +21,7 @@ else:
 ui.generate_token(username, password)
 
 # 4) insert project using the token
-project = ds.Project(name=project_name, author='patrick')
+project = ds.Project(name=project_name, author=[{"name" : 'patrick', "permission" : "write"}], creator = 'patrick')
 try:
     ui.insert_project(project)
 except RuntimeError:
@@ -29,7 +29,7 @@ except RuntimeError:
     pass
 
 # 5) insert experiment
-experiment = ds.Experiment(name='PL')
+experiment = ds.Experiment(name='PL', children=[])
 try:
     ui.init_experiment(project_name, experiment)
 except KeyError:
@@ -38,7 +38,8 @@ except KeyError:
 
 # 6) Insert a few datasets
 for i in range(5):
-    d = ds.Dataset(name=f"ID{i}", data=i, data_type="int")
+    data_in = [1,2,3,4,5]
+    d = ds.Dataset(name=f"ID{i}", data=data_in, data_type="int", author=[{"name" : 'patrick', "permission" : "write"}])
     print(f'Inserting set {i}')
     ui.insert_dataset(project_name=project_name, experiment_name='PL', dataset_in=d)
 

@@ -107,7 +107,6 @@ class User_Auth(object):
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": True}})
-<<<<<<< HEAD
         return result is not None
 
     def add_user(self, full_name: str, email: str) -> bool:

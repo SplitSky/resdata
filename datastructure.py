@@ -2,23 +2,17 @@
 from typing import Union, List
 from pydantic import BaseModel
 from enum import Enum
-from pydantic.typing import NoneType
-
-# the baseline for data storage. Each measurement is a node in terms of a dataset
-from pydantic.typing import NoneType
-
-
 
 class Dataset(BaseModel):
     name: str
 
     data: List  # list of numbers or bits
-    meta: Union[List[str], NoneType] = None
+    meta: Union[List[str], None] = None
     data_type: str
     author: List[dict]
     # variables used in authentication
-    username: Union[str, NoneType] = None
-    token: Union[str, NoneType] = None
+    username: Union[str, None] = None
+    token: Union[str, None] = None
 
     def convertJSON(self):  # converts it into nested dictionary
         # this function skips over the username and token variables
@@ -42,8 +36,9 @@ class Dataset(BaseModel):
 
 class Experiment(BaseModel):
     name: str
-    children: Union[List[Dataset], None] = None
+    children: List[Dataset]
     meta: Union[List[str], None] = None  # implemented union as optional variable
+
     def convertJSON(self):  # returns a nested python dictionary
         temp_dict = {}
         i = 0
@@ -63,9 +58,10 @@ class Experiment(BaseModel):
 
 class Project(BaseModel):
     name: str
-    author: str
+    creator: str
     groups: Union[List[Experiment], None] = None
     meta: Union[List[str], None] = None
+    author: List[dict]
 
     def convertJSON(self):  # returns a dictionary
         temp_dict = {}
@@ -79,6 +75,7 @@ class Project(BaseModel):
             "name": self.name,
             "author": self.author,
             "meta": self.meta,
+            "creator" : self.creator,
             "groups": temp_dict
         }
         return json_dict
@@ -99,10 +96,8 @@ class Project(BaseModel):
 class Simple_Request_body(BaseModel):
     name: str
     meta: Union[List[str], None] = None
-    author: str
-
-    # def get_variables(self):
-    #    return [self.name, self.meta, self.author]
+    author: List[dict]
+    creator : str
 
     def convertJSON(self):
         json_dict = {
@@ -126,13 +121,6 @@ class User(BaseModel):
     hash_in: str
     email: Union[str, None] = None
     full_name: Union[str, None] = None
-
-
-class permission(Enum):
-    WRITE = "write"
-    READ = "read"
-    PUBLIC = "public"
-
 
 class Author(BaseModel):
     # object used for representing the author of a dataset, experiment, project

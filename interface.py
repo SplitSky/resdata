@@ -31,8 +31,7 @@ class API_interface:
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> None:
         """ The function responsible for an insertion of a dataset. It authenticates the user and verifies the write permission."""
         dataset_in.set_credentials(self.username, self.token)
-        dataset_in.author = [d.Author(name=self.username,
-                                      permission="write").dict()]
+        dataset_in.author = [d.Author(name=self.username,permission="write").dict()]
         requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str) -> d.Dataset:
@@ -49,15 +48,13 @@ class API_interface:
         """ The function which utilises insert_dataset to recursively insert a full experiment and initialise it if it doesn't exist. """
         experiment_name = experiment.name
         if not self.check_experiment_exists(project_name, experiment_name):
-
             self.init_experiment(project_name, experiment)
         # init the experiment
         response = []
         
-        if experiment.children is not None:
-            for dataset in experiment.children:
-                if not self.check_dataset_exists(project_name, experiment_name, dataset.name):
-                    response.append(self.insert_dataset(project_name, experiment_name, dataset))
+        for dataset in experiment.children:
+            if not self.check_dataset_exists(project_name, experiment_name, dataset.name):
+                response.append(self.insert_dataset(project_name, experiment_name, dataset))
         
         return response
 
@@ -76,17 +73,14 @@ class API_interface:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
             if temp.data_type == "configuration file":
-
                 # update experiment parameters
                 exp_name = temp.name
                 exp_meta = temp.meta
             else:
-                datasets.append(self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
-                                                         dataset_name=name))
+                datasets.append(self.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each dataset and return the contents -> then add the contents to an object and return the object
 
-        experiment = d.Experiment(name=exp_name, children=datasets, meta=exp_meta)
-        return experiment
+        return d.Experiment(name=exp_name, children=datasets, meta=exp_meta)
 
 
     def return_full_project(self, project_name: str):
@@ -101,9 +95,8 @@ class API_interface:
         response = requests.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json())  # conversion into dict
 
-        project = d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
-                            meta=proj_dict.get("meta"))
-        return project
+        return d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
+                            meta=proj_dict.get("meta"), creator=proj_dict.get("creator"))
 
     def check_project_exists(self, project_name: str):
         """ Function which returns True if a project exists and False if it doesn't. """
@@ -148,9 +141,9 @@ class API_interface:
     # initialize project
     def init_project(self, project: d.Project):
         """ Project initialisation function. Assigns the variables to the configuration file in the database. """
-        request_body = d.Simple_Request_body(name=project.name, meta=project.meta, author=project.author)
+        request_body = d.Simple_Request_body(name=project.name, meta=project.meta,creator=project.creator, author=project.author)
         response = requests.post(self.path + project.name + "/set_project",
-                                 json=request_body.convertJSON())  # updates the project variables
+                                 json=request_body.dict())  # updates the project variables
         return response
 
     # initialize experiment
