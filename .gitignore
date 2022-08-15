@@ -1,3 +1,4 @@
+variables.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -137,7 +138,7 @@ dmypy.json
 /.idea/vcs.xml
 =======
 variables.py
-test.json
+example_data/*
 notes.txt
 test.py
 
