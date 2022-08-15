@@ -1,31 +1,30 @@
-# Datastructure imports
+""" The API_server file containing all the API calls used by the interface. """
+
+"""Data structure imports"""
 import json
 from datetime import datetime, timedelta
 
-# Server and client imports
+""" Server and client imports """
 from typing import List, Union
-
 from fastapi import FastAPI, HTTPException, status
 from jose import jwt
 from pymongo.errors import OperationFailure
 from pymongo.mongo_client import MongoClient
 
-# Project imports
+"""Project imports"""
 import datastructure as d
 import variables as var
-# authentication imports
+"""Authentication imports"""
 from security import User_Auth
 from variables import secret_key, algorithm, access_token_expire
 
-#########################
-# Connect to the backend
+"""Connect to the backend variables"""
 string = f"mongodb+srv://{var.username}:{var.password}@cluster0.c5rby.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(string)
-# Initialize API
+"""Initialises the API"""
 app = FastAPI()
 
 
-#########################
 @app.get("/")
 async def connection_test() -> bool:
     """Test connection to MongoDB server"""
@@ -36,24 +35,18 @@ async def connection_test() -> bool:
         # Likely to be bad password
         return False
 
-
-#########################
 @app.get("/names")
 async def return_all_project_names() -> dict:
     """Return a list of all project names"""
     return {"names": client.list_database_names()}
 
-
-#########################
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/return_dataset")
 async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) -> Union[List[dict], dict]:
     """Return a specific fully specified dataset"""
-
     # Run authentication
     current_user = User_Auth(username_in=user.username, password_in=user.hash_in, db_client_in=client)
     if not current_user.authenticate_token():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The token failed to authenticate")
-
     # Connect to experiment
     experiment_collection = client[project_id][experiment_id]
     experiments = experiment_collection.find({"name": dataset_id})
@@ -63,22 +56,19 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) ->
         # loop over experiments, appending dataset
         return [{'name': dataset.name, 'data': dataset.data} for dataset in experiments]
 
-
-#########################
 @app.post("/{project_id}/{experiment_id}/insert_dataset")
 async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_insert: d.Dataset) -> str:
     """Insert a dataset into the experiment listed"""
     experiments = client[project_id][experiment_id]
     dataset_credentials = dataset_to_insert.return_credentials()
-    user = User_Auth(username_in=dataset_credentials[0], password_in=dataset_credentials[1], db_client_in=client)
+    if dataset_credentials[0] != None and dataset_credentials[1] != None:
+        user = User_Auth(username_in=dataset_credentials[0], password_in=dataset_credentials[1], db_client_in=client)
     # authenticate user using the security module or raise exception
     if user.authenticate_token() is False:
         return json.dumps({"message": False})
     experiments.insert_one(dataset_to_insert.convertJSON())  # data insert into database
     return json.dumps(dataset_to_insert.convertJSON())  # return for verification
 
-
-#########################
 @app.get("/{project_id}/names")
 async def return_all_experiment_names(project_id: str) -> List[str]:
     """Retrieve all experimental names in a given project"""
@@ -86,15 +76,11 @@ async def return_all_experiment_names(project_id: str) -> List[str]:
     experiment_names.remove('config')
     return experiment_names
 
-
-#########################
 @app.get("/{project_id}/{experiment_id}/names")
 async def return_all_dataset_names(project_id: str, experiment_id: str) -> List[str]:
     return [dataset['name'] for dataset in client[project_id][experiment_id].find()
             if (dataset['data_type'] != "configuration file")]
 
-
-#########################
 @app.post("/{project_id}/set_project")
 async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -> dict:
     """Update a project with Simple Request"""
@@ -108,8 +94,6 @@ async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -
     collection.insert_one(json_dict)
     return json_dict
 
-
-#########################
 @app.get("/{project_id}/details")
 async def return_project_data(project_id: str) -> dict:
     result = client[project_id]["config"].find_one()  # only one document entry
@@ -123,13 +107,13 @@ async def return_project_data(project_id: str) -> dict:
         }
     return json_dict
 
-
-#########################
 @app.post("/create_user")
 async def create_user(user: d.User) -> dict:
     """Create a new user"""
     auth_obj = User_Auth(user.username, user.hash_in, client)
-    response = auth_obj.add_user(user.full_name, user.email)
+    response = False
+    if user.full_name != None and user.email != None:
+        response = auth_obj.add_user(user.full_name, user.email)
     if response:
         # successfully created user
         return {"message": "User Successfully created"}
@@ -151,8 +135,13 @@ async def validate_token(token: d.Token) -> None:
         username = payload.get("sub")
 
     # Establish user
-    user = User_Auth(username, "None", client)
-
+    if username != None:
+        user = User_Auth(username, "None", client)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail = "request body missing username"
+        )
     # Check if exists
     if user.check_username_exists():
         result = client["Authentication"]["Users"].find_one({"username": username})
@@ -173,8 +162,6 @@ async def validate_token(token: d.Token) -> None:
         headers={"WWW-Authenticate": "Bearer"}
     )
 
-
-#########################
 @app.post("/generate_token", response_model=d.Token)
 async def login_for_access_token(credentials: d.User) -> d.Token:
     """Create a token and enable user"""

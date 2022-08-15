@@ -9,13 +9,13 @@ from pydantic.typing import NoneType
 
 class Dataset(BaseModel):
     name: str
-    data: Union[List, int]
-    meta: Union[List[str], NoneType] = None
+    data: Union[list, int]
+    meta: Union[list[str], None] = None
     data_type: str
-    author: Union[List[dict], NoneType] = None
+    author: Union[List[dict], None] = None
     # variables used in authentication
-    username: Union[str, NoneType] = None
-    token: Union[str, NoneType] = None
+    username: Union[str, None] = None
+    token: Union[str, None] = None
 
     def convertJSON(self):  # converts it into nested dictionary
         # this function skips over the username and token variables
@@ -38,15 +38,16 @@ class Dataset(BaseModel):
 
 class Experiment(BaseModel):
     name: str
-    children: Union[List[Dataset], NoneType] = None
-    meta: Union[List[str], NoneType] = None  # implemented union as optional variable
+    children: Union[List[Dataset], None] = None
+    meta: Union[List[str], None] = None  # implemented union as optional variable
 
     def convertJSON(self):  # returns a nested python dictionary
         temp_dict = {}
         i = 0
-        for child in self.children:
-            temp_dict[i] = child.convertJSON()
-            i += 1
+        if self.children != None:
+            for child in self.children:
+                temp_dict[i] = child.convertJSON()
+                i += 1
         # end for
 
         json_dict = {
@@ -60,15 +61,16 @@ class Experiment(BaseModel):
 class Project(BaseModel):
     name: str
     author: str
-    groups: Union[List[Experiment], NoneType] = None
-    meta: Union[List[str], NoneType] = None
+    groups: Union[List[Experiment], None] = None
+    meta: Union[List[str], None] = None
 
     def convertJSON(self):  # returns a dictionary
         temp_dict = {}
         i = 0
-        for group in self.groups:
-            temp_dict[i] = group.convertJSON()
-            i += 1
+        if self.groups != None:
+            for group in self.groups:
+                temp_dict[i] = group.convertJSON()
+                i += 1
 
         json_dict = {
             "name": self.name,
@@ -85,12 +87,15 @@ class Project(BaseModel):
         self.groups = dict_in.get("groups")
 
     def __str__(self) -> str:
-        return str([exp.convertJSON() for exp in self.groups])
+        if self.groups != None:
+            return str([exp.convertJSON() for exp in self.groups])
+        else:
+            return str([])
 
 
 class Simple_Request_body(BaseModel):
     name: str
-    meta: Union[List[str], NoneType] = None
+    meta: Union[List[str], None] = None
     author: str
 
     # def get_variables(self):
@@ -115,8 +120,8 @@ class Token(BaseModel):
 class User(BaseModel):
     username: str
     hash_in: str
-    email: Union[str, NoneType] = None
-    full_name: Union[str, NoneType] = None
+    email: Union[str, None] = None
+    full_name: Union[str, None] = None
 
 
 class permission(Enum):

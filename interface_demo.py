@@ -36,7 +36,7 @@ except KeyError:
     print("Experiment already exists")
     pass
 
-# 6) Insert a few dataset
+# 6) Insert a few datasets
 for i in range(5):
     d = ds.Dataset(name=f"ID{i}", data=i, data_type="int")
     print(f'Inserting set {i}')
@@ -44,3 +44,11 @@ for i in range(5):
 
 # 7) fetch data
 d = ui.return_full_experiment(project_name=project_name, experiment_name="PL")
+
+# 8) Create a second user and attempt inserting dataset -> then fetch
+
+
+# 9) Give the second user permissions and show allowed projects, experiments, datasets
+
+
+# 10) Remove the second user's permissions and show allowed projects, experiments, datasets
