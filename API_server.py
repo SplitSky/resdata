@@ -36,25 +36,66 @@ async def connection_test() -> bool:
         return False
 
 @app.get("/names")
-async def return_all_project_names() -> dict:
-    """Return a list of all project names"""
-    return {"names": client.list_database_names()}
+async def returm_all_project_names(author : d.Author):
+    """ Function which returns a list of project names that the user has permission to view."""
+    # validate user
+    # check if user was authenticated in and has a valid token
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
+
+    names = client.list_database_names()
+    names_out = []
+    # 'Authentication', 'S_Church', 'admin', 'local'
+    # remove the not data databases
+    names.remove('Authentication')
+    names.remove('admin')
+    names.remove('local')
+    for name in names:
+        # fetch database config file
+        temp_project = client[name]
+        config = temp_project["config"]
+        result = config.find_one()
+        if result == None:
+            raise HTTPException(
+                status_code=status.HTTP_204_NO_CONTENT,
+                detail="The project wasn't initialised properly"
+            )
+        authors = result.get("author")
+        for item in authors:
+            # item is a dictionary
+            if item.get("name") == author.name:
+                names_out.append(name)
+    
+    return {"names" : names_out}
 
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/return_dataset")
-async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) -> Union[List[dict], dict]:
-    """Return a specific fully specified dataset"""
+async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) -> str:
+    """Return a single fully specified dataset"""
     # Run authentication
     current_user = User_Auth(username_in=user.username, password_in=user.hash_in, db_client_in=client)
     if not current_user.authenticate_token():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The token failed to authenticate")
     # Connect to experiment
     experiment_collection = client[project_id][experiment_id]
-    experiments = experiment_collection.find({"name": dataset_id})
-    if experiments is None:
-        return {"message": "no data found"}
+    result = experiment_collection.find_one({"name": dataset_id})
+    if result is None:
+        return json.dumps({"message": False})
     else:
-        # loop over experiments, appending dataset
-        return [{'name': dataset.name, 'data': dataset.data} for dataset in experiments]
+        dict_struct = {
+            "name" : result.get("name"),
+            "data" : result.get("data"),
+            "meta" : result.get("meta"),
+            "data_type" : result.get("data_type"),
+            "author" : result.get("author")
+        }
+        temp = json.dumps(dict_struct)
+        return temp
 
 @app.post("/{project_id}/{experiment_id}/insert_dataset")
 async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_insert: d.Dataset) -> str:
@@ -64,22 +105,28 @@ async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_
     if dataset_credentials[0] != None and dataset_credentials[1] != None:
         user = User_Auth(username_in=dataset_credentials[0], password_in=dataset_credentials[1], db_client_in=client)
     # authenticate user using the security module or raise exception
-    if user.authenticate_token() is False:
-        return json.dumps({"message": False})
-    experiments.insert_one(dataset_to_insert.convertJSON())  # data insert into database
+        if user.authenticate_token() is False:
+            return json.dumps({"message": False})
+        experiments.insert_one(dataset_to_insert.convertJSON())  # data insert into database
     return json.dumps(dataset_to_insert.convertJSON())  # return for verification
 
 @app.get("/{project_id}/names")
 async def return_all_experiment_names(project_id: str) -> List[str]:
-    """Retrieve all experimental names in a given project"""
+    # TODO: Add permission filtering
+    """Retrieve all experimental names in a given project that the user has the permission to access"""
     experiment_names = client[project_id].list_collection_names()
-    experiment_names.remove('config')
+    if len(experiment_names) != 0:
+        experiment_names.remove('config')
     return experiment_names
 
 @app.get("/{project_id}/{experiment_id}/names")
-async def return_all_dataset_names(project_id: str, experiment_id: str) -> List[str]:
-    return [dataset['name'] for dataset in client[project_id][experiment_id].find()
-            if (dataset['data_type'] != "configuration file")]
+async def return_all_dataset_names(project_id: str, experiment_id: str):
+    """ Retrieve all dataset names that the user has access to."""
+    # TODO: Add permission filtering
+    names = []
+    for dataset in client[project_id][experiment_id].find():
+        names.append(dataset['name']) # returns all datasets including the config
+    return {"names" : names}
 
 @app.post("/{project_id}/set_project")
 async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -> dict:
@@ -89,23 +136,25 @@ async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -
         "name": data_in.name,
         "meta": data_in.meta,
         "author": data_in.author,
-        "data": []
+        "data": [],
+        "creator" : data_in.creator
     }
     collection.insert_one(json_dict)
     return json_dict
 
 @app.get("/{project_id}/details")
-async def return_project_data(project_id: str) -> dict:
+async def return_project_data(project_id: str) -> str:
     result = client[project_id]["config"].find_one()  # only one document entry
     if result is None:
         json_dict = {"message": "No config found. Project not initialised"}
     else:
         json_dict = {
-            "project_name": result.get("name"),
+            "name": result.get("name"),
             "metadata": result.get("meta"),
-            "author": result.get("author")
+            "author": result.get("author"),
+            "creator": result.get("creator")
         }
-    return json_dict
+    return json.dumps(json_dict)
 
 @app.post("/create_user")
 async def create_user(user: d.User) -> dict:
@@ -123,8 +172,6 @@ async def create_user(user: d.User) -> dict:
             detail="User already exists"
         )
 
-
-#########################
 @app.post("{username}/validate_token")
 async def validate_token(token: d.Token) -> None:
     """Check if token is not expired and if user exists"""

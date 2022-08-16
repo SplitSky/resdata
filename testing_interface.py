@@ -21,14 +21,16 @@ class TestClass:
         password = "marsupial"
         email = "marsupial1@gmail.com"
         full_name = "not_wombat"
-        #ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
         # add credentials to interface
         ui.generate_token(username, password)
+        #ui.insert_project(project=project_in)
         print("finished authenticating")
-        print("token is: ")
-        print(ui.token)
-        print(ui.return_fullproject(project_name=project_in.get_name()).json())
+        temp = ui.return_full_project(project_name=project_in.name)
+        print("Printing the return project")
+        print(temp.json())
         # assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
+
 
     def test_2(self):
         # check connection
@@ -133,7 +135,7 @@ class TestClass:
 
 
         # assign user 3 to projects commited by user 1
-    def test_8(self):
+    def test_9(self):
         ui = API_interface(path)
         ui.username = "wombat"
         print(ui.get_project_names())
