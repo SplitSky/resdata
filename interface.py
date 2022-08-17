@@ -58,29 +58,25 @@ class API_interface:
             self.init_experiment(project_name, experiment)
         # init the experiment
         response = []
-        
         for dataset in experiment.children:
             if not self.check_dataset_exists(project_name, experiment_name, dataset.name):
                 response.append(self.insert_dataset(project_name, experiment_name, dataset))
-        
         return response
 
     def return_full_experiment(self, project_name: str, experiment_name: str) -> d.Experiment:
         """ It returns an Experiment object containing the data within the database. """
-        response = requests.get(
-            self.path + project_name + "/" + experiment_name + "/names")
-        names_list = response.json().get("names")
+        
+        #user_in = d.Author(name=self.username, permission="read")
+        #response = requests.get(
+        #    self.path + project_name + "/" + experiment_name + "/names", json=user_in.dict())
+        #names_list = response.json().get("names")
+        names_list = self.get_dataset_names(project_id=project_name, experiment_id=experiment_name)
         datasets = []
-
         exp_name = "default"
         exp_meta = ["default"]
-        print("names list")
-        print(names_list)
         for name in names_list:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
-            print("Response from return_full_dataset ")
-            print(temp)
             if temp != None:
                 if temp.data_type == "configuration file":
                     # update experiment parameters
@@ -99,8 +95,8 @@ class API_interface:
             raise RuntimeError("The project requested doesn't exist")
 
         # request a list of all experiments within the project
-        response = requests.get(self.path + project_name + "/names")  # returns experiment names including config
-        exp_names_list = response.json()
+        exp_names_list = self.get_experiment_names(project_id=project_name)
+
         experiments = []
         for exp_name in exp_names_list:
             experiments.append(self.return_full_experiment(project_name, exp_name))
@@ -113,19 +109,13 @@ class API_interface:
 
     def check_project_exists(self, project_name: str):
         """ Function which returns True if a project exists and False if it doesn't. """
-        user_in = d.Author(name=self.username ,permission="none")
-        response = requests.get(self.path + "names", json=user_in.dict())  # returns a list of strings
-        names = response.json().get("names")
-        if names is not None and project_name in names:
-            return True
-        else:
-            return False
+        names_list = self.get_project_names()
+        return project_name in names_list
 
     def check_experiment_exists(self, project_name: str, experiment_name: str):
         """ Function which returns True if an experiment exists and False if it doesn't. """
-        response = requests.get(self.path + project_name + "/names")
-        names = response.json()
-        return experiment_name in names
+        names_list = self.get_experiment_names(project_id=project_name)
+        return experiment_name in names_list
 
     def insert_project(self, project: d.Project):
         """ Function which inserts project recursively using the insert_experiment function. """
@@ -142,10 +132,10 @@ class API_interface:
                 response_out.append(self.insert_experiment(project.name, experiment))
         return response_out
 
-
     def get_project_names(self):
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """
-        response = requests.get(self.path + "names")
+        user_in = d.Author(name=self.username, permission="none")
+        response = requests.get(self.path + "names", json=user_in.dict())
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
 
@@ -171,11 +161,9 @@ class API_interface:
 
     def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
         """ Checks whether a dataset of a given name exists in the specified location """
-        user_in = d.Author(name=self.username ,permission="none")
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
-        return dataset_id in response.json().get("names")
+        names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
+        return dataset_id in names_list
 
-    # authentication functions
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
         # generate hash
@@ -217,3 +205,30 @@ class API_interface:
 
         response = requests.post(self.path + "testing_stuff", json=dataset.dict())
         return response
+
+    def get_experiment_names(self, project_id : str):
+        user_in = d.Author(name=self.username, permission="none")
+        response = requests.get(self.path + project_id + "/names", json=user_in.dict())
+        return response.json().get("names")
+
+    def get_dataset_names(self, project_id : str, experiment_id : str):
+        user_in = d.Author(name=self.username, permission="none")
+        response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+        return response.json().get("names")
+
+    def tree_print(self):
+        """Returns the names of all the projects/experiments/datasets the user has access to."""
+        if self.username == "":
+            raise Exception("The user needs to be authenticated first")
+        print("The data tree:")
+        proj_names = self.get_project_names()
+        for name in proj_names:
+            print(name)
+            exp_names = self.get_experiment_names(name)
+            for name2 in exp_names:
+                print("     ->" + name2)
+                dat_names = self.get_dataset_names(project_id=name, experiment_id=name2)
+                for name3 in dat_names:
+                    if name3 != name2:
+                        print("         -->" + name3)
+        

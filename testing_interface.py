@@ -15,7 +15,7 @@ class TestClass:
         project_in = t.load_file_project(filename)
 
         ui = API_interface(path)
-        ui.check_connection()
+        #ui.check_connection()
         # authenticate
         username = "wombat"
         password = "marsupial"
@@ -24,13 +24,12 @@ class TestClass:
         ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
         # add credentials to interface
         ui.generate_token(username, password)
-        #ui.insert_project(project=project_in)
+        ui.insert_project(project=project_in)
         print("finished authenticating")
         temp = ui.return_full_project(project_name=project_in.name)
         print("Printing the return project")
         print(temp.json())
         # assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
-
 
     def test_2(self):
         # check connection
@@ -135,13 +134,17 @@ class TestClass:
 
 
         # assign user 3 to projects commited by user 1
-    def test_9(self):
+    def test_9(self): # testing of the tree printing function
+        print("test 9")
         ui = API_interface(path)
-        ui.username = "wombat"
-        print(ui.get_project_names())
+        username = "wombat"
+        password = "marsupial"
+        ui.generate_token(username, password) # log in
+        ui.tree_print() # print the data
 
 
 def main():
     thing = TestClass()
     thing.test_1()
+    thing.test_9()
 main()

@@ -111,13 +111,32 @@ async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_
     return json.dumps(dataset_to_insert.convertJSON())  # return for verification
 
 @app.get("/{project_id}/names")
-async def return_all_experiment_names(project_id: str) -> List[str]:
-    # TODO: Add permission filtering
+async def return_all_experiment_names(project_id: str, user : d.Author) -> dict[str,List[str]]:
     """Retrieve all experimental names in a given project that the user has the permission to access"""
     experiment_names = client[project_id].list_collection_names()
+    user_temp = User_Auth(username_in=user.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    ### permission filtering
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
+    exp_names_out = []
     if len(experiment_names) != 0:
         experiment_names.remove('config')
-    return experiment_names
+        # filtering based on permission
+        for name in experiment_names:
+            # get the authors and loop over them
+            experiment = client[project_id][name] # access the experiment config file
+            result = experiment.find_one({"name" : name})
+            if result != None:
+                author_list = result.get("author")
+                for author in author_list:
+                    if author.get("name") == user.name:
+                        exp_names_out.append(name)
+    return {"names" : exp_names_out}
 
 @app.get("/{project_id}/{experiment_id}/names")
 async def return_all_dataset_names(project_id: str, experiment_id: str, author : d.Author):
@@ -130,7 +149,7 @@ async def return_all_dataset_names(project_id: str, experiment_id: str, author :
             status_code= status.HTTP_401_UNAUTHORIZED,
             detail= "The user hasn't authenticated"
         )
-
+    
     names = []
     for dataset in client[project_id][experiment_id].find():
         # see if user is an author
@@ -141,9 +160,9 @@ async def return_all_dataset_names(project_id: str, experiment_id: str, author :
     return {"names" : names}
 
 @app.post("/{project_id}/set_project")
-async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -> dict:
+async def update_project_data(project_id: str, data_in: d.Simple_Request_body): #-> dict:
     """Update a project with Simple Request"""
-    collection = client[project_id]["config"]
+    collection = client[project_id]['config']
     json_dict = {
         "name": data_in.name,
         "meta": data_in.meta,
@@ -152,7 +171,7 @@ async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -
         "creator" : data_in.creator
     }
     collection.insert_one(json_dict)
-    return json_dict
+    #return json_dict
 
 @app.get("/{project_id}/details")
 async def return_project_data(project_id: str) -> str:
