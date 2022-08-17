@@ -171,7 +171,8 @@ class API_interface:
 
     def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
         """ Checks whether a dataset of a given name exists in the specified location """
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/names")
+        user_in = d.Author(name=self.username ,permission="none")
+        response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
         return dataset_id in response.json().get("names")
 
     # authentication functions

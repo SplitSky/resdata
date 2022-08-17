@@ -120,12 +120,24 @@ async def return_all_experiment_names(project_id: str) -> List[str]:
     return experiment_names
 
 @app.get("/{project_id}/{experiment_id}/names")
-async def return_all_dataset_names(project_id: str, experiment_id: str):
+async def return_all_dataset_names(project_id: str, experiment_id: str, author : d.Author):
     """ Retrieve all dataset names that the user has access to."""
-    # TODO: Add permission filtering
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
+
     names = []
     for dataset in client[project_id][experiment_id].find():
-        names.append(dataset['name']) # returns all datasets including the config
+        # see if user is an author
+        # TODO: verify this works
+        for entry in dataset['author']:
+            if entry['name'] == author.name:
+                names.append(dataset['name']) # returns all datasets including the config
     return {"names" : names}
 
 @app.post("/{project_id}/set_project")
@@ -144,6 +156,7 @@ async def update_project_data(project_id: str, data_in: d.Simple_Request_body) -
 
 @app.get("/{project_id}/details")
 async def return_project_data(project_id: str) -> str:
+    """Returns the project variables from the config collection within the project_id database. """
     result = client[project_id]["config"].find_one()  # only one document entry
     if result is None:
         json_dict = {"message": "No config found. Project not initialised"}
