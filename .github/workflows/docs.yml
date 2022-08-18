@@ -22,11 +22,22 @@ jobs:
       - uses: actions/setup-python@v3
 
       # ADJUST THIS: install all dependencies (including pdoc)
-      - run: pip install -e .
+      #- run: pip install -e
+      - run : pip install fastapi
+      - run : pip install pydantic
+      - run : pip install requests
+      - run : pip install dnspython
+      - run : pip install python-jose
+      - run : pip install pdoc
+      - run : pip install pymongo
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
-      - run: python docs/make.py
-
+      - run: pdoc ./API_server.py -o /docs
+      - run: pdoc ./datastructure.py -o /docs
+      - run: pdoc ./interface.py -o /docs
+      - run: pdoc ./interface_demo.py -o /docs
+      - run: pdoc ./security.py -o /docs
+      - run: pdoc ./testig_interface.py -o /docs
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
