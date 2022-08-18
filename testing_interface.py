@@ -162,8 +162,3 @@ class TestClass:
         ui.tree_print() # print the data
 
 
-def main():
-    thing = TestClass()
-    thing.test_8()
-    #thing.test_9()
-main()
