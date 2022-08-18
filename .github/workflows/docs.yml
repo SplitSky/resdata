@@ -29,6 +29,7 @@ jobs:
       - run : pip install dnspython
       - run : pip install python-jose
       - run : pip install pdoc
+      - run : pip install pymongo
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
       - run: pdoc ./API_server.py -o /docs
