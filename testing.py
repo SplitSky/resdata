@@ -27,8 +27,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     # dataset1 = mn.Dataset(name="dataset1", data=test_data_2D, meta="test dataset 1", data_type="2D dataset")
     experiments = []
     datasets = []
-    username = "wombat"
-    template_author = d.Author(name="wombat", permission="write")
+    template_author = d.Author(name=author_name, permission="write")
     meta_temp = [str(date.today())]
     for j in range(0,structure[1],1):
         dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset", meta=["dataset metadata", meta_temp[0]], author=[template_author.dict()])

@@ -231,4 +231,56 @@ class API_interface:
                 for name3 in dat_names:
                     if name3 != name2:
                         print("         -->" + name3)
+    
+    def add_author_to_dataset(self,project_id : str, experiment_id : str, dataset_id : str, author_name : str, author_permissions : str):
+        """Appends a user defined author to an existing dataset"""
+        # TODO: add authentication of variable types
+        if not (type(author_name) == type("string") and type(author_permissions) == type("string")):
+            raise Exception("Author name and permission have to be strings")
+        # check the dataset exists
+        # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
+        author_in = d.Author(name=author_name, permission=author_permissions)
+        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id + "/add_author", json=author_in.dict())
+        if response == status.HTTP_200_OK:
+            return True
+        else:
+            return False
+
+    def add_author_to_experiment(self, project_id : str,experiment_id : str, author_name : str, author_permission : str):
+        """Adds the author to the experiment config file"""
+        return self.add_author_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=experiment_id, author_name=author_name, author_permissions=author_permission)
+
+    def add_author_to_experiment_rec(self, project_id, experiment_id, author_name, author_permission):
+        """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
+        names = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
+        responses = []
+        for name in names:
+            responses.append(self.add_author_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name, author_name=author_name, author_permissions=author_permission))
+        if False in responses:
+            return False
+        else:
+            return True
         
+    def add_author_to_project(self, project_id : str, author_name : str, author_permission : str):
+        """Updates the project config file and adds an author"""
+        return self.add_author_to_dataset(project_id=project_id, experiment_id='config', dataset_id=project_id, author_name=author_name, author_permissions=author_permission)
+
+    def add_author_to_project_rec(self, project_id : str, author_name : str, author_permission : str):
+        """Recursively adds author to all experiments and datasets in the project specified. """
+        names = self.get_experiment_names(project_id=project_id)
+        responses = []
+        print(" ")
+        print(" ")
+        print("running add_author_to_project")
+        print("names")
+        print(names)
+        print(" ")
+        print(" ")
+        for name in names:
+            responses.append(self.add_author_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name, author_permission=author_permission))
+            # recursively appends the author to each dataset
+        if False in responses:
+            return False
+        else:
+            return True
+

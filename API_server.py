@@ -190,6 +190,7 @@ async def return_project_data(project_id: str) -> str:
 
 @app.post("/create_user")
 async def create_user(user: d.User) -> dict:
+    # TODO: don't allow duplicate usernames -> not implemented
     """Create a new user"""
     auth_obj = User_Auth(user.username, user.hash_in, client)
     response = False
@@ -258,3 +259,64 @@ async def login_for_access_token(credentials: d.User) -> d.Token:
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="The credentials failed to validate"
     )
+
+@app.post("/{project_id}/{experiment_id}/{dataset_id}/add_author")
+async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_id : str,author : d.Author):
+    """API call for adding an author to the dataset or updating the permissions"""
+    # autheticate user
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    credentials_exception = HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user has not authenticated"
+    )
+
+    if user_doc.get("disabled") == True:
+        raise credentials_exception 
+
+    # fetch the author list
+    result = client[project_id][experiment_id].find_one({"name" : dataset_id})
+    if result == None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+                            detail= "The dataset doesn't exist")
+    author_list = result.get("author") 
+    #author_list_new = author_list
+    # see if the author already exists. Raise exception if it does
+    for entry in author_list:
+        if author.name == entry.get("name"):
+            if author.permission == entry.get("permission"):
+                # permissions are also the same
+                raise HTTPException(status_code=status.HTTP_302_FOUND,
+                                    detail="The author already exists.")
+            else:
+                # update just permissions
+
+                entry['permission'] = author.permission # override the permissions
+                # update database
+                client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
+                return status.HTTP_200_OK # terminate successfully
+    
+    # author doesn't exist. Append the author
+    author_list.append(author.dict())
+    client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
+    return status.HTTP_200_OK
+
+#@app.post("/{project_id}/add_author")
+#async def add_author_to_project(project_id, author : d.Author):
+#    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+#    user_temp.update_disable_status()
+#    user_doc = user_temp.fetch_user()
+#    credentials_exception = HTTPException(
+#            status_code= status.HTTP_401_UNAUTHORIZED,
+#            detail= "The user has not authenticated"
+#    )
+#
+#    if user_doc.get("disabled") == True:
+#        raise credentials_exception
+#    # fetch the author list
+#    result = client[project_id]['config'].find_one({"name" : project_id})
+#    if result == None:
+#        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+#                            detail= "The dataset doesn't exist")
+#    author_list = result.get("author")

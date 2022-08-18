@@ -40,7 +40,7 @@ class User_Auth(object):
             # hashes the password in and compares
             return pass_in_db == self.return_final_hash(None)
 
-    def return_final_hash(self, salt_in: int = None) -> str:
+    def return_final_hash(self, salt_in: Union[int,None] = None) -> str:
         if salt_in is not None:
             # user provided salt
             password = str(salt_in) + self.password
@@ -64,7 +64,7 @@ class User_Auth(object):
                 )
             return temp.hexdigest(64)  # return a string from bytes
 
-    def create_access_token(self, expires_delta: Union[timedelta, NoneType] = None):
+    def create_access_token(self, expires_delta: Union[timedelta, None] = None):
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
@@ -136,9 +136,11 @@ class User_Auth(object):
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one({"username": self.username})
-        return result.get("token")
-
-    def fetch_user(self) -> Mapping[str, Any]:
+        if result != None:
+            return result.get("token")
+        else:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="User doesn't exist")
+    def fetch_user(self):
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one({"username": self.username})
@@ -190,5 +192,8 @@ class User_Auth(object):
         # fetch user and compare the expiry date to now.
         now = datetime.utcnow()
         user = self.fetch_user()
-        if user.get("expiry") < now:
-            self.deactive_user()
+        if user != None:
+            if user.get("expiry") < now:
+                self.deactivate_user()
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User doesn't exist")

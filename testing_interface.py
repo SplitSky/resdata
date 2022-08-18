@@ -84,56 +84,75 @@ class TestClass:
         # populate the database with projects belonging to different users
         ui = API_interface(path)
         # user 1 commits
-        username = "user1"
-        password = "user1_password"
+        username1 = "user1"
+        password1 = "user1_password"
         email = "user1@email.com"
         full_name = "user one"
-        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
-
-        # insert 2 projects
-        ui.generate_token(username, password) # authenticate
-        filename = "user1.json"
-        project_name = "user1_project1"
-        t.create_test_file_project(filename, [2,3], project_name, username)
-        project_in = t.load_file_project(filename)
-        ui.insert_project(project_in)
-
-        project_name = "user1_project2"
-        t.create_test_file_project(filename, [1,3], project_name, username)
-        project_in = t.load_file_project(filename)
-        ui.insert_project(project_in)
+        ui.create_user(username_in=username1, password_in=password1, email=email, full_name=full_name)
 
         # user 2 commits
-        username = "user2"
-        password = "user2_password"
+        username2 = "user2"
+        password2 = "user2_password"
         email = "user1@email.com"
         full_name = "user one"
-        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+        ui.create_user(username_in=username2, password_in=password2, email=email, full_name=full_name)
+        project_name1 = "user1_project1"
 
-        # insert 1 project # inserts the datasets with the same name as the previous project
-        # checks whether the user has write priviledges in the project
-        ui.generate_token(username, password) # authenticate
-        filename = "user2.json"
-        project_name = "user2_project1"
-        t.create_test_file_project(filename, [2,3], project_name, username)
-        project_in = t.load_file_project(filename)
-        ui.insert_project(project_in)
+       # # insert 2 projects
+       # ui.generate_token(username1, password1) # authenticate
+       # filename = "user1.json"
 
-        project_name = "user2_project2"
-        t.create_test_file_project(filename, [1,3], project_name, username)
-        project_in = t.load_file_project(filename)
-        ui.insert_project(project_in)
+       # t.create_test_file_project(filename, [1,2], project_name1, username1)
+       # project_in = t.load_file_project(filename)
+       # ui.insert_project(project_in)
+
+       # project_name = "user1_project2"
+       # t.create_test_file_project(filename, [4,5], project_name, username1)
+       # project_in = t.load_file_project(filename)
+       # ui.insert_project(project_in)
+
+
+
+       # # insert 1 project # inserts the datasets with the same name as the previous project
+       # # checks whether the user has write priviledges in the project
+       # ui.generate_token(username2, password2) # authenticate
+       # filename = "user2.json"
+       # project_name = "user2_project1"
+       # t.create_test_file_project(filename, [1,3], project_name, username2)
+       # project_in = t.load_file_project(filename)
+       # ui.insert_project(project_in)
+
+       # project_name = "user2_project2"
+       # t.create_test_file_project(filename, [5,1], project_name, username2)
+       # project_in = t.load_file_project(filename)
+       # ui.insert_project(project_in)
 
         # user 3 commits
-        username = "user3"
-        password = "user3_password"
+        username3 = "user3"
+        password3 = "user3_password"
         email = "user1@email.com"
         full_name = "user one"
-        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
-
-
+        ui.create_user(username_in=username3, password_in=password3, email=email, full_name=full_name)
 
         # assign user 3 to projects commited by user 1
+        # authenticate as user 1 and add user 3 as author to the project
+        ui.generate_token(username=username1, password=password1)
+        ui.add_author_to_project_rec(project_id=project_name1, author_name=username3, author_permission="read")
+        
+        print("add_author_to_project ran") 
+        print("printing user 1 files:")
+        ui.generate_token(username=username1, password=password1)
+        ui.tree_print()
+        print(" ")
+        print("printing user 2 files:")
+        ui.generate_token(username=username2, password=password2)
+        ui.tree_print()
+        print(" ")
+        print("printing user 3 files:")
+        ui.generate_token(username=username3, password=password3)
+        ui.tree_print()
+        print(" ")
+
     def test_9(self): # testing of the tree printing function
         print("test 9")
         ui = API_interface(path)
@@ -145,6 +164,6 @@ class TestClass:
 
 def main():
     thing = TestClass()
-    thing.test_1()
-    thing.test_9()
+    thing.test_8()
+    #thing.test_9()
 main()
