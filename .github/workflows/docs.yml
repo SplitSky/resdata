@@ -31,12 +31,12 @@ jobs:
       - run : pip install pdoc
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
-      - run: pdoc API_server.py
-      - run: pdoc datastructure.py
-      - run: pdoc interface.py
-      - run: pdoc interface_demo.py
-      - run: pdoc security.py
-      - run: pdoc testig_interface.py
+      - run: pdoc ./API_server.py -o /docs
+      - run: pdoc ./datastructure.py -o /docs
+      - run: pdoc ./interface.py -o /docs
+      - run: pdoc ./interface_demo.py -o /docs
+      - run: pdoc ./security.py -o /docs
+      - run: pdoc ./testig_interface.py -o /docs
       - uses: actions/upload-pages-artifact@v1
         with:
           path: docs/
