@@ -128,7 +128,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-<<<<<<< HEAD
 /.idea/.gitignore
 /.idea/misc.xml
 /.idea/modules.xml
@@ -136,10 +135,7 @@ dmypy.json
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/python_api.iml
 /.idea/vcs.xml
-=======
-variables.py
 example_data/*
 notes.txt
 test.py
-
->>>>>>> origin/authentication
+variables2.py
