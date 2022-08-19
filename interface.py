@@ -28,13 +28,14 @@ class API_interface:
         response = requests.get(self.path)
         return response.status_code == status.HTTP_200_OK
 
-    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> None:
+    def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
         """ The function responsible for an insertion of a dataset. It authenticates the user and verifies the write permission."""
         if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name, dataset_id=dataset_in.name):
-            raise RuntimeError('Project Already exists') # doesn't allow for duplicate names in datasets
+            raise RuntimeError('Dataset Already exists') # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username,permission="write").dict()]
         requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+        return True
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str): #-> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
@@ -51,7 +52,7 @@ class API_interface:
         else:
             return None
 
-    def insert_experiment(self, project_name: str, experiment: d.Experiment) -> List:
+    def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
         """ The function which utilises insert_dataset to recursively insert a full experiment and initialise it if it doesn't exist. """
         experiment_name = experiment.name
         if not self.check_experiment_exists(project_name, experiment_name):
@@ -61,15 +62,13 @@ class API_interface:
         for dataset in experiment.children:
             if not self.check_dataset_exists(project_name, experiment_name, dataset.name):
                 response.append(self.insert_dataset(project_name, experiment_name, dataset))
-        return response
+        if False in response:
+            return False
+        else:
+            return True
 
     def return_full_experiment(self, project_name: str, experiment_name: str) -> d.Experiment:
         """ It returns an Experiment object containing the data within the database. """
-        
-        #user_in = d.Author(name=self.username, permission="read")
-        #response = requests.get(
-        #    self.path + project_name + "/" + experiment_name + "/names", json=user_in.dict())
-        #names_list = response.json().get("names")
         names_list = self.get_dataset_names(project_id=project_name, experiment_id=experiment_name)
         datasets = []
         exp_name = "default"
@@ -130,7 +129,11 @@ class API_interface:
         if temp is not None:
             for experiment in temp:
                 response_out.append(self.insert_experiment(project.name, experiment))
-        return response_out
+
+        if False in response_out:
+            return False
+        else:
+            return True
 
     def get_project_names(self):
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """

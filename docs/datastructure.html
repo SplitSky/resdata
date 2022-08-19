@@ -36,6 +36,27 @@
                     <a class="class" href="#Dataset">Dataset</a>
                             <ul class="memberlist">
                         <li>
+                                <a class="variable" href="#Dataset.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Dataset.data">data</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Dataset.meta">meta</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Dataset.data_type">data_type</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Dataset.author">author</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Dataset.username">username</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Dataset.token">token</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#Dataset.convertJSON">convertJSON</a>
                         </li>
                         <li>
@@ -51,6 +72,15 @@
                     <a class="class" href="#Experiment">Experiment</a>
                             <ul class="memberlist">
                         <li>
+                                <a class="variable" href="#Experiment.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Experiment.children">children</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Experiment.meta">meta</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#Experiment.convertJSON">convertJSON</a>
                         </li>
                 </ul>
@@ -59,6 +89,21 @@
             <li>
                     <a class="class" href="#Project">Project</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Project.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Project.creator">creator</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Project.groups">groups</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Project.meta">meta</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Project.author">author</a>
+                        </li>
                         <li>
                                 <a class="function" href="#Project.convertJSON">convertJSON</a>
                         </li>
@@ -72,6 +117,18 @@
                     <a class="class" href="#Simple_Request_body">Simple_Request_body</a>
                             <ul class="memberlist">
                         <li>
+                                <a class="variable" href="#Simple_Request_body.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Simple_Request_body.meta">meta</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Simple_Request_body.author">author</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Simple_Request_body.creator">creator</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#Simple_Request_body.convertJSON">convertJSON</a>
                         </li>
                 </ul>
@@ -80,18 +137,42 @@
             <li>
                     <a class="class" href="#Token">Token</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Token.access_token">access_token</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Token.token_type">token_type</a>
+                        </li>
                 </ul>
 
             </li>
             <li>
                     <a class="class" href="#User">User</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#User.username">username</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#User.hash_in">hash_in</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#User.email">email</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#User.full_name">full_name</a>
+                        </li>
                 </ul>
 
             </li>
             <li>
                     <a class="class" href="#Author">Author</a>
                             <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Author.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Author.permission">permission</a>
+                        </li>
                         <li>
                                 <a class="function" href="#Author.load_data">load_data</a>
                         </li>
@@ -122,136 +203,176 @@ datastructure    </h1>
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="c1"># this file contains the class which describes the datastructure</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>    <span class="sd">&quot;&quot;&quot;The lowest node of the tree data structure. This object contains the actual data being stored.&quot;&quot;&quot;</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>    <span class="sd">&quot;&quot;&quot;The unique name of the dataset. This is used by most of the code to find and retrieve the dataset.&quot;&quot;&quot;</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="n">data</span><span class="p">:</span> <span class="n">List</span>  <span class="c1"># list of numbers or bits</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="c1"># variables used in authentication</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">token</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># converts it into nested dictionary</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>        <span class="c1"># this function skips over the username and token variables</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>        <span class="n">python_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>            <span class="s2">&quot;data_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>  <span class="c1"># this list can be serialised</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="p">}</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>        <span class="k">return</span> <span class="n">python_dict</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="k">def</span> <span class="nf">return_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">]</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="sd">&quot;&quot;&quot;List storing any variable type. Used as the unit of storage.&quot;&quot;&quot;</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="sd">&quot;&quot;&quot;User generated metadata. It&#39;s a list of string variables. Datasets are time stamped upon insertion into the dataset.&quot;&quot;&quot;</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="sd">&quot;&quot;&quot;Allows for user generated flag which distinguishes types of data included&quot;&quot;&quot;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="sd">&quot;&quot;&quot;List of authors with their given permissions. Used in authentication and retrieval.&quot;&quot;&quot;</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="c1"># variables used in authentication</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="sd">&quot;&quot;&quot;Optional variable used during authentication. Works as a credentials requests body. Contain the username of the user inserting the dataset&quot;&quot;&quot;</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="n">token</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="sd">&quot;&quot;&quot;Optional variable used during authentication. Generated JWT token which is then used to verify that the user authenticated.&quot;&quot;&quot;</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># converts it into nested dictionary</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>        <span class="sd">&quot;&quot;&quot;Function returning a dictionary containing data to be inserted into the database.&quot;&quot;&quot;</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="c1"># this function skips over the username and token variables</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>        <span class="n">python_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>            <span class="s2">&quot;data_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>  <span class="c1"># this list can be serialised</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="p">}</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>        <span class="k">return</span> <span class="n">python_dict</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="k">class</span> <span class="nc">Experiment</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>    <span class="n">children</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># implemented union as optional variable</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a nested python dictionary</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="c1"># end for</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>            <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>  <span class="c1"># datatype is dictionary -&gt; double nested</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="p">}</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="n">groups</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Experiment</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a dictionary</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="p">}</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="k">def</span> <span class="nf">convertDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;creator&quot;</span><span class="p">)</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>            <span class="k">return</span> <span class="nb">str</span><span class="p">([</span><span class="n">exp</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span> <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">])</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>            <span class="k">return</span> <span class="nb">str</span><span class="p">([])</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="k">class</span> <span class="nc">Simple_Request_body</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">creator</span> <span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="p">}</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>    <span class="k">def</span> <span class="nf">return_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>        <span class="sd">&quot;&quot;&quot;Used to return the credentials during authentication.&quot;&quot;&quot;</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">]</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="sd">&quot;&quot;&quot;Set function for the credentials.&quot;&quot;&quot;</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="k">class</span> <span class="nc">Experiment</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="sd">&quot;&quot;&quot;Node containing datasets within the data structure. Equivalent to the collection in the database.&quot;&quot;&quot;</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="sd">&quot;&quot;&quot;The experiment name. Used during query to locate the dataset.&quot;&quot;&quot;</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="n">children</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>    <span class="sd">&quot;&quot;&quot;List of dataset objects.&quot;&quot;&quot;</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># implemented union as optional variable</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="sd">&quot;&quot;&quot;User generated metadata.&quot;&quot;&quot;</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a nested python dictionary</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="sd">&quot;&quot;&quot;Returns a nested Python dictionary by recursively calling the dataset function.&quot;&quot;&quot;</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="c1"># end for</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>            <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>  <span class="c1"># datatype is dictionary -&gt; double nested</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="p">}</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="sd">&quot;&quot;&quot;Root of the data structure. Equivalent to a database.&quot;&quot;&quot;</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="sd">&quot;&quot;&quot;The project name. Used during query and retrieval.&quot;&quot;&quot;</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="sd">&quot;&quot;&quot;The username of the user that created the project.&quot;&quot;&quot;</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="n">groups</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Experiment</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="sd">&quot;&quot;&quot;List of experiements belonging to the project.&quot;&quot;&quot;</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="sd">&quot;&quot;&quot;User generated metadata.&quot;&quot;&quot;</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="sd">&quot;&quot;&quot;List of authors of the project along with their permissions. Used in authentication and determining the scope of the access.&quot;&quot;&quot;</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a dictionary</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="sd">&quot;&quot;&quot;Returns a nested Python dictionary by recursively calling the experiment function.&quot;&quot;&quot;</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>            <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="p">}</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">convertDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="sd">&quot;&quot;&quot;Updates variables within the project using a dictionary as an input.&quot;&quot;&quot;</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;creator&quot;</span><span class="p">)</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;author&quot;</span><span class="p">)</span>
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="c1"># Token used in authentication</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="k">class</span> <span class="nc">Token</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="n">token_type</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>  <span class="c1">#  def __str__(self) -&gt; str:</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>  <span class="c1">#      if self.groups != None:</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>  <span class="c1">#          return str([exp.convertJSON() for exp in self.groups])</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>  <span class="c1">#      else:</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>  <span class="c1">#          return str([])</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="c1"># user class used for authentication</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="n">hash_in</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="n">email</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="n">full_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="c1"># object used for representing the author of a dataset, experiment, project</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="n">permission</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>  <span class="c1"># initialises the author object from json</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="c1"># temp = json.loads(json_in)</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">permission</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permission&quot;</span><span class="p">)</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="k">class</span> <span class="nc">Simple_Request_body</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="sd">&quot;&quot;&quot;Request body used to update the variables within the project config file in the database.&quot;&quot;&quot;</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="sd">&quot;&quot;&quot;Name of the project&quot;&quot;&quot;</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="s2">&quot;User generated metadata.&quot;&quot;&quot;</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="sd">&quot;&quot;&quot;Project author list. See project.&quot;&quot;&quot;</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="n">creator</span> <span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="sd">&quot;&quot;&quot;Username of the user that created the project&quot;&quot;&quot;</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="sd">&quot;&quot;&quot;Returns a python dictionary of the data structure.&quot;&quot;&quot;</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="p">}</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="c1"># Token used in authentication</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="k">class</span> <span class="nc">Token</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="sd">&quot;&quot;&quot;Token request body used in authentication&quot;&quot;&quot;</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="sd">&quot;&quot;&quot;The variable storing the JWT token&quot;&quot;&quot;</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="n">token_type</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="sd">&quot;&quot;&quot;Variable storing the token type&quot;&quot;&quot;</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="c1"># user class used for authentication</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="sd">&quot;&quot;&quot;User request body. Used in user creation.&quot;&quot;&quot;</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="sd">&quot;&quot;&quot;Unique username&quot;&quot;&quot;</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="n">hash_in</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="sd">&quot;&quot;&quot;Hash of the password obtained within the interface&quot;&quot;&quot;</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="n">email</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="sd">&quot;&quot;&quot;Optional email variable&quot;&quot;&quot;</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="n">full_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="sd">&quot;&quot;&quot;Optional full name variable&quot;&quot;&quot;</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="sd">&quot;&quot;&quot;Author request body. Used in determining the scope of the access.&quot;&quot;&quot;</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>    <span class="c1"># object used for representing the author of a dataset, experiment, project</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>    <span class="sd">&quot;&quot;&quot;Username belonging to the author&quot;&quot;&quot;</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>    <span class="n">permission</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>    <span class="sd">&quot;&quot;&quot;The permissions granted to the user&quot;&quot;&quot;</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>  <span class="c1"># initialises the author object from json</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>        <span class="sd">&quot;&quot;&quot;Updates the variables based on Python dictionary input.&quot;&quot;&quot;</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>        <span class="c1"># temp = json.loads(json_in)</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">permission</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permission&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -267,39 +388,142 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Dataset"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset-7"><a href="#Dataset-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset-6"><a href="#Dataset-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Dataset-7"><a href="#Dataset-7"><span class="linenos"> 7</span></a>    <span class="sd">&quot;&quot;&quot;The lowest node of the tree data structure. This object contains the actual data being stored.&quot;&quot;&quot;</span>
 </span><span id="Dataset-8"><a href="#Dataset-8"><span class="linenos"> 8</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Dataset-9"><a href="#Dataset-9"><span class="linenos"> 9</span></a>
+</span><span id="Dataset-9"><a href="#Dataset-9"><span class="linenos"> 9</span></a>    <span class="sd">&quot;&quot;&quot;The unique name of the dataset. This is used by most of the code to find and retrieve the dataset.&quot;&quot;&quot;</span>
 </span><span id="Dataset-10"><a href="#Dataset-10"><span class="linenos">10</span></a>    <span class="n">data</span><span class="p">:</span> <span class="n">List</span>  <span class="c1"># list of numbers or bits</span>
-</span><span id="Dataset-11"><a href="#Dataset-11"><span class="linenos">11</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Dataset-12"><a href="#Dataset-12"><span class="linenos">12</span></a>    <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Dataset-13"><a href="#Dataset-13"><span class="linenos">13</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
-</span><span id="Dataset-14"><a href="#Dataset-14"><span class="linenos">14</span></a>    <span class="c1"># variables used in authentication</span>
-</span><span id="Dataset-15"><a href="#Dataset-15"><span class="linenos">15</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Dataset-16"><a href="#Dataset-16"><span class="linenos">16</span></a>    <span class="n">token</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Dataset-17"><a href="#Dataset-17"><span class="linenos">17</span></a>
-</span><span id="Dataset-18"><a href="#Dataset-18"><span class="linenos">18</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># converts it into nested dictionary</span>
-</span><span id="Dataset-19"><a href="#Dataset-19"><span class="linenos">19</span></a>        <span class="c1"># this function skips over the username and token variables</span>
-</span><span id="Dataset-20"><a href="#Dataset-20"><span class="linenos">20</span></a>        <span class="n">python_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Dataset-21"><a href="#Dataset-21"><span class="linenos">21</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Dataset-22"><a href="#Dataset-22"><span class="linenos">22</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Dataset-23"><a href="#Dataset-23"><span class="linenos">23</span></a>            <span class="s2">&quot;data_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
-</span><span id="Dataset-24"><a href="#Dataset-24"><span class="linenos">24</span></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>  <span class="c1"># this list can be serialised</span>
-</span><span id="Dataset-25"><a href="#Dataset-25"><span class="linenos">25</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
-</span><span id="Dataset-26"><a href="#Dataset-26"><span class="linenos">26</span></a>        <span class="p">}</span>
-</span><span id="Dataset-27"><a href="#Dataset-27"><span class="linenos">27</span></a>        <span class="k">return</span> <span class="n">python_dict</span>
-</span><span id="Dataset-28"><a href="#Dataset-28"><span class="linenos">28</span></a>
-</span><span id="Dataset-29"><a href="#Dataset-29"><span class="linenos">29</span></a>    <span class="k">def</span> <span class="nf">return_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Dataset-30"><a href="#Dataset-30"><span class="linenos">30</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">]</span>
-</span><span id="Dataset-31"><a href="#Dataset-31"><span class="linenos">31</span></a>
-</span><span id="Dataset-32"><a href="#Dataset-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
-</span><span id="Dataset-33"><a href="#Dataset-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
-</span><span id="Dataset-34"><a href="#Dataset-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+</span><span id="Dataset-11"><a href="#Dataset-11"><span class="linenos">11</span></a>    <span class="sd">&quot;&quot;&quot;List storing any variable type. Used as the unit of storage.&quot;&quot;&quot;</span>
+</span><span id="Dataset-12"><a href="#Dataset-12"><span class="linenos">12</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Dataset-13"><a href="#Dataset-13"><span class="linenos">13</span></a>    <span class="sd">&quot;&quot;&quot;User generated metadata. It&#39;s a list of string variables. Datasets are time stamped upon insertion into the dataset.&quot;&quot;&quot;</span>
+</span><span id="Dataset-14"><a href="#Dataset-14"><span class="linenos">14</span></a>    <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Dataset-15"><a href="#Dataset-15"><span class="linenos">15</span></a>    <span class="sd">&quot;&quot;&quot;Allows for user generated flag which distinguishes types of data included&quot;&quot;&quot;</span>
+</span><span id="Dataset-16"><a href="#Dataset-16"><span class="linenos">16</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="Dataset-17"><a href="#Dataset-17"><span class="linenos">17</span></a>    <span class="sd">&quot;&quot;&quot;List of authors with their given permissions. Used in authentication and retrieval.&quot;&quot;&quot;</span>
+</span><span id="Dataset-18"><a href="#Dataset-18"><span class="linenos">18</span></a>    <span class="c1"># variables used in authentication</span>
+</span><span id="Dataset-19"><a href="#Dataset-19"><span class="linenos">19</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Dataset-20"><a href="#Dataset-20"><span class="linenos">20</span></a>    <span class="sd">&quot;&quot;&quot;Optional variable used during authentication. Works as a credentials requests body. Contain the username of the user inserting the dataset&quot;&quot;&quot;</span>
+</span><span id="Dataset-21"><a href="#Dataset-21"><span class="linenos">21</span></a>    <span class="n">token</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Dataset-22"><a href="#Dataset-22"><span class="linenos">22</span></a>    <span class="sd">&quot;&quot;&quot;Optional variable used during authentication. Generated JWT token which is then used to verify that the user authenticated.&quot;&quot;&quot;</span>
+</span><span id="Dataset-23"><a href="#Dataset-23"><span class="linenos">23</span></a>
+</span><span id="Dataset-24"><a href="#Dataset-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># converts it into nested dictionary</span>
+</span><span id="Dataset-25"><a href="#Dataset-25"><span class="linenos">25</span></a>        <span class="sd">&quot;&quot;&quot;Function returning a dictionary containing data to be inserted into the database.&quot;&quot;&quot;</span>
+</span><span id="Dataset-26"><a href="#Dataset-26"><span class="linenos">26</span></a>        <span class="c1"># this function skips over the username and token variables</span>
+</span><span id="Dataset-27"><a href="#Dataset-27"><span class="linenos">27</span></a>        <span class="n">python_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Dataset-28"><a href="#Dataset-28"><span class="linenos">28</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Dataset-29"><a href="#Dataset-29"><span class="linenos">29</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Dataset-30"><a href="#Dataset-30"><span class="linenos">30</span></a>            <span class="s2">&quot;data_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+</span><span id="Dataset-31"><a href="#Dataset-31"><span class="linenos">31</span></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>  <span class="c1"># this list can be serialised</span>
+</span><span id="Dataset-32"><a href="#Dataset-32"><span class="linenos">32</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
+</span><span id="Dataset-33"><a href="#Dataset-33"><span class="linenos">33</span></a>        <span class="p">}</span>
+</span><span id="Dataset-34"><a href="#Dataset-34"><span class="linenos">34</span></a>        <span class="k">return</span> <span class="n">python_dict</span>
+</span><span id="Dataset-35"><a href="#Dataset-35"><span class="linenos">35</span></a>
+</span><span id="Dataset-36"><a href="#Dataset-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">return_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Dataset-37"><a href="#Dataset-37"><span class="linenos">37</span></a>        <span class="sd">&quot;&quot;&quot;Used to return the credentials during authentication.&quot;&quot;&quot;</span>
+</span><span id="Dataset-38"><a href="#Dataset-38"><span class="linenos">38</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">]</span>
+</span><span id="Dataset-39"><a href="#Dataset-39"><span class="linenos">39</span></a>
+</span><span id="Dataset-40"><a href="#Dataset-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+</span><span id="Dataset-41"><a href="#Dataset-41"><span class="linenos">41</span></a>        <span class="sd">&quot;&quot;&quot;Set function for the credentials.&quot;&quot;&quot;</span>
+</span><span id="Dataset-42"><a href="#Dataset-42"><span class="linenos">42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+</span><span id="Dataset-43"><a href="#Dataset-43"><span class="linenos">43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>The lowest node of the tree data structure. This object contains the actual data being stored.</p>
+</div>
 
+
+                            <div id="Dataset.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.name"></a>
+    
+            <div class="docstring"><p>The unique name of the dataset. This is used by most of the code to find and retrieve the dataset.</p>
+</div>
+
+
+                            </div>
+                            <div id="Dataset.data" class="classattr">
+                                <div class="attr variable">
+            <span class="name">data</span><span class="annotation">: List</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.data"></a>
+    
+            <div class="docstring"><p>List storing any variable type. Used as the unit of storage.</p>
+</div>
+
+
+                            </div>
+                            <div id="Dataset.meta" class="classattr">
+                                <div class="attr variable">
+            <span class="name">meta</span><span class="annotation">: Optional[List[str]]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.meta"></a>
+    
+            <div class="docstring"><p>User generated metadata. It's a list of string variables. Datasets are time stamped upon insertion into the dataset.</p>
+</div>
+
+
+                            </div>
+                            <div id="Dataset.data_type" class="classattr">
+                                <div class="attr variable">
+            <span class="name">data_type</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.data_type"></a>
+    
+            <div class="docstring"><p>Allows for user generated flag which distinguishes types of data included</p>
+</div>
+
+
+                            </div>
+                            <div id="Dataset.author" class="classattr">
+                                <div class="attr variable">
+            <span class="name">author</span><span class="annotation">: List[dict]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.author"></a>
+    
+            <div class="docstring"><p>List of authors with their given permissions. Used in authentication and retrieval.</p>
+</div>
+
+
+                            </div>
+                            <div id="Dataset.username" class="classattr">
+                                <div class="attr variable">
+            <span class="name">username</span><span class="annotation">: Optional[str]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.username"></a>
+    
+            <div class="docstring"><p>Optional variable used during authentication. Works as a credentials requests body. Contain the username of the user inserting the dataset</p>
+</div>
+
+
+                            </div>
+                            <div id="Dataset.token" class="classattr">
+                                <div class="attr variable">
+            <span class="name">token</span><span class="annotation">: Optional[str]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Dataset.token"></a>
+    
+            <div class="docstring"><p>Optional variable used during authentication. Generated JWT token which is then used to verify that the user authenticated.</p>
+</div>
+
+
+                            </div>
                             <div id="Dataset.convertJSON" class="classattr">
                                         <input id="Dataset.convertJSON-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -311,20 +535,23 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Dataset.convertJSON"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset.convertJSON-18"><a href="#Dataset.convertJSON-18"><span class="linenos">18</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># converts it into nested dictionary</span>
-</span><span id="Dataset.convertJSON-19"><a href="#Dataset.convertJSON-19"><span class="linenos">19</span></a>        <span class="c1"># this function skips over the username and token variables</span>
-</span><span id="Dataset.convertJSON-20"><a href="#Dataset.convertJSON-20"><span class="linenos">20</span></a>        <span class="n">python_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Dataset.convertJSON-21"><a href="#Dataset.convertJSON-21"><span class="linenos">21</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Dataset.convertJSON-22"><a href="#Dataset.convertJSON-22"><span class="linenos">22</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Dataset.convertJSON-23"><a href="#Dataset.convertJSON-23"><span class="linenos">23</span></a>            <span class="s2">&quot;data_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
-</span><span id="Dataset.convertJSON-24"><a href="#Dataset.convertJSON-24"><span class="linenos">24</span></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>  <span class="c1"># this list can be serialised</span>
-</span><span id="Dataset.convertJSON-25"><a href="#Dataset.convertJSON-25"><span class="linenos">25</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
-</span><span id="Dataset.convertJSON-26"><a href="#Dataset.convertJSON-26"><span class="linenos">26</span></a>        <span class="p">}</span>
-</span><span id="Dataset.convertJSON-27"><a href="#Dataset.convertJSON-27"><span class="linenos">27</span></a>        <span class="k">return</span> <span class="n">python_dict</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset.convertJSON-24"><a href="#Dataset.convertJSON-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># converts it into nested dictionary</span>
+</span><span id="Dataset.convertJSON-25"><a href="#Dataset.convertJSON-25"><span class="linenos">25</span></a>        <span class="sd">&quot;&quot;&quot;Function returning a dictionary containing data to be inserted into the database.&quot;&quot;&quot;</span>
+</span><span id="Dataset.convertJSON-26"><a href="#Dataset.convertJSON-26"><span class="linenos">26</span></a>        <span class="c1"># this function skips over the username and token variables</span>
+</span><span id="Dataset.convertJSON-27"><a href="#Dataset.convertJSON-27"><span class="linenos">27</span></a>        <span class="n">python_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Dataset.convertJSON-28"><a href="#Dataset.convertJSON-28"><span class="linenos">28</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Dataset.convertJSON-29"><a href="#Dataset.convertJSON-29"><span class="linenos">29</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Dataset.convertJSON-30"><a href="#Dataset.convertJSON-30"><span class="linenos">30</span></a>            <span class="s2">&quot;data_type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+</span><span id="Dataset.convertJSON-31"><a href="#Dataset.convertJSON-31"><span class="linenos">31</span></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>  <span class="c1"># this list can be serialised</span>
+</span><span id="Dataset.convertJSON-32"><a href="#Dataset.convertJSON-32"><span class="linenos">32</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
+</span><span id="Dataset.convertJSON-33"><a href="#Dataset.convertJSON-33"><span class="linenos">33</span></a>        <span class="p">}</span>
+</span><span id="Dataset.convertJSON-34"><a href="#Dataset.convertJSON-34"><span class="linenos">34</span></a>        <span class="k">return</span> <span class="n">python_dict</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Function returning a dictionary containing data to be inserted into the database.</p>
+</div>
+
 
                             </div>
                             <div id="Dataset.return_credentials" class="classattr">
@@ -338,12 +565,15 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Dataset.return_credentials"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset.return_credentials-29"><a href="#Dataset.return_credentials-29"><span class="linenos">29</span></a>    <span class="k">def</span> <span class="nf">return_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Dataset.return_credentials-30"><a href="#Dataset.return_credentials-30"><span class="linenos">30</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset.return_credentials-36"><a href="#Dataset.return_credentials-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">return_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Dataset.return_credentials-37"><a href="#Dataset.return_credentials-37"><span class="linenos">37</span></a>        <span class="sd">&quot;&quot;&quot;Used to return the credentials during authentication.&quot;&quot;&quot;</span>
+</span><span id="Dataset.return_credentials-38"><a href="#Dataset.return_credentials-38"><span class="linenos">38</span></a>        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">]</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Used to return the credentials during authentication.</p>
+</div>
+
 
                             </div>
                             <div id="Dataset.set_credentials" class="classattr">
@@ -357,13 +587,16 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Dataset.set_credentials"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset.set_credentials-32"><a href="#Dataset.set_credentials-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
-</span><span id="Dataset.set_credentials-33"><a href="#Dataset.set_credentials-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
-</span><span id="Dataset.set_credentials-34"><a href="#Dataset.set_credentials-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Dataset.set_credentials-40"><a href="#Dataset.set_credentials-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+</span><span id="Dataset.set_credentials-41"><a href="#Dataset.set_credentials-41"><span class="linenos">41</span></a>        <span class="sd">&quot;&quot;&quot;Set function for the credentials.&quot;&quot;&quot;</span>
+</span><span id="Dataset.set_credentials-42"><a href="#Dataset.set_credentials-42"><span class="linenos">42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+</span><span id="Dataset.set_credentials-43"><a href="#Dataset.set_credentials-43"><span class="linenos">43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">token</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Set function for the credentials.</p>
+</div>
+
 
                             </div>
                             <div class="inherited">
@@ -400,31 +633,76 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Experiment"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Experiment-38"><a href="#Experiment-38"><span class="linenos">38</span></a><span class="k">class</span> <span class="nc">Experiment</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Experiment-39"><a href="#Experiment-39"><span class="linenos">39</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Experiment-40"><a href="#Experiment-40"><span class="linenos">40</span></a>    <span class="n">children</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span>
-</span><span id="Experiment-41"><a href="#Experiment-41"><span class="linenos">41</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># implemented union as optional variable</span>
-</span><span id="Experiment-42"><a href="#Experiment-42"><span class="linenos">42</span></a>
-</span><span id="Experiment-43"><a href="#Experiment-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a nested python dictionary</span>
-</span><span id="Experiment-44"><a href="#Experiment-44"><span class="linenos">44</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="Experiment-45"><a href="#Experiment-45"><span class="linenos">45</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="Experiment-46"><a href="#Experiment-46"><span class="linenos">46</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Experiment-47"><a href="#Experiment-47"><span class="linenos">47</span></a>            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-</span><span id="Experiment-48"><a href="#Experiment-48"><span class="linenos">48</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
-</span><span id="Experiment-49"><a href="#Experiment-49"><span class="linenos">49</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="Experiment-50"><a href="#Experiment-50"><span class="linenos">50</span></a>        <span class="c1"># end for</span>
-</span><span id="Experiment-51"><a href="#Experiment-51"><span class="linenos">51</span></a>
-</span><span id="Experiment-52"><a href="#Experiment-52"><span class="linenos">52</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Experiment-53"><a href="#Experiment-53"><span class="linenos">53</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Experiment-54"><a href="#Experiment-54"><span class="linenos">54</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Experiment-55"><a href="#Experiment-55"><span class="linenos">55</span></a>            <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>  <span class="c1"># datatype is dictionary -&gt; double nested</span>
-</span><span id="Experiment-56"><a href="#Experiment-56"><span class="linenos">56</span></a>        <span class="p">}</span>
-</span><span id="Experiment-57"><a href="#Experiment-57"><span class="linenos">57</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Experiment-47"><a href="#Experiment-47"><span class="linenos">47</span></a><span class="k">class</span> <span class="nc">Experiment</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Experiment-48"><a href="#Experiment-48"><span class="linenos">48</span></a>    <span class="sd">&quot;&quot;&quot;Node containing datasets within the data structure. Equivalent to the collection in the database.&quot;&quot;&quot;</span>
+</span><span id="Experiment-49"><a href="#Experiment-49"><span class="linenos">49</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Experiment-50"><a href="#Experiment-50"><span class="linenos">50</span></a>    <span class="sd">&quot;&quot;&quot;The experiment name. Used during query to locate the dataset.&quot;&quot;&quot;</span>
+</span><span id="Experiment-51"><a href="#Experiment-51"><span class="linenos">51</span></a>    <span class="n">children</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span>
+</span><span id="Experiment-52"><a href="#Experiment-52"><span class="linenos">52</span></a>    <span class="sd">&quot;&quot;&quot;List of dataset objects.&quot;&quot;&quot;</span>
+</span><span id="Experiment-53"><a href="#Experiment-53"><span class="linenos">53</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># implemented union as optional variable</span>
+</span><span id="Experiment-54"><a href="#Experiment-54"><span class="linenos">54</span></a>    <span class="sd">&quot;&quot;&quot;User generated metadata.&quot;&quot;&quot;</span>
+</span><span id="Experiment-55"><a href="#Experiment-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a nested python dictionary</span>
+</span><span id="Experiment-56"><a href="#Experiment-56"><span class="linenos">56</span></a>        <span class="sd">&quot;&quot;&quot;Returns a nested Python dictionary by recursively calling the dataset function.&quot;&quot;&quot;</span>
+</span><span id="Experiment-57"><a href="#Experiment-57"><span class="linenos">57</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="Experiment-58"><a href="#Experiment-58"><span class="linenos">58</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Experiment-59"><a href="#Experiment-59"><span class="linenos">59</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Experiment-60"><a href="#Experiment-60"><span class="linenos">60</span></a>            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+</span><span id="Experiment-61"><a href="#Experiment-61"><span class="linenos">61</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
+</span><span id="Experiment-62"><a href="#Experiment-62"><span class="linenos">62</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="Experiment-63"><a href="#Experiment-63"><span class="linenos">63</span></a>        <span class="c1"># end for</span>
+</span><span id="Experiment-64"><a href="#Experiment-64"><span class="linenos">64</span></a>
+</span><span id="Experiment-65"><a href="#Experiment-65"><span class="linenos">65</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Experiment-66"><a href="#Experiment-66"><span class="linenos">66</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Experiment-67"><a href="#Experiment-67"><span class="linenos">67</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Experiment-68"><a href="#Experiment-68"><span class="linenos">68</span></a>            <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>  <span class="c1"># datatype is dictionary -&gt; double nested</span>
+</span><span id="Experiment-69"><a href="#Experiment-69"><span class="linenos">69</span></a>        <span class="p">}</span>
+</span><span id="Experiment-70"><a href="#Experiment-70"><span class="linenos">70</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Node containing datasets within the data structure. Equivalent to the collection in the database.</p>
+</div>
 
+
+                            <div id="Experiment.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Experiment.name"></a>
+    
+            <div class="docstring"><p>The experiment name. Used during query to locate the dataset.</p>
+</div>
+
+
+                            </div>
+                            <div id="Experiment.children" class="classattr">
+                                <div class="attr variable">
+            <span class="name">children</span><span class="annotation">: List[<a href="#Dataset">datastructure.Dataset</a>]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Experiment.children"></a>
+    
+            <div class="docstring"><p>List of dataset objects.</p>
+</div>
+
+
+                            </div>
+                            <div id="Experiment.meta" class="classattr">
+                                <div class="attr variable">
+            <span class="name">meta</span><span class="annotation">: Optional[List[str]]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Experiment.meta"></a>
+    
+            <div class="docstring"><p>User generated metadata.</p>
+</div>
+
+
+                            </div>
                             <div id="Experiment.convertJSON" class="classattr">
                                         <input id="Experiment.convertJSON-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -436,25 +714,28 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Experiment.convertJSON"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Experiment.convertJSON-43"><a href="#Experiment.convertJSON-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a nested python dictionary</span>
-</span><span id="Experiment.convertJSON-44"><a href="#Experiment.convertJSON-44"><span class="linenos">44</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="Experiment.convertJSON-45"><a href="#Experiment.convertJSON-45"><span class="linenos">45</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="Experiment.convertJSON-46"><a href="#Experiment.convertJSON-46"><span class="linenos">46</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Experiment.convertJSON-47"><a href="#Experiment.convertJSON-47"><span class="linenos">47</span></a>            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-</span><span id="Experiment.convertJSON-48"><a href="#Experiment.convertJSON-48"><span class="linenos">48</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
-</span><span id="Experiment.convertJSON-49"><a href="#Experiment.convertJSON-49"><span class="linenos">49</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="Experiment.convertJSON-50"><a href="#Experiment.convertJSON-50"><span class="linenos">50</span></a>        <span class="c1"># end for</span>
-</span><span id="Experiment.convertJSON-51"><a href="#Experiment.convertJSON-51"><span class="linenos">51</span></a>
-</span><span id="Experiment.convertJSON-52"><a href="#Experiment.convertJSON-52"><span class="linenos">52</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Experiment.convertJSON-53"><a href="#Experiment.convertJSON-53"><span class="linenos">53</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Experiment.convertJSON-54"><a href="#Experiment.convertJSON-54"><span class="linenos">54</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Experiment.convertJSON-55"><a href="#Experiment.convertJSON-55"><span class="linenos">55</span></a>            <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>  <span class="c1"># datatype is dictionary -&gt; double nested</span>
-</span><span id="Experiment.convertJSON-56"><a href="#Experiment.convertJSON-56"><span class="linenos">56</span></a>        <span class="p">}</span>
-</span><span id="Experiment.convertJSON-57"><a href="#Experiment.convertJSON-57"><span class="linenos">57</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Experiment.convertJSON-55"><a href="#Experiment.convertJSON-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a nested python dictionary</span>
+</span><span id="Experiment.convertJSON-56"><a href="#Experiment.convertJSON-56"><span class="linenos">56</span></a>        <span class="sd">&quot;&quot;&quot;Returns a nested Python dictionary by recursively calling the dataset function.&quot;&quot;&quot;</span>
+</span><span id="Experiment.convertJSON-57"><a href="#Experiment.convertJSON-57"><span class="linenos">57</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="Experiment.convertJSON-58"><a href="#Experiment.convertJSON-58"><span class="linenos">58</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Experiment.convertJSON-59"><a href="#Experiment.convertJSON-59"><span class="linenos">59</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Experiment.convertJSON-60"><a href="#Experiment.convertJSON-60"><span class="linenos">60</span></a>            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+</span><span id="Experiment.convertJSON-61"><a href="#Experiment.convertJSON-61"><span class="linenos">61</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
+</span><span id="Experiment.convertJSON-62"><a href="#Experiment.convertJSON-62"><span class="linenos">62</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="Experiment.convertJSON-63"><a href="#Experiment.convertJSON-63"><span class="linenos">63</span></a>        <span class="c1"># end for</span>
+</span><span id="Experiment.convertJSON-64"><a href="#Experiment.convertJSON-64"><span class="linenos">64</span></a>
+</span><span id="Experiment.convertJSON-65"><a href="#Experiment.convertJSON-65"><span class="linenos">65</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Experiment.convertJSON-66"><a href="#Experiment.convertJSON-66"><span class="linenos">66</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Experiment.convertJSON-67"><a href="#Experiment.convertJSON-67"><span class="linenos">67</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Experiment.convertJSON-68"><a href="#Experiment.convertJSON-68"><span class="linenos">68</span></a>            <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>  <span class="c1"># datatype is dictionary -&gt; double nested</span>
+</span><span id="Experiment.convertJSON-69"><a href="#Experiment.convertJSON-69"><span class="linenos">69</span></a>        <span class="p">}</span>
+</span><span id="Experiment.convertJSON-70"><a href="#Experiment.convertJSON-70"><span class="linenos">70</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Returns a nested Python dictionary by recursively calling the dataset function.</p>
+</div>
+
 
                             </div>
                             <div class="inherited">
@@ -491,46 +772,116 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Project"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Project-60"><a href="#Project-60"><span class="linenos">60</span></a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Project-61"><a href="#Project-61"><span class="linenos">61</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Project-62"><a href="#Project-62"><span class="linenos">62</span></a>    <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Project-63"><a href="#Project-63"><span class="linenos">63</span></a>    <span class="n">groups</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Experiment</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Project-64"><a href="#Project-64"><span class="linenos">64</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Project-65"><a href="#Project-65"><span class="linenos">65</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
-</span><span id="Project-66"><a href="#Project-66"><span class="linenos">66</span></a>
-</span><span id="Project-67"><a href="#Project-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a dictionary</span>
-</span><span id="Project-68"><a href="#Project-68"><span class="linenos">68</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="Project-69"><a href="#Project-69"><span class="linenos">69</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="Project-70"><a href="#Project-70"><span class="linenos">70</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Project-71"><a href="#Project-71"><span class="linenos">71</span></a>            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
-</span><span id="Project-72"><a href="#Project-72"><span class="linenos">72</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
-</span><span id="Project-73"><a href="#Project-73"><span class="linenos">73</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="Project-74"><a href="#Project-74"><span class="linenos">74</span></a>
-</span><span id="Project-75"><a href="#Project-75"><span class="linenos">75</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Project-76"><a href="#Project-76"><span class="linenos">76</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Project-77"><a href="#Project-77"><span class="linenos">77</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
-</span><span id="Project-78"><a href="#Project-78"><span class="linenos">78</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Project-79"><a href="#Project-79"><span class="linenos">79</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
-</span><span id="Project-80"><a href="#Project-80"><span class="linenos">80</span></a>            <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>
-</span><span id="Project-81"><a href="#Project-81"><span class="linenos">81</span></a>        <span class="p">}</span>
-</span><span id="Project-82"><a href="#Project-82"><span class="linenos">82</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
-</span><span id="Project-83"><a href="#Project-83"><span class="linenos">83</span></a>
-</span><span id="Project-84"><a href="#Project-84"><span class="linenos">84</span></a>    <span class="k">def</span> <span class="nf">convertDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>
-</span><span id="Project-85"><a href="#Project-85"><span class="linenos">85</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-</span><span id="Project-86"><a href="#Project-86"><span class="linenos">86</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;creator&quot;</span><span class="p">)</span>
-</span><span id="Project-87"><a href="#Project-87"><span class="linenos">87</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
-</span><span id="Project-88"><a href="#Project-88"><span class="linenos">88</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
-</span><span id="Project-89"><a href="#Project-89"><span class="linenos">89</span></a>
-</span><span id="Project-90"><a href="#Project-90"><span class="linenos">90</span></a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="Project-91"><a href="#Project-91"><span class="linenos">91</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Project-92"><a href="#Project-92"><span class="linenos">92</span></a>            <span class="k">return</span> <span class="nb">str</span><span class="p">([</span><span class="n">exp</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span> <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">])</span>
-</span><span id="Project-93"><a href="#Project-93"><span class="linenos">93</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="Project-94"><a href="#Project-94"><span class="linenos">94</span></a>            <span class="k">return</span> <span class="nb">str</span><span class="p">([])</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Project-73"><a href="#Project-73"><span class="linenos"> 73</span></a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Project-74"><a href="#Project-74"><span class="linenos"> 74</span></a>    <span class="sd">&quot;&quot;&quot;Root of the data structure. Equivalent to a database.&quot;&quot;&quot;</span>
+</span><span id="Project-75"><a href="#Project-75"><span class="linenos"> 75</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Project-76"><a href="#Project-76"><span class="linenos"> 76</span></a>    <span class="sd">&quot;&quot;&quot;The project name. Used during query and retrieval.&quot;&quot;&quot;</span>
+</span><span id="Project-77"><a href="#Project-77"><span class="linenos"> 77</span></a>    <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Project-78"><a href="#Project-78"><span class="linenos"> 78</span></a>    <span class="sd">&quot;&quot;&quot;The username of the user that created the project.&quot;&quot;&quot;</span>
+</span><span id="Project-79"><a href="#Project-79"><span class="linenos"> 79</span></a>    <span class="n">groups</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Experiment</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Project-80"><a href="#Project-80"><span class="linenos"> 80</span></a>    <span class="sd">&quot;&quot;&quot;List of experiements belonging to the project.&quot;&quot;&quot;</span>
+</span><span id="Project-81"><a href="#Project-81"><span class="linenos"> 81</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Project-82"><a href="#Project-82"><span class="linenos"> 82</span></a>    <span class="sd">&quot;&quot;&quot;User generated metadata.&quot;&quot;&quot;</span>
+</span><span id="Project-83"><a href="#Project-83"><span class="linenos"> 83</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="Project-84"><a href="#Project-84"><span class="linenos"> 84</span></a>    <span class="sd">&quot;&quot;&quot;List of authors of the project along with their permissions. Used in authentication and determining the scope of the access.&quot;&quot;&quot;</span>
+</span><span id="Project-85"><a href="#Project-85"><span class="linenos"> 85</span></a>
+</span><span id="Project-86"><a href="#Project-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a dictionary</span>
+</span><span id="Project-87"><a href="#Project-87"><span class="linenos"> 87</span></a>        <span class="sd">&quot;&quot;&quot;Returns a nested Python dictionary by recursively calling the experiment function.&quot;&quot;&quot;</span>
+</span><span id="Project-88"><a href="#Project-88"><span class="linenos"> 88</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="Project-89"><a href="#Project-89"><span class="linenos"> 89</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Project-90"><a href="#Project-90"><span class="linenos"> 90</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Project-91"><a href="#Project-91"><span class="linenos"> 91</span></a>            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+</span><span id="Project-92"><a href="#Project-92"><span class="linenos"> 92</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
+</span><span id="Project-93"><a href="#Project-93"><span class="linenos"> 93</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="Project-94"><a href="#Project-94"><span class="linenos"> 94</span></a>
+</span><span id="Project-95"><a href="#Project-95"><span class="linenos"> 95</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Project-96"><a href="#Project-96"><span class="linenos"> 96</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Project-97"><a href="#Project-97"><span class="linenos"> 97</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
+</span><span id="Project-98"><a href="#Project-98"><span class="linenos"> 98</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Project-99"><a href="#Project-99"><span class="linenos"> 99</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
+</span><span id="Project-100"><a href="#Project-100"><span class="linenos">100</span></a>            <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>
+</span><span id="Project-101"><a href="#Project-101"><span class="linenos">101</span></a>        <span class="p">}</span>
+</span><span id="Project-102"><a href="#Project-102"><span class="linenos">102</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+</span><span id="Project-103"><a href="#Project-103"><span class="linenos">103</span></a>
+</span><span id="Project-104"><a href="#Project-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">convertDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>
+</span><span id="Project-105"><a href="#Project-105"><span class="linenos">105</span></a>        <span class="sd">&quot;&quot;&quot;Updates variables within the project using a dictionary as an input.&quot;&quot;&quot;</span>
+</span><span id="Project-106"><a href="#Project-106"><span class="linenos">106</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+</span><span id="Project-107"><a href="#Project-107"><span class="linenos">107</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;creator&quot;</span><span class="p">)</span>
+</span><span id="Project-108"><a href="#Project-108"><span class="linenos">108</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
+</span><span id="Project-109"><a href="#Project-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
+</span><span id="Project-110"><a href="#Project-110"><span class="linenos">110</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;author&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Root of the data structure. Equivalent to a database.</p>
+</div>
 
+
+                            <div id="Project.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Project.name"></a>
+    
+            <div class="docstring"><p>The project name. Used during query and retrieval.</p>
+</div>
+
+
+                            </div>
+                            <div id="Project.creator" class="classattr">
+                                <div class="attr variable">
+            <span class="name">creator</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Project.creator"></a>
+    
+            <div class="docstring"><p>The username of the user that created the project.</p>
+</div>
+
+
+                            </div>
+                            <div id="Project.groups" class="classattr">
+                                <div class="attr variable">
+            <span class="name">groups</span><span class="annotation">: Optional[List[<a href="#Experiment">datastructure.Experiment</a>]]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Project.groups"></a>
+    
+            <div class="docstring"><p>List of experiements belonging to the project.</p>
+</div>
+
+
+                            </div>
+                            <div id="Project.meta" class="classattr">
+                                <div class="attr variable">
+            <span class="name">meta</span><span class="annotation">: Optional[List[str]]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Project.meta"></a>
+    
+            <div class="docstring"><p>User generated metadata.</p>
+</div>
+
+
+                            </div>
+                            <div id="Project.author" class="classattr">
+                                <div class="attr variable">
+            <span class="name">author</span><span class="annotation">: List[dict]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Project.author"></a>
+    
+            <div class="docstring"><p>List of authors of the project along with their permissions. Used in authentication and determining the scope of the access.</p>
+</div>
+
+
+                            </div>
                             <div id="Project.convertJSON" class="classattr">
                                         <input id="Project.convertJSON-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -542,26 +893,29 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Project.convertJSON"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Project.convertJSON-67"><a href="#Project.convertJSON-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a dictionary</span>
-</span><span id="Project.convertJSON-68"><a href="#Project.convertJSON-68"><span class="linenos">68</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="Project.convertJSON-69"><a href="#Project.convertJSON-69"><span class="linenos">69</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="Project.convertJSON-70"><a href="#Project.convertJSON-70"><span class="linenos">70</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Project.convertJSON-71"><a href="#Project.convertJSON-71"><span class="linenos">71</span></a>            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
-</span><span id="Project.convertJSON-72"><a href="#Project.convertJSON-72"><span class="linenos">72</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
-</span><span id="Project.convertJSON-73"><a href="#Project.convertJSON-73"><span class="linenos">73</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="Project.convertJSON-74"><a href="#Project.convertJSON-74"><span class="linenos">74</span></a>
-</span><span id="Project.convertJSON-75"><a href="#Project.convertJSON-75"><span class="linenos">75</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Project.convertJSON-76"><a href="#Project.convertJSON-76"><span class="linenos">76</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Project.convertJSON-77"><a href="#Project.convertJSON-77"><span class="linenos">77</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
-</span><span id="Project.convertJSON-78"><a href="#Project.convertJSON-78"><span class="linenos">78</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Project.convertJSON-79"><a href="#Project.convertJSON-79"><span class="linenos">79</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
-</span><span id="Project.convertJSON-80"><a href="#Project.convertJSON-80"><span class="linenos">80</span></a>            <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>
-</span><span id="Project.convertJSON-81"><a href="#Project.convertJSON-81"><span class="linenos">81</span></a>        <span class="p">}</span>
-</span><span id="Project.convertJSON-82"><a href="#Project.convertJSON-82"><span class="linenos">82</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Project.convertJSON-86"><a href="#Project.convertJSON-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># returns a dictionary</span>
+</span><span id="Project.convertJSON-87"><a href="#Project.convertJSON-87"><span class="linenos"> 87</span></a>        <span class="sd">&quot;&quot;&quot;Returns a nested Python dictionary by recursively calling the experiment function.&quot;&quot;&quot;</span>
+</span><span id="Project.convertJSON-88"><a href="#Project.convertJSON-88"><span class="linenos"> 88</span></a>        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="Project.convertJSON-89"><a href="#Project.convertJSON-89"><span class="linenos"> 89</span></a>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Project.convertJSON-90"><a href="#Project.convertJSON-90"><span class="linenos"> 90</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Project.convertJSON-91"><a href="#Project.convertJSON-91"><span class="linenos"> 91</span></a>            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+</span><span id="Project.convertJSON-92"><a href="#Project.convertJSON-92"><span class="linenos"> 92</span></a>                <span class="n">temp_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">convertJSON</span><span class="p">()</span>
+</span><span id="Project.convertJSON-93"><a href="#Project.convertJSON-93"><span class="linenos"> 93</span></a>                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="Project.convertJSON-94"><a href="#Project.convertJSON-94"><span class="linenos"> 94</span></a>
+</span><span id="Project.convertJSON-95"><a href="#Project.convertJSON-95"><span class="linenos"> 95</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Project.convertJSON-96"><a href="#Project.convertJSON-96"><span class="linenos"> 96</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Project.convertJSON-97"><a href="#Project.convertJSON-97"><span class="linenos"> 97</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="p">,</span>
+</span><span id="Project.convertJSON-98"><a href="#Project.convertJSON-98"><span class="linenos"> 98</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Project.convertJSON-99"><a href="#Project.convertJSON-99"><span class="linenos"> 99</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
+</span><span id="Project.convertJSON-100"><a href="#Project.convertJSON-100"><span class="linenos">100</span></a>            <span class="s2">&quot;groups&quot;</span><span class="p">:</span> <span class="n">temp_dict</span>
+</span><span id="Project.convertJSON-101"><a href="#Project.convertJSON-101"><span class="linenos">101</span></a>        <span class="p">}</span>
+</span><span id="Project.convertJSON-102"><a href="#Project.convertJSON-102"><span class="linenos">102</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Returns a nested Python dictionary by recursively calling the experiment function.</p>
+</div>
+
 
                             </div>
                             <div id="Project.convertDictionary" class="classattr">
@@ -575,15 +929,19 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Project.convertDictionary"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Project.convertDictionary-84"><a href="#Project.convertDictionary-84"><span class="linenos">84</span></a>    <span class="k">def</span> <span class="nf">convertDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>
-</span><span id="Project.convertDictionary-85"><a href="#Project.convertDictionary-85"><span class="linenos">85</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-</span><span id="Project.convertDictionary-86"><a href="#Project.convertDictionary-86"><span class="linenos">86</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;creator&quot;</span><span class="p">)</span>
-</span><span id="Project.convertDictionary-87"><a href="#Project.convertDictionary-87"><span class="linenos">87</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
-</span><span id="Project.convertDictionary-88"><a href="#Project.convertDictionary-88"><span class="linenos">88</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Project.convertDictionary-104"><a href="#Project.convertDictionary-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">convertDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>
+</span><span id="Project.convertDictionary-105"><a href="#Project.convertDictionary-105"><span class="linenos">105</span></a>        <span class="sd">&quot;&quot;&quot;Updates variables within the project using a dictionary as an input.&quot;&quot;&quot;</span>
+</span><span id="Project.convertDictionary-106"><a href="#Project.convertDictionary-106"><span class="linenos">106</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+</span><span id="Project.convertDictionary-107"><a href="#Project.convertDictionary-107"><span class="linenos">107</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;creator&quot;</span><span class="p">)</span>
+</span><span id="Project.convertDictionary-108"><a href="#Project.convertDictionary-108"><span class="linenos">108</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">)</span>
+</span><span id="Project.convertDictionary-109"><a href="#Project.convertDictionary-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;groups&quot;</span><span class="p">)</span>
+</span><span id="Project.convertDictionary-110"><a href="#Project.convertDictionary-110"><span class="linenos">110</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;author&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Updates variables within the project using a dictionary as an input.</p>
+</div>
+
 
                             </div>
                             <div class="inherited">
@@ -620,25 +978,85 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Simple_Request_body"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Simple_Request_body-97"><a href="#Simple_Request_body-97"><span class="linenos"> 97</span></a><span class="k">class</span> <span class="nc">Simple_Request_body</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Simple_Request_body-98"><a href="#Simple_Request_body-98"><span class="linenos"> 98</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Simple_Request_body-99"><a href="#Simple_Request_body-99"><span class="linenos"> 99</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Simple_Request_body-100"><a href="#Simple_Request_body-100"><span class="linenos">100</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
-</span><span id="Simple_Request_body-101"><a href="#Simple_Request_body-101"><span class="linenos">101</span></a>    <span class="n">creator</span> <span class="p">:</span> <span class="nb">str</span>
-</span><span id="Simple_Request_body-102"><a href="#Simple_Request_body-102"><span class="linenos">102</span></a>
-</span><span id="Simple_Request_body-103"><a href="#Simple_Request_body-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Simple_Request_body-104"><a href="#Simple_Request_body-104"><span class="linenos">104</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Simple_Request_body-105"><a href="#Simple_Request_body-105"><span class="linenos">105</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Simple_Request_body-106"><a href="#Simple_Request_body-106"><span class="linenos">106</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Simple_Request_body-107"><a href="#Simple_Request_body-107"><span class="linenos">107</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
-</span><span id="Simple_Request_body-108"><a href="#Simple_Request_body-108"><span class="linenos">108</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
-</span><span id="Simple_Request_body-109"><a href="#Simple_Request_body-109"><span class="linenos">109</span></a>        <span class="p">}</span>
-</span><span id="Simple_Request_body-110"><a href="#Simple_Request_body-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Simple_Request_body-119"><a href="#Simple_Request_body-119"><span class="linenos">119</span></a><span class="k">class</span> <span class="nc">Simple_Request_body</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Simple_Request_body-120"><a href="#Simple_Request_body-120"><span class="linenos">120</span></a>    <span class="sd">&quot;&quot;&quot;Request body used to update the variables within the project config file in the database.&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body-121"><a href="#Simple_Request_body-121"><span class="linenos">121</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Simple_Request_body-122"><a href="#Simple_Request_body-122"><span class="linenos">122</span></a>    <span class="sd">&quot;&quot;&quot;Name of the project&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body-123"><a href="#Simple_Request_body-123"><span class="linenos">123</span></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Simple_Request_body-124"><a href="#Simple_Request_body-124"><span class="linenos">124</span></a>    <span class="s2">&quot;User generated metadata.&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body-125"><a href="#Simple_Request_body-125"><span class="linenos">125</span></a>    <span class="n">author</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="Simple_Request_body-126"><a href="#Simple_Request_body-126"><span class="linenos">126</span></a>    <span class="sd">&quot;&quot;&quot;Project author list. See project.&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body-127"><a href="#Simple_Request_body-127"><span class="linenos">127</span></a>    <span class="n">creator</span> <span class="p">:</span> <span class="nb">str</span>
+</span><span id="Simple_Request_body-128"><a href="#Simple_Request_body-128"><span class="linenos">128</span></a>    <span class="sd">&quot;&quot;&quot;Username of the user that created the project&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body-129"><a href="#Simple_Request_body-129"><span class="linenos">129</span></a>
+</span><span id="Simple_Request_body-130"><a href="#Simple_Request_body-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Simple_Request_body-131"><a href="#Simple_Request_body-131"><span class="linenos">131</span></a>        <span class="sd">&quot;&quot;&quot;Returns a python dictionary of the data structure.&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body-132"><a href="#Simple_Request_body-132"><span class="linenos">132</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Simple_Request_body-133"><a href="#Simple_Request_body-133"><span class="linenos">133</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Simple_Request_body-134"><a href="#Simple_Request_body-134"><span class="linenos">134</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Simple_Request_body-135"><a href="#Simple_Request_body-135"><span class="linenos">135</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
+</span><span id="Simple_Request_body-136"><a href="#Simple_Request_body-136"><span class="linenos">136</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
+</span><span id="Simple_Request_body-137"><a href="#Simple_Request_body-137"><span class="linenos">137</span></a>        <span class="p">}</span>
+</span><span id="Simple_Request_body-138"><a href="#Simple_Request_body-138"><span class="linenos">138</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Request body used to update the variables within the project config file in the database.</p>
+</div>
 
+
+                            <div id="Simple_Request_body.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Simple_Request_body.name"></a>
+    
+            <div class="docstring"><p>Name of the project</p>
+</div>
+
+
+                            </div>
+                            <div id="Simple_Request_body.meta" class="classattr">
+                                <div class="attr variable">
+            <span class="name">meta</span><span class="annotation">: Optional[List[str]]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Simple_Request_body.meta"></a>
+    
+            <div class="docstring"><p>User generated metadata.</p>
+</div>
+
+
+                            </div>
+                            <div id="Simple_Request_body.author" class="classattr">
+                                <div class="attr variable">
+            <span class="name">author</span><span class="annotation">: List[dict]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Simple_Request_body.author"></a>
+    
+            <div class="docstring"><p>Project author list. See project.</p>
+</div>
+
+
+                            </div>
+                            <div id="Simple_Request_body.creator" class="classattr">
+                                <div class="attr variable">
+            <span class="name">creator</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Simple_Request_body.creator"></a>
+    
+            <div class="docstring"><p>Username of the user that created the project</p>
+</div>
+
+
+                            </div>
                             <div id="Simple_Request_body.convertJSON" class="classattr">
                                         <input id="Simple_Request_body.convertJSON-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -650,18 +1068,21 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Simple_Request_body.convertJSON"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Simple_Request_body.convertJSON-103"><a href="#Simple_Request_body.convertJSON-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Simple_Request_body.convertJSON-104"><a href="#Simple_Request_body.convertJSON-104"><span class="linenos">104</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="Simple_Request_body.convertJSON-105"><a href="#Simple_Request_body.convertJSON-105"><span class="linenos">105</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span id="Simple_Request_body.convertJSON-106"><a href="#Simple_Request_body.convertJSON-106"><span class="linenos">106</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
-</span><span id="Simple_Request_body.convertJSON-107"><a href="#Simple_Request_body.convertJSON-107"><span class="linenos">107</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
-</span><span id="Simple_Request_body.convertJSON-108"><a href="#Simple_Request_body.convertJSON-108"><span class="linenos">108</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
-</span><span id="Simple_Request_body.convertJSON-109"><a href="#Simple_Request_body.convertJSON-109"><span class="linenos">109</span></a>        <span class="p">}</span>
-</span><span id="Simple_Request_body.convertJSON-110"><a href="#Simple_Request_body.convertJSON-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Simple_Request_body.convertJSON-130"><a href="#Simple_Request_body.convertJSON-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">convertJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Simple_Request_body.convertJSON-131"><a href="#Simple_Request_body.convertJSON-131"><span class="linenos">131</span></a>        <span class="sd">&quot;&quot;&quot;Returns a python dictionary of the data structure.&quot;&quot;&quot;</span>
+</span><span id="Simple_Request_body.convertJSON-132"><a href="#Simple_Request_body.convertJSON-132"><span class="linenos">132</span></a>        <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="Simple_Request_body.convertJSON-133"><a href="#Simple_Request_body.convertJSON-133"><span class="linenos">133</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="Simple_Request_body.convertJSON-134"><a href="#Simple_Request_body.convertJSON-134"><span class="linenos">134</span></a>            <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+</span><span id="Simple_Request_body.convertJSON-135"><a href="#Simple_Request_body.convertJSON-135"><span class="linenos">135</span></a>            <span class="s2">&quot;creator&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="p">,</span>
+</span><span id="Simple_Request_body.convertJSON-136"><a href="#Simple_Request_body.convertJSON-136"><span class="linenos">136</span></a>            <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">author</span>
+</span><span id="Simple_Request_body.convertJSON-137"><a href="#Simple_Request_body.convertJSON-137"><span class="linenos">137</span></a>        <span class="p">}</span>
+</span><span id="Simple_Request_body.convertJSON-138"><a href="#Simple_Request_body.convertJSON-138"><span class="linenos">138</span></a>        <span class="k">return</span> <span class="n">json_dict</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Returns a python dictionary of the data structure.</p>
+</div>
+
 
                             </div>
                             <div class="inherited">
@@ -698,14 +1119,45 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Token"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Token-114"><a href="#Token-114"><span class="linenos">114</span></a><span class="k">class</span> <span class="nc">Token</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Token-115"><a href="#Token-115"><span class="linenos">115</span></a>    <span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Token-116"><a href="#Token-116"><span class="linenos">116</span></a>    <span class="n">token_type</span><span class="p">:</span> <span class="nb">str</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Token-142"><a href="#Token-142"><span class="linenos">142</span></a><span class="k">class</span> <span class="nc">Token</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Token-143"><a href="#Token-143"><span class="linenos">143</span></a>    <span class="sd">&quot;&quot;&quot;Token request body used in authentication&quot;&quot;&quot;</span>
+</span><span id="Token-144"><a href="#Token-144"><span class="linenos">144</span></a>    <span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Token-145"><a href="#Token-145"><span class="linenos">145</span></a>    <span class="sd">&quot;&quot;&quot;The variable storing the JWT token&quot;&quot;&quot;</span>
+</span><span id="Token-146"><a href="#Token-146"><span class="linenos">146</span></a>    <span class="n">token_type</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Token-147"><a href="#Token-147"><span class="linenos">147</span></a>    <span class="sd">&quot;&quot;&quot;Variable storing the token type&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Token request body used in authentication</p>
+</div>
 
+
+                            <div id="Token.access_token" class="classattr">
+                                <div class="attr variable">
+            <span class="name">access_token</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Token.access_token"></a>
+    
+            <div class="docstring"><p>The variable storing the JWT token</p>
+</div>
+
+
+                            </div>
+                            <div id="Token.token_type" class="classattr">
+                                <div class="attr variable">
+            <span class="name">token_type</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Token.token_type"></a>
+    
+            <div class="docstring"><p>Variable storing the token type</p>
+</div>
+
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
@@ -740,16 +1192,75 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#User"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="User-120"><a href="#User-120"><span class="linenos">120</span></a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="User-121"><a href="#User-121"><span class="linenos">121</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="User-122"><a href="#User-122"><span class="linenos">122</span></a>    <span class="n">hash_in</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="User-123"><a href="#User-123"><span class="linenos">123</span></a>    <span class="n">email</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="User-124"><a href="#User-124"><span class="linenos">124</span></a>    <span class="n">full_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="User-151"><a href="#User-151"><span class="linenos">151</span></a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="User-152"><a href="#User-152"><span class="linenos">152</span></a>    <span class="sd">&quot;&quot;&quot;User request body. Used in user creation.&quot;&quot;&quot;</span>
+</span><span id="User-153"><a href="#User-153"><span class="linenos">153</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="User-154"><a href="#User-154"><span class="linenos">154</span></a>    <span class="sd">&quot;&quot;&quot;Unique username&quot;&quot;&quot;</span>
+</span><span id="User-155"><a href="#User-155"><span class="linenos">155</span></a>    <span class="n">hash_in</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="User-156"><a href="#User-156"><span class="linenos">156</span></a>    <span class="sd">&quot;&quot;&quot;Hash of the password obtained within the interface&quot;&quot;&quot;</span>
+</span><span id="User-157"><a href="#User-157"><span class="linenos">157</span></a>    <span class="n">email</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="User-158"><a href="#User-158"><span class="linenos">158</span></a>    <span class="sd">&quot;&quot;&quot;Optional email variable&quot;&quot;&quot;</span>
+</span><span id="User-159"><a href="#User-159"><span class="linenos">159</span></a>    <span class="n">full_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="User-160"><a href="#User-160"><span class="linenos">160</span></a>    <span class="sd">&quot;&quot;&quot;Optional full name variable&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>User request body. Used in user creation.</p>
+</div>
 
+
+                            <div id="User.username" class="classattr">
+                                <div class="attr variable">
+            <span class="name">username</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#User.username"></a>
+    
+            <div class="docstring"><p>Unique username</p>
+</div>
+
+
+                            </div>
+                            <div id="User.hash_in" class="classattr">
+                                <div class="attr variable">
+            <span class="name">hash_in</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#User.hash_in"></a>
+    
+            <div class="docstring"><p>Hash of the password obtained within the interface</p>
+</div>
+
+
+                            </div>
+                            <div id="User.email" class="classattr">
+                                <div class="attr variable">
+            <span class="name">email</span><span class="annotation">: Optional[str]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#User.email"></a>
+    
+            <div class="docstring"><p>Optional email variable</p>
+</div>
+
+
+                            </div>
+                            <div id="User.full_name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">full_name</span><span class="annotation">: Optional[str]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#User.full_name"></a>
+    
+            <div class="docstring"><p>Optional full name variable</p>
+</div>
+
+
+                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
@@ -784,20 +1295,52 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Author"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Author-126"><a href="#Author-126"><span class="linenos">126</span></a><span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Author-127"><a href="#Author-127"><span class="linenos">127</span></a>    <span class="c1"># object used for representing the author of a dataset, experiment, project</span>
-</span><span id="Author-128"><a href="#Author-128"><span class="linenos">128</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Author-129"><a href="#Author-129"><span class="linenos">129</span></a>    <span class="n">permission</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Author-130"><a href="#Author-130"><span class="linenos">130</span></a>
-</span><span id="Author-131"><a href="#Author-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>  <span class="c1"># initialises the author object from json</span>
-</span><span id="Author-132"><a href="#Author-132"><span class="linenos">132</span></a>        <span class="c1"># temp = json.loads(json_in)</span>
-</span><span id="Author-133"><a href="#Author-133"><span class="linenos">133</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-</span><span id="Author-134"><a href="#Author-134"><span class="linenos">134</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">permission</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permission&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Author-162"><a href="#Author-162"><span class="linenos">162</span></a><span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Author-163"><a href="#Author-163"><span class="linenos">163</span></a>    <span class="sd">&quot;&quot;&quot;Author request body. Used in determining the scope of the access.&quot;&quot;&quot;</span>
+</span><span id="Author-164"><a href="#Author-164"><span class="linenos">164</span></a>    <span class="c1"># object used for representing the author of a dataset, experiment, project</span>
+</span><span id="Author-165"><a href="#Author-165"><span class="linenos">165</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Author-166"><a href="#Author-166"><span class="linenos">166</span></a>    <span class="sd">&quot;&quot;&quot;Username belonging to the author&quot;&quot;&quot;</span>
+</span><span id="Author-167"><a href="#Author-167"><span class="linenos">167</span></a>    <span class="n">permission</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Author-168"><a href="#Author-168"><span class="linenos">168</span></a>    <span class="sd">&quot;&quot;&quot;The permissions granted to the user&quot;&quot;&quot;</span>
+</span><span id="Author-169"><a href="#Author-169"><span class="linenos">169</span></a>
+</span><span id="Author-170"><a href="#Author-170"><span class="linenos">170</span></a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>  <span class="c1"># initialises the author object from json</span>
+</span><span id="Author-171"><a href="#Author-171"><span class="linenos">171</span></a>        <span class="sd">&quot;&quot;&quot;Updates the variables based on Python dictionary input.&quot;&quot;&quot;</span>
+</span><span id="Author-172"><a href="#Author-172"><span class="linenos">172</span></a>        <span class="c1"># temp = json.loads(json_in)</span>
+</span><span id="Author-173"><a href="#Author-173"><span class="linenos">173</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+</span><span id="Author-174"><a href="#Author-174"><span class="linenos">174</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">permission</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permission&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Author request body. Used in determining the scope of the access.</p>
+</div>
 
+
+                            <div id="Author.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Author.name"></a>
+    
+            <div class="docstring"><p>Username belonging to the author</p>
+</div>
+
+
+                            </div>
+                            <div id="Author.permission" class="classattr">
+                                <div class="attr variable">
+            <span class="name">permission</span><span class="annotation">: str</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Author.permission"></a>
+    
+            <div class="docstring"><p>The permissions granted to the user</p>
+</div>
+
+
+                            </div>
                             <div id="Author.load_data" class="classattr">
                                         <input id="Author.load_data-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -809,14 +1352,17 @@ datastructure    </h1>
 
     </div>
     <a class="headerlink" href="#Author.load_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Author.load_data-131"><a href="#Author.load_data-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>  <span class="c1"># initialises the author object from json</span>
-</span><span id="Author.load_data-132"><a href="#Author.load_data-132"><span class="linenos">132</span></a>        <span class="c1"># temp = json.loads(json_in)</span>
-</span><span id="Author.load_data-133"><a href="#Author.load_data-133"><span class="linenos">133</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-</span><span id="Author.load_data-134"><a href="#Author.load_data-134"><span class="linenos">134</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">permission</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permission&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Author.load_data-170"><a href="#Author.load_data-170"><span class="linenos">170</span></a>    <span class="k">def</span> <span class="nf">load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_in</span><span class="p">):</span>  <span class="c1"># initialises the author object from json</span>
+</span><span id="Author.load_data-171"><a href="#Author.load_data-171"><span class="linenos">171</span></a>        <span class="sd">&quot;&quot;&quot;Updates the variables based on Python dictionary input.&quot;&quot;&quot;</span>
+</span><span id="Author.load_data-172"><a href="#Author.load_data-172"><span class="linenos">172</span></a>        <span class="c1"># temp = json.loads(json_in)</span>
+</span><span id="Author.load_data-173"><a href="#Author.load_data-173"><span class="linenos">173</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+</span><span id="Author.load_data-174"><a href="#Author.load_data-174"><span class="linenos">174</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">permission</span> <span class="o">=</span> <span class="n">dict_in</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;permission&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Updates the variables based on Python dictionary input.</p>
+</div>
+
 
                             </div>
                             <div class="inherited">

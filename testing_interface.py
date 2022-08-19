@@ -1,50 +1,54 @@
 import testing as t
 from interface import API_interface
+import datastructure as d
 
 path = "http://127.0.0.1:8000/"
 
+# tests to conduct
+
+
+# 3. returning a project using that user
+# 4. tree print
+# 5. creating a user and inserting a second project
+# 6. giving the second user permissions to one of the datasets + tree print to confirm
+# 7. trying to insert nothing
+# 8. updating permissions for user 2 -> making it able to edit project belonging to user 1
+# 9. User 2 authenting and inserting a dataset in project belonging to user 1
+# 10. User 2 insert dataset into experiment with read only permissions # TODO: This feature may not work but should be updated later
 
 class TestClass:
     def test_1(self):
-        # to run this test purge the database from test entries otherwise the data generated won't be updated.
-        project_name = "S_Church"
-        author_name = "S.Church"
-
-        filename = "test.json"
-        t.create_test_file_project(filename, [1, 1], project_name, author_name)
-        project_in = t.load_file_project(filename)
-
+        # 1. creating a user
+        username = "test_user"
+        password = "some_password123"
+        email= "test_user@email.com"
+        full_name = "test user"
         ui = API_interface(path)
-        #ui.check_connection()
-        # authenticate
-        username = "wombat"
-        password = "marsupial"
-        email = "marsupial1@gmail.com"
-        full_name = "not_wombat"
-        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
-        # add credentials to interface
-        ui.generate_token(username, password)
-        ui.insert_project(project=project_in)
-        print("finished authenticating")
-        temp = ui.return_full_project(project_name=project_in.name)
-        print("Printing the return project")
-        print(temp.json())
-        # assert str(temp.convertJSON()) == str(project_in.convertJSON()) # compares the database project with the one generated
+        assert ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name) == True
+        # user created successfully      
 
     def test_2(self):
-        # check connection
+        # 2. inserting a project using that user
+        username = "test_user"
+        password = "some_password123"
         ui = API_interface(path)
-        ui.check_connection()
+        ui.generate_token(username, password)
+        
+        # generate test_project
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
+        project_in = t.load_file_project(filename_out=file_name)
+        assert ui.insert_project(project=project_in) == True
+
 
     def test_3(self):
-        username = "string"
-        password = "string"
-        email = "wombatCombat@email.com"
-        fullName = "Wombat Smith"
-        # creating a user test
-        ui = API_interface(path)
-        response = ui.create_user(username_in=username, password_in=password, email=email, full_name=fullName)
-        print("response2" + str(response))
+        # 3. insert dataset and return it to compare
+        # TODO: Finish making test cells from here 
+        a = 1
+         
+
+            
 
     def test_4(self):
         # authentication of user and returns a token
