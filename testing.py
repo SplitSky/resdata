@@ -34,7 +34,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
         datasets.append(dataset)
 
     for i in range(0,structure[0],1):
-        experiment = d.Experiment(name="experiment_" + str(i), children=datasets, meta=["experiment metadata"])
+        experiment = d.Experiment(name="experiment_" + str(i), children=datasets, meta=["experiment metadata"], author=[template_author.dict()])
         experiments.append(experiment)
     
     project = d.Project(name=project_name, creator=author_name, groups=experiments, meta=["project metadata"], author=[template_author.dict()])
@@ -73,7 +73,7 @@ def load_file_project(filename_out): # returns a project object from file
             datasets_temp = []
             for dataset in experiment.get("children"):
                 datasets_temp.append(d.Dataset(name=dataset.get("name"), data=dataset.get("data") , data_type=dataset.get("data_type"), meta=dataset.get("meta"),author=dataset.get("author")))
-            groups_temp.append(d.Experiment(name= experiment.get("name"),children= datasets_temp,meta=experiment.get("meta")))
+            groups_temp.append(d.Experiment(name= experiment.get("name"),children= datasets_temp,meta=experiment.get("meta"), author=experiment.get("author")))
         project = d.Project(name=python_dict.get("name"),author=python_dict.get("author"),groups=groups_temp,meta=python_dict.get("meta"),creator=python_dict.get("creator")) # initialise empty project
         file.close()
     

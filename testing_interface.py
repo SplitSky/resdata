@@ -1,7 +1,6 @@
 import testing as t
 from interface import API_interface
 import datastructure as d
-
 path = "http://127.0.0.1:8000/"
 
 # tests to conduct
@@ -43,126 +42,94 @@ class TestClass:
 
 
     def test_3(self):
-        # 3. insert dataset and return it to compare
+        # 3. return a project to compare with the file
         # TODO: Finish making test cells from here 
-        a = 1
-         
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        ui.generate_token(username, password)
+        file_name = "test_project.json"
+        project_name = "test_project_1"
 
+        # return project
+        project_from_db = ui.return_full_project(project_name=project_name)
+        # load in the file
+        project_from_file = t.load_file_project(filename_out=file_name)
+
+        # compare assertions
+        assert project_from_db.name == project_from_file.name
+        assert project_from_db.meta == project_from_file.meta
+        assert project_from_db.creator == project_from_file.creator
+        assert project_from_db.author == project_from_file.author
+
+        # compare experiments
+        if project_from_file.groups == None or project_from_db.groups == None:
+            raise Exception("")
+        for i in range(0, len(project_from_file.groups)):
+            file_experiment = project_from_file.groups[i]
+            db_experiment = project_from_db.groups[i]
             
+            # compare the experiment variables
+            assert file_experiment.name == db_experiment.name
+            assert file_experiment.author == db_experiment.author
+            assert file_experiment.meta == db_experiment.meta
+            for j in range(0, len(file_experiment.children)): # iterate over datasets
+                file_dataset = file_experiment.children[j]
+                db_dataset = db_experiment.children[j]
+                assert file_dataset.name == db_dataset.name
+                assert file_dataset.data == db_dataset.data
+                assert file_dataset.data_type == db_dataset.data_type
+                assert file_dataset.author == db_dataset.author
 
     def test_4(self):
         # authentication of user and returns a token
-        username = "test_user"
+        username = "test_user2"
         password = "wombat"
+
         ui = API_interface(path)
+        ui.create_user(username_in=username, password_in=password, email="test_email", full_name="test_full_name")
         ui.generate_token(username, password)
+        assert len(ui.token) > 0
 
     def test_5(self):
-        # authentication of a user using the token
+        # user 1 tree print
         username = "test_user"
-        password = "wombat"
+        password = "some_password123"
         ui = API_interface(path)
-        ui.generate_token(username, password)
+        ui.generate_token(username=username, password=password)
+        ui.tree_print()
 
-        # insert a project
-        filename = "authenticated_test.json"
-        project_name = "T_Neska"
-        author_name = "T.Neska"
+        # user 2 tree print
+        username = "test_user2"
+        password = "wombat"
 
-        t.create_test_file_project(filename, [1, 1], project_name, author_name)
-        project_in = t.load_file_project(filename)
-        ui.insert_project(project_in)
+        ui.generate_token(username=username, password=password)
+        ui.tree_print()
+
 
     def test_6(self):
-        # insertion of the project with failed authentication
-        username = "test_user"
-        password = "not_wombat"
+        # uses the two previously created users to 
         ui = API_interface(path)
-        ui.generate_token(username, password)
+        project_name = "shared_project"
+        file_name = "test.json"
+        # user 1 variables
+        username1 = "test_user"
+        password1 = "some_password123"
+        # authenticate
+        ui.generate_token(username1, password1)
+        # create a test project and insert it into the database using user 1 authentication.
+        t.create_test_file_project(file_name,[2,3],project_name, username1)
+        project_in = t.load_file_project(filename_out=file_name)
+        ui.insert_project(project=project_in)
 
-    def test_7(self):
-        ui = API_interface(path)
-        ui.try_authenticate()
-
-    def test_8(self):
-        # populate the database with projects belonging to different users
-        ui = API_interface(path)
-        # user 1 commits
-        username1 = "user1"
-        password1 = "user1_password"
-        email = "user1@email.com"
-        full_name = "user one"
-        ui.create_user(username_in=username1, password_in=password1, email=email, full_name=full_name)
-
-        # user 2 commits
-        username2 = "user2"
-        password2 = "user2_password"
-        email = "user1@email.com"
-        full_name = "user one"
-        ui.create_user(username_in=username2, password_in=password2, email=email, full_name=full_name)
-        project_name1 = "user1_project1"
-
-       # # insert 2 projects
-       # ui.generate_token(username1, password1) # authenticate
-       # filename = "user1.json"
-
-       # t.create_test_file_project(filename, [1,2], project_name1, username1)
-       # project_in = t.load_file_project(filename)
-       # ui.insert_project(project_in)
-
-       # project_name = "user1_project2"
-       # t.create_test_file_project(filename, [4,5], project_name, username1)
-       # project_in = t.load_file_project(filename)
-       # ui.insert_project(project_in)
-
-
-
-       # # insert 1 project # inserts the datasets with the same name as the previous project
-       # # checks whether the user has write priviledges in the project
-       # ui.generate_token(username2, password2) # authenticate
-       # filename = "user2.json"
-       # project_name = "user2_project1"
-       # t.create_test_file_project(filename, [1,3], project_name, username2)
-       # project_in = t.load_file_project(filename)
-       # ui.insert_project(project_in)
-
-       # project_name = "user2_project2"
-       # t.create_test_file_project(filename, [5,1], project_name, username2)
-       # project_in = t.load_file_project(filename)
-       # ui.insert_project(project_in)
-
-        # user 3 commits
-        username3 = "user3"
-        password3 = "user3_password"
-        email = "user1@email.com"
-        full_name = "user one"
-        ui.create_user(username_in=username3, password_in=password3, email=email, full_name=full_name)
-
-        # assign user 3 to projects commited by user 1
-        # authenticate as user 1 and add user 3 as author to the project
-        ui.generate_token(username=username1, password=password1)
-        ui.add_author_to_project_rec(project_id=project_name1, author_name=username3, author_permission="read")
+        # user 2 variables
+        username2 = "test_user2"
+        password2 = "wombat"
+        # give user 2 access to the inserted project
+        ui.add_author_to_project_rec(project_id=username2, author_name=username2, author_permission="read")
+        print("User 1 print")
+        ui.tree_print() # user 1 print
         
-        print("add_author_to_project ran") 
-        print("printing user 1 files:")
-        ui.generate_token(username=username1, password=password1)
-        ui.tree_print()
-        print(" ")
-        print("printing user 2 files:")
-        ui.generate_token(username=username2, password=password2)
-        ui.tree_print()
-        print(" ")
-        print("printing user 3 files:")
-        ui.generate_token(username=username3, password=password3)
-        ui.tree_print()
-        print(" ")
-
-    def test_9(self): # testing of the tree printing function
-        print("test 9")
-        ui = API_interface(path)
-        username = "wombat"
-        password = "marsupial"
-        ui.generate_token(username, password) # log in
-        ui.tree_print() # print the data
-
-
+        ui.generate_token(username=username2, password=password2) # authenticates as user 2
+        print("User 2 print")
+        ui.tree_print() # user 2 print

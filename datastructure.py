@@ -51,6 +51,9 @@ class Experiment(BaseModel):
     """List of dataset objects."""
     meta: Union[List[str], None] = None  # implemented union as optional variable
     """User generated metadata."""
+    author: List[dict]
+    """Experiment author"""
+
     def convertJSON(self):  # returns a nested python dictionary
         """Returns a nested Python dictionary by recursively calling the dataset function."""
         temp_dict = {}

@@ -182,7 +182,7 @@ async def return_project_data(project_id: str) -> str:
     else:
         json_dict = {
             "name": result.get("name"),
-            "metadata": result.get("meta"),
+            "meta": result.get("meta"),
             "author": result.get("author"),
             "creator": result.get("creator")
         }

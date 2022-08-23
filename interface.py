@@ -33,7 +33,7 @@ class API_interface:
         if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name, dataset_id=dataset_in.name):
             raise RuntimeError('Dataset Already exists') # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
-        dataset_in.author = [d.Author(name=self.username,permission="write").dict()]
+        dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
         requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
         return True
 
@@ -73,6 +73,8 @@ class API_interface:
         datasets = []
         exp_name = "default"
         exp_meta = ["default"]
+        exp_author = [{"name" : "default" , "permission" : "none"}]
+
         for name in names_list:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
@@ -81,10 +83,11 @@ class API_interface:
                     # update experiment parameters
                     exp_name = temp.name
                     exp_meta = temp.meta
+                    exp_author = temp.author
                 else:
                     datasets.append(self.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name))
         # call api for each dataset and return the contents -> then add the contents to an object and return the object
-        return d.Experiment(name=exp_name, children=datasets, meta=exp_meta)
+        return d.Experiment(name=exp_name, children=datasets, meta=exp_meta, author=exp_author)
 
 
     def return_full_project(self, project_name: str):
@@ -177,7 +180,6 @@ class API_interface:
         # API call to create user
         response = requests.post(self.path + "create_user", json=user_out)
         if response.status_code == 200:
-            # the user already exists
             return True
         else:
             return False
@@ -225,6 +227,8 @@ class API_interface:
             raise Exception("The user needs to be authenticated first")
         print("The data tree:")
         proj_names = self.get_project_names()
+        if proj_names == None:
+            raise Exception("The user has no projects.")
         for name in proj_names:
             print(name)
             exp_names = self.get_experiment_names(name)
