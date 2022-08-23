@@ -1,5 +1,5 @@
 # resdata
-Python api managing data storage using mongoDb database
+Python interface and api for data management employing a mongoDB database
 
 This is a library with the following features:
 1. Data insertion into database
