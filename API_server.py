@@ -107,6 +107,24 @@ async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_
     # authenticate user using the security module or raise exception
         if user.authenticate_token() is False:
             return json.dumps({"message": False})
+        # authenticate that the user can insert into this experiment
+        # confirm write permission
+        # retrieve the experiment config file
+        config_dataset = experiments.find_one({"data_type" : "configuration"})
+        if config_dataset == None:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+                                detail="The experiment wasn't initiated.")
+        else:
+            # experiment was found
+            author_list = config_dataset.get("author")
+            valid = False
+            for entry in author_list:
+                if entry.get("name") == user.username and entry.get("permission") == "write":
+                    valid = True
+            if valid == False:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="User doesn't have write acess")
+
         experiments.insert_one(dataset_to_insert.convertJSON())  # data insert into database
     return json.dumps(dataset_to_insert.convertJSON())  # return for verification
 

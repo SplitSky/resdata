@@ -144,7 +144,11 @@ class User_Auth(object):
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one({"username": self.username})
-        return result
+        if result != None:
+            return result
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="The user was not found")
 
     def authenticate_token(self) -> bool:
         # self.password contains the token value
