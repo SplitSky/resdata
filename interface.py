@@ -277,11 +277,9 @@ class API_interface:
         names = self.get_experiment_names(project_id=project_id)
         responses = []
         print(" ")
-        print(" ")
         print("running add_author_to_project")
         print("names")
         print(names)
-        print(" ")
         print(" ")
         for name in names:
             responses.append(self.add_author_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name, author_permission=author_permission))

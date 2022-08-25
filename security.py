@@ -27,6 +27,7 @@ class User_Auth(object):
         self.client = db_client_in
 
     def check_password_valid(self) -> bool:
+        """Verifies that the password is valid"""
         # lookup the database for user
         auth = self.client["Authentication"]
         users = auth["Users"]
@@ -41,6 +42,7 @@ class User_Auth(object):
             return pass_in_db == self.return_final_hash(None)
 
     def return_final_hash(self, salt_in: Union[int,None] = None) -> str:
+        """This returns the hash for the algorithm used within the database. Used for verification."""
         if salt_in is not None:
             # user provided salt
             password = str(salt_in) + self.password
@@ -65,6 +67,7 @@ class User_Auth(object):
             return temp.hexdigest(64)  # return a string from bytes
 
     def create_access_token(self, expires_delta: Union[timedelta, None] = None):
+        """Generates a jwt token for authentication between the interface and the API"""
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
@@ -88,6 +91,7 @@ class User_Auth(object):
         return encoded_jwt
 
     def check_username_exists(self) -> bool:
+        """Checks that the user with the given username exists within the database"""
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one({"username": self.username})
@@ -95,6 +99,7 @@ class User_Auth(object):
 
 
     def activate_user(self) -> bool:
+        """Changes the disabled variable within the user to False"""
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": False}})
@@ -104,12 +109,14 @@ class User_Auth(object):
             return True
 
     def deactivate_user(self) -> bool:
+        """Changes the disabled variable within the user to True"""
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one_and_update({"username": self.username}, {'$set': {"disabled": True}})
         return result is not None
 
     def add_user(self, full_name: str, email: str) -> bool:
+        """Adds a user to the database"""
         auth = self.client["Authentication"]
         users = auth["Users"]
         salt_init = random.SystemRandom().getrandbits(256)
@@ -132,6 +139,7 @@ class User_Auth(object):
             return False
 
     def fetch_token(self) -> str:
+        """Fetches the token variable from the database"""
         # fetches the token associated with the user
         auth = self.client["Authentication"]
         users = auth["Users"]
@@ -141,6 +149,7 @@ class User_Auth(object):
         else:
             raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="User doesn't exist")
     def fetch_user(self):
+        """Fetches the full user document from the database"""
         auth = self.client["Authentication"]
         users = auth["Users"]
         result = users.find_one({"username": self.username})
@@ -151,6 +160,7 @@ class User_Auth(object):
                                 detail="The user was not found")
 
     def authenticate_token(self) -> bool:
+        """Authenticates the token within the class to be one matching and valid for the username in self.username"""
         # self.password contains the token value
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -193,6 +203,7 @@ class User_Auth(object):
         raise credentials_exception
 
     def update_disable_status(self):
+        """Book-keeping function which updates the disabled variable within the user document. Used to ensure that the authentication is still valid"""
         # fetch user and compare the expiry date to now.
         now = datetime.utcnow()
         user = self.fetch_user()
@@ -201,3 +212,19 @@ class User_Auth(object):
                 self.deactivate_user()
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User doesn't exist")
+
+   # def check_user_permission(self, username, permission_requested, project_id, experiment_id):
+   #     """Checks whether a user has the requested permission or higher"""
+   #     collection_variable = self.client[project_id][experiment_id]
+   #     result = collection_variable.find_one({"name" : experiment_id})
+   #     if result == None:
+   #         raise HTTPException(status_code=status.HTTP_400_NO_CONTENT,
+   #                             detail="The dataset wasn't found")
+   #     author_list = result.get("author")
+   #     for entry in author_list:
+   #         if entry.get("name") == username:
+   #             # username found
+   #             if entry.get("permission") == permission_requested or entry.get("permission") == "admin":
+   #                 return True
+   #     return False
+                     
