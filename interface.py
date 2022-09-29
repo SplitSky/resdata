@@ -288,4 +288,11 @@ class API_interface:
             return False
         else:
             return True
+    
+    def purge(self):
+        '''Recursively delete every document in the database'''
+        # list all names of projects
 
+    def initialise_database(self):
+        # development function. Adds user with admin priviledges
+        self.create_user(username_in="admin", password_in="admin_password",email="thing@email.com", full_name="admin")

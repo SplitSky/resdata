@@ -1,4 +1,5 @@
 # this file contains the class which describes the datastructure
+from ctypes import string_at
 from typing import Union, List
 from pydantic import BaseModel
 
@@ -174,3 +175,18 @@ class Author(BaseModel):
         # temp = json.loads(json_in)
         self.name = dict_in.get("name")
         self.permission = dict_in.get("permission")
+
+class Meta_data(BaseModel):
+    """Metadata object. Used for ease of conversion between object and dicitonary"""
+    date_created: str
+    """date that the dataset was initialised. Assigned at insertion"""
+    technical_meta: list[str]
+    """Technical details"""
+    data_headings : list[str]
+    """The headings of the data arrays"""
+    title : str
+    """Title used in plotting this dataset"""
+    resolution : list[int]
+    """Metadata for images. Indicates the resolution in pixels"""
+    dataset_size : list[int]
+    """The number of entries in each data array"""
