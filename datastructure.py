@@ -21,6 +21,11 @@ class Dataset(BaseModel):
     token: Union[str, None] = None
     """Optional variable used during authentication. Generated JWT token which is then used to verify that the user authenticated."""
 
+    # additions not finalised
+    data_headings: List[str]
+    '''Variable containing the headings for the data contained within the data array.'''
+
+
     def convertJSON(self):  # converts it into nested dictionary
         """Function returning a dictionary containing data to be inserted into the database."""
         # this function skips over the username and token variables
@@ -29,7 +34,8 @@ class Dataset(BaseModel):
             "meta": self.meta,
             "data_type": self.data_type,
             "data": self.data,  # this list can be serialised
-            "author": self.author
+            "author": self.author,
+            "data_headings": self.data_headings
         }
         return python_dict
 

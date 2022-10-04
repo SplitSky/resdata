@@ -48,7 +48,7 @@ class API_interface:
         if temp.get("message") == None:
             # the database was found
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
-                         data_type=temp.get("data_type"), author=temp.get("author"))
+                         data_type=temp.get("data_type"), author=temp.get("author"), data_headings=temp.get("data_headings"))
         else:
             return None
 
@@ -161,7 +161,8 @@ class API_interface:
         dataset_in = d.Dataset(name=experiment.name, data=[],
                                meta=experiment.meta,
                                data_type="configuration file",
-                               author=[d.Author(name=self.username, permission="write").dict()])
+                               author=[d.Author(name=self.username, permission="write").dict()],
+                               data_headings=["experiment_metadata"])
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name, dataset_in=dataset_in)
 
@@ -205,7 +206,7 @@ class API_interface:
         self.create_user(username, password, email, full_name)
         self.generate_token(username, password)
         dataset = d.Dataset(name="auth_test", data=[1, 2, 3], meta=["Auth meta"], data_type="testing",
-                            author=[d.Author(name="wombat", permission="write").dict()])
+                            author=[d.Author(name="wombat", permission="write").dict()], data_headings=["test_heading"])
         dataset.set_credentials(username, self.token)
 
         response = requests.post(self.path + "testing_stuff", json=dataset.dict())
@@ -296,3 +297,7 @@ class API_interface:
     def initialise_database(self):
         # development function. Adds user with admin priviledges
         self.create_user(username_in="admin", password_in="admin_password",email="thing@email.com", full_name="admin")
+
+    #def initialise_group(self)
+    # groups initialise by using the authors
+    # update the /names functions to provide access in groups.
