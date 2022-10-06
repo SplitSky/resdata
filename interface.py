@@ -43,7 +43,6 @@ class API_interface:
         response = requests.post(
             url=self.path + project_name + "/" + experiment_name + "/" + dataset_name + "/return_dataset",
             json=user_in.dict())
-        # TODO: Add handling of empty return. -> remember that it will never be empty -> probably just remove the comment
         temp = json.loads(response.json())
         if temp.get("message") == None:
             # the database was found
@@ -301,3 +300,4 @@ class API_interface:
     #def initialise_group(self)
     # groups initialise by using the authors
     # update the /names functions to provide access in groups.
+

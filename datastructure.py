@@ -3,13 +3,14 @@ from ctypes import string_at
 from typing import Union, List
 from pydantic import BaseModel
 
+
 class Dataset(BaseModel):
     """The lowest node of the tree data structure. This object contains the actual data being stored."""
     name: str
     """The unique name of the dataset. This is used by most of the code to find and retrieve the dataset."""
     data: List  # list of numbers or bits
     """List storing any variable type. Used as the unit of storage."""
-    meta: Union[List[str], None] = None
+    meta: Union[dict, None] = None
     """User generated metadata. It's a list of string variables. Datasets are time stamped upon insertion into the dataset."""
     data_type: str
     """Allows for user generated flag which distinguishes types of data included"""
@@ -24,7 +25,6 @@ class Dataset(BaseModel):
     # additions not finalised
     data_headings: List[str]
     '''Variable containing the headings for the data contained within the data array.'''
-
 
     def convertJSON(self):  # converts it into nested dictionary
         """Function returning a dictionary containing data to be inserted into the database."""
@@ -49,14 +49,13 @@ class Dataset(BaseModel):
         self.token = token
 
 
-
 class Experiment(BaseModel):
     """Node containing datasets within the data structure. Equivalent to the collection in the database."""
     name: str
     """The experiment name. Used during query to locate the dataset."""
     children: List[Dataset]
     """List of dataset objects."""
-    meta: Union[List[str], None] = None  # implemented union as optional variable
+    meta: Union[dict, None] = None  # implemented union as optional variable
     """User generated metadata."""
     author: List[dict]
     """Experiment author"""
@@ -87,7 +86,7 @@ class Project(BaseModel):
     """The username of the user that created the project."""
     groups: Union[List[Experiment], None] = None
     """List of experiements belonging to the project."""
-    meta: Union[List[str], None] = None
+    meta: Union[dict, None] = None
     """User generated metadata."""
     author: List[dict]
     """List of authors of the project along with their permissions. Used in authentication and determining the scope of the access."""
@@ -105,7 +104,7 @@ class Project(BaseModel):
             "name": self.name,
             "author": self.author,
             "meta": self.meta,
-            "creator" : self.creator,
+            "creator": self.creator,
             "groups": temp_dict
         }
         return json_dict
@@ -118,12 +117,6 @@ class Project(BaseModel):
         self.groups = dict_in.get("groups")
         self.author = dict_in.get("author")
 
-  #  def __str__(self) -> str:
-  #      if self.groups != None:
-  #          return str([exp.convertJSON() for exp in self.groups])
-  #      else:
-  #          return str([])
-
 
 class Simple_Request_body(BaseModel):
     """Request body used to update the variables within the project config file in the database."""
@@ -133,7 +126,7 @@ class Simple_Request_body(BaseModel):
     "User generated metadata."""
     author: List[dict]
     """Project author list. See project."""
-    creator : str
+    creator: str
     """Username of the user that created the project"""
 
     def convertJSON(self):
@@ -141,7 +134,7 @@ class Simple_Request_body(BaseModel):
         json_dict = {
             "name": self.name,
             "meta": self.meta,
-            "creator" : self.creator,
+            "creator": self.creator,
             "author": self.author
         }
         return json_dict
@@ -168,6 +161,7 @@ class User(BaseModel):
     full_name: Union[str, None] = None
     """Optional full name variable"""
 
+
 class Author(BaseModel):
     """Author request body. Used in determining the scope of the access."""
     # object used for representing the author of a dataset, experiment, project
@@ -182,17 +176,25 @@ class Author(BaseModel):
         self.name = dict_in.get("name")
         self.permission = dict_in.get("permission")
 
-class Meta_data(BaseModel):
-    """Metadata object. Used for ease of conversion between object and dicitonary"""
-    date_created: str
-    """date that the dataset was initialised. Assigned at insertion"""
-    technical_meta: list[str]
-    """Technical details"""
-    data_headings : list[str]
-    """The headings of the data arrays"""
-    title : str
-    """Title used in plotting this dataset"""
-    resolution : list[int]
-    """Metadata for images. Indicates the resolution in pixels"""
-    dataset_size : list[int]
-    """The number of entries in each data array"""
+
+class Ring(BaseModel):
+    ring_id: float
+    ring_dio: float
+    quality: int
+    pitch: float
+    threshold: float
+    pl_spectrum: list
+    pl_spectrum_headings: list[str]
+    trpl_spectrum: list
+    trpl_spectrum_headings: list[str]
+    lasing_spectrum = list
+    lasing_spectrum_headings: list[str]
+
+    def convert_to_document_list(self) -> list[Dataset]:
+        # initialise the dimensions dataset
+
+        # initialise the PL spectrum
+
+        # initialise the TRPL spectrum
+
+        # initialise the lasing spectrum
