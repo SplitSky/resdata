@@ -302,18 +302,6 @@ class API_interface:
         else:
             return True
 
-    def purge(self):
-        '''Recursively delete every document in the database'''
-        # list all names of projects
-
-    def initialise_database(self):
-        # development function. Adds user with admin priviledges
-        self.create_user(username_in="admin", password_in="admin_password", email="thing@email.com", full_name="admin")
-
-    # def initialise_group(self)
-    # groups initialise by using the authors
-    # update the /names functions to provide access in groups.
-
     def purge_everything(self):
         response = requests.post(self.path +"purge")
         print("purged")

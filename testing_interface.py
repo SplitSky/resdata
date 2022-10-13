@@ -138,18 +138,64 @@ class TestClass:
         print("User 2 print")
         ui.tree_print() # user 2 print
     
-    # def test_8(self):
-     #   ui = API_interface(path)
-     #   ui.check_connection()
+    def test_7(self):
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything()
+        
+        # convert ring
+        # 7. return a project to compare with the file
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+
+        file_name = "test_project.json"
+        project_name = "test_project_1"
 
         # create user
+        ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
+        ui.generate_token(username, password)
+        # create project
+        t.generate_optics_project(file_name, [1,1], project_name=project_name, experiment_name="test_experiment", author_name=username)
+        project_from_file = t.load_file_project(filename_out=file_name)
+        ui.insert_project(project_from_file)
 
-        # create ring
+        # return project
+        project_from_db = ui.return_full_project(project_name=project_name)
+        # load in the file
+        project_from_file = t.load_file_project(filename_out=file_name)
 
-        # convert ring
+        # compare assertions
+        assert project_from_db.name == project_from_file.name
+        assert project_from_db.meta == project_from_file.meta
+        assert project_from_db.creator == project_from_file.creator
+        assert project_from_db.author == project_from_file.author
 
-        # 
-#def main():
-#    test_class = TestClass()
-#    test_class.test_3()
-#main()
+        # compare experiments
+        if project_from_file.groups == None or project_from_db.groups == None:
+            raise Exception("")
+        for i in range(0, len(project_from_file.groups)):
+            file_experiment = project_from_file.groups[i]
+            db_experiment = project_from_db.groups[i]
+            
+            # compare the experiment variables
+            assert file_experiment.name == db_experiment.name
+            assert file_experiment.author == db_experiment.author
+            assert file_experiment.meta == db_experiment.meta
+            for j in range(0, len(file_experiment.children)): # iterate over datasets
+                file_dataset = file_experiment.children[j]
+                db_dataset = db_experiment.children[j]
+                assert file_dataset.name == db_dataset.name
+                assert file_dataset.data == db_dataset.data
+                assert file_dataset.data_type == db_dataset.data_type
+                assert file_dataset.author == db_dataset.author
+                assert file_dataset.data_headings == db_dataset.data_headings
+
+        
+
+
+         
+def main():
+    test_class = TestClass()
+    test_class.test_7()
+main()

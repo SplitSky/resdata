@@ -124,7 +124,7 @@ def create_ring_object(ring_id, author_in):
     return d.Ring(ring_id=ring_id, ring_dio=ring_dio, quality=quality, pitch=pitch, threshold=threshold,
                   pl_spectrum=pl_spectrum, pl_spectrum_headings=pl_spectrum_headings, trpl_spectrum=trpl_spectrum,
                   trpl_spectrum_headings=trpl_spectrum_headings, lasing_spectrum=lasing_spectrum,
-                  lasing_spectrum_headings=lasing_spectrum_headings, author=author_in, datasets=[])
+                  lasing_spectrum_headings=lasing_spectrum_headings, author=[author_in], datasets=[])
 
 
 def generate_optics_project(filename_in, structure, project_name, experiment_name, author_name):
@@ -139,7 +139,7 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
     datasets = []
     for i in range(0, structure[0], 1):
         # generate rings
-        ring_temp = create_ring_object(i, template_author)
+        ring_temp = create_ring_object(i, template_author.dict())
         temp = ring_temp.convert_to_document_list()
         for entry in temp:
             datasets.append(entry)
@@ -149,11 +149,9 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
         # generate experiements
         experiments.append(
             d.Experiment(name=experiment_name + " " + str(j), children=datasets, meta={"date": date.today()},
-                         author=[template_author]))
-
-    project = d.Project(name=project_name, creator=template_author, groups=experiments,
-                        meta={"date": date.today(), "note": "Test project"}, author=[template_author])
-
+                         author=[template_author.dict()]))
+    project = d.Project(name=project_name, creator=template_author.name, groups=experiments,meta={"date": date.today(),
+                            "note": "Test project"}, author=[template_author.dict()])
 
     with open(filename_in, 'w') as file:
         json.dump(project.dict(), file)
