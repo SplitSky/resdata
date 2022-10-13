@@ -134,4 +134,11 @@ class TestClass:
         print("User 2 print")
         ui.tree_print() # user 2 print
 
+    def test_7(self):
+        ui = API_interface(path)
+        ui.check_connection()
+
+def main():
+    thing = TestClass()
+    thing.test_7()
 

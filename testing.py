@@ -103,56 +103,57 @@ def load_file_dataset(filename_out):
     return dataset
 
 
-def generate_optics_project(filename_in, structure, project_name, author_name):
+def create_ring_object(ring_id, author_in):
+    x, y, y2 = [], [], []
+    for i in range(0, 500):
+        x.append(i)
+        y.append(random.randint(0, 100))
+        y2.append(random.randint(0, 2))
+    test_data_3D = [x, y, y2]
+
+    ring_dio = random.random()
+    quality = random.randint(0, 10)
+    pitch = random.random()
+    threshold = random.random()
+    pl_spectrum = test_data_3D
+    pl_spectrum_headings = ["Frequency", "intensity", "Intensity error"]
+    trpl_spectrum = test_data_3D
+    trpl_spectrum_headings = ["Frequency", "intensity", "Intensity error"]
+    lasing_spectrum = test_data_3D
+    lasing_spectrum_headings = ["Frequency", "intensity", "Intensity error"]
+    return d.Ring(ring_id=ring_id, ring_dio=ring_dio, quality=quality, pitch=pitch, threshold=threshold,
+                  pl_spectrum=pl_spectrum, pl_spectrum_headings=pl_spectrum_headings, trpl_spectrum=trpl_spectrum,
+                  trpl_spectrum_headings=trpl_spectrum_headings, lasing_spectrum=lasing_spectrum,
+                  lasing_spectrum_headings=lasing_spectrum_headings, author=author_in)
+
+
+def generate_optics_project(filename_in, structure, project_name, experiment_name, author_name):
     '''
     Returns a ring object
-
     filename_in     string      the name of the json file
     structure       list        a list containing the number of the experiments and datasets [0,0]
     '''
-    # structure = [1,1]
-    # structure / no. of experiments / no. of rings
-    x = []
-    y = []
-    y2 = []
-    for i in range(0, 500):
-        x.append(i)
-        y.append(random.randint(0, 10))
-        y2.append(random.randint(0, 10))
-    test_data_3D = [x, y, y2]
-    experiments = []
-    datasets = []
+
     template_author = d.Author(name=author_name, permission="write")
     # generate rings
-
-    for j in range(0, structure[1], 1):
-        # create dimensions
-        dataset = d.Dataset(name="ring_" + str(j),
-                            data=[1, 2, 3, 4],
-                            data_type="dimensions",
-                            meta={"date": str(date.today()), "note": "Very big laser no.3", "ring location": "1,2",
-                                  "ring_id": j, "ring_unique_id": 0},
-                            author=[template_author.dict()],
-                            data_headings=["ring diameter", "quality", "pitch", "threshold"])
-        datasets.append(dataset)
-        # create 3 spectra for each ring
-        for k in range(0, 3, 1):
-            dataset = d.Dataset(name="ring_" + str(j),
-                                data=test_data_3D,
-                                data_type="PL_spectrum",
-                                meta={"date": str(date.today()), "note": "Very big laser no.3",
-                                      "spectrum badness coefficient": 2},
-                                author=[template_author.dict()],
-                                data_headings=["Frequency/ nm", "Intensity/ Jcm^-2", "Intensity error/ Jcm^-2"])
-
+    datasets = []
     for i in range(0, structure[0], 1):
-        experiment = d.Experiment(name="experiment_" + str(i), children=datasets,
-                                  meta={"date": str(date.today()), "note": "Experiment for ring" + str(i)},
-                                  author=[template_author.dict()])
-        experiments.append(experiment)
-        project = d.Project(name=project_name, creator=author_name, groups=experiments,
-                            meta={"date": str(date.today())},
-                            author=[template_author.dict()])
+        # generate rings
+        ring_temp = create_ring_object(i, template_author)
+        temp = ring_temp.convert_to_document_list()
+        for entry in temp:
+            datasets.append(entry)
+
+    experiments = []
+    for j in range(0, structure[1], 1):
+        # generate experiements
+        experiments.append(
+            d.Experiment(name=experiment_name + " " + str(j), children=datasets, meta={"date": date.today()},
+                         author=[template_author]))
+
+    project = d.Project(name=project_name, creator=template_author, groups=experiments,
+                        meta={"date": date.today(), "note": "Test project"}, author=[template_author])
+
 
     with open(filename_in, 'w') as file:
         json.dump(project.dict(), file)

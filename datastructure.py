@@ -2,6 +2,8 @@
 from ctypes import string_at
 from typing import Union, List
 from pydantic import BaseModel
+import random
+from datetime import date
 
 
 class Dataset(BaseModel):
@@ -180,21 +182,50 @@ class Author(BaseModel):
 class Ring(BaseModel):
     ring_id: float
     ring_dio: float
-    quality: int
-    pitch: float
-    threshold: float
-    pl_spectrum: list
-    pl_spectrum_headings: list[str]
-    trpl_spectrum: list
-    trpl_spectrum_headings: list[str]
-    lasing_spectrum = list
-    lasing_spectrum_headings: list[str]
+    quality: Union[int, None]
+    pitch: Union[float, None]
+    threshold: Union[float, None]
+    pl_spectrum: Union[list, None]
+    pl_spectrum_headings: Union[list[str], None]
+    trpl_spectrum: Union[list, None]
+    trpl_spectrum_headings: Union[list[str], None]
+    lasing_spectrum: Union[list, None]
+    lasing_spectrum_headings: Union[list[str], None]
+    author: list[dict]
+    datasets: Union[list, None]
 
-    def convert_to_document_list(self) -> list[Dataset]:
+    def convert_to_document_list(self):
+        self.datasets = [] # clear dataset
         # initialise the dimensions dataset
-
+        dataset = Dataset(name=self.ring_id,
+                          data=[self.ring_dio, self.quality, self.pitch, self.threshold],
+                          data_type="dimensions",
+                          meta={"ring_id": self.ring_id},
+                          author=[self.author],
+                          data_headings=["ring diameter", "quality", "pitch", "threshold"])
+        self.datasets.append(dataset)
         # initialise the PL spectrum
-
+        dataset = Dataset(name="PL spectrum - " + str(self.ring_id),
+                          data=self.pl_spectrum,
+                          data_type="PL spectrum",
+                          meta={"ring_id": self.ring_id},
+                          author=[self.author],
+                          data_headings=self.pl_spectrum_headings)
+        self.datasets.append(dataset)
         # initialise the TRPL spectrum
-
+        dataset = Dataset(name="TRPL spectrum - " + str(self.ring_id),
+                          data=self.trpl_spectrum,
+                          data_type="TRPL spectrum",
+                          meta={"ring_id": self.ring_id},
+                          author=[self.author],
+                          data_headings=self.trpl_spectrum_headings)
+        self.datasets.append(dataset)
         # initialise the lasing spectrum
+        dataset = Dataset(name="lasing spectrum - " + str(self.ring_id),
+                          data=self.lasing_spectrum,
+                          data_type="lasing spectrum",
+                          meta={"ring_id": self.ring_id},
+                          author=[self.author],
+                          data_headings=["frequency/ Hz", "intensity/ Jcm^-2", "intensity error/ Jcm^-2"])
+        self.datasets.append(dataset)
+        return self.datasets

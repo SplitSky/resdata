@@ -20,6 +20,7 @@ from variables import secret_key, algorithm, access_token_expire, cluster_id
 
 """Connect to the backend variables"""
 string = f"mongodb+srv://{var.username}:{var.password}@cluster0.{cluster_id}.mongodb.net/?retryWrites=true&w=majority"
+# string = mongodb+srv://<username>:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority
 client = MongoClient(string)
 """Initialises the API"""
 app = FastAPI()
