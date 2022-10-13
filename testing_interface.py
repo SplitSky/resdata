@@ -27,7 +27,7 @@ class TestClass:
         ui.purge_everything()
 
         assert ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name) == True
-        # user created successfully      
+        # user created successfully
 
     def test_2(self):
         # 2. inserting a project using that user
@@ -41,12 +41,12 @@ class TestClass:
         project_name = "test_project_1"
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_in = t.load_file_project(filename_out=file_name)
-        assert ui.insert_project(project=project_in) == True
+        print(project_in.json())
 
+        assert ui.insert_project(project=project_in) == True
 
     def test_3(self):
         # 3. return a project to compare with the file
-        # TODO: Finish making test cells from here 
         username = "test_user"
         password = "some_password123"
         ui = API_interface(path)
@@ -83,6 +83,7 @@ class TestClass:
                 assert file_dataset.data == db_dataset.data
                 assert file_dataset.data_type == db_dataset.data_type
                 assert file_dataset.author == db_dataset.author
+                assert file_dataset.data_headings == db_dataset.data_headings
 
     def test_4(self):
         # authentication of user and returns a token
@@ -136,7 +137,6 @@ class TestClass:
         ui.generate_token(username=username2, password=password2) # authenticates as user 2
         print("User 2 print")
         ui.tree_print() # user 2 print
-        ui.purge_everything()
     
     # def test_8(self):
      #   ui = API_interface(path)
@@ -149,7 +149,7 @@ class TestClass:
         # convert ring
 
         # 
-def main():
-    test_class = TestClass()
-    test_class.test_1()
-main()
+#def main():
+#    test_class = TestClass()
+#    test_class.test_3()
+#main()

@@ -49,6 +49,8 @@ class API_interface:
         temp = json.loads(response.json())
         if temp.get("message") == None:
             # the database was found
+            print("Printing json")
+            print(temp)
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                              data_type=temp.get("data_type"), author=temp.get("author"),
                              data_headings=temp.get("data_headings"))

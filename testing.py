@@ -81,7 +81,7 @@ def load_file_project(filename_out):  # returns a project object from file
                 datasets_temp.append(
                     d.Dataset(name=dataset.get("name"), data=dataset.get("data"), data_type=dataset.get("data_type"),
                               meta=dataset.get("meta"), author=dataset.get("author"),
-                              data_headings=dataset.get("data_heading")))
+                              data_headings=dataset.get("data_headings")))
             groups_temp.append(
                 d.Experiment(name=experiment.get("name"), children=datasets_temp, meta=experiment.get("meta"),
                              author=experiment.get("author")))

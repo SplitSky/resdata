@@ -93,7 +93,8 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) ->
             "data" : result.get("data"),
             "meta" : result.get("meta"),
             "data_type" : result.get("data_type"),
-            "author" : result.get("author")
+            "author" : result.get("author"),
+            "data_headings" : result.get("data_headings")
         }
         temp = json.dumps(dict_struct)
         return temp
@@ -325,16 +326,11 @@ async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_i
 @app.post("/purge")
 async def purge_function():
     # testing function to be removed after
-    """clears the collection """
+    """Clears the database. Requires admin priviledge for user. Testing function. Remove for deployment """
     # return the names of all collections
     names = client.list_database_names()
-    print("Printing the names: ")
-    print(names)
-    # 'Authentication', 'S_Church', 'admin', 'local'
     # remove the not data databases
-    #names.remove('Authentication')
     names.remove('admin')
     names.remove('local') 
     for db_name in names:
         client.drop_database(db_name) # purge all documents in collection
-        #client.drop_collection(collection_name)
