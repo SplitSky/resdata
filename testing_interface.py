@@ -23,6 +23,9 @@ class TestClass:
         email= "test_user@email.com"
         full_name = "test user"
         ui = API_interface(path)
+        # purge everything
+        ui.purge_everything()
+
         assert ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name) == True
         # user created successfully      
 
@@ -133,12 +136,20 @@ class TestClass:
         ui.generate_token(username=username2, password=password2) # authenticates as user 2
         print("User 2 print")
         ui.tree_print() # user 2 print
+        ui.purge_everything()
+    
+    # def test_8(self):
+     #   ui = API_interface(path)
+     #   ui.check_connection()
 
-    def test_7(self):
-        ui = API_interface(path)
-        ui.check_connection()
+        # create user
 
+        # create ring
+
+        # convert ring
+
+        # 
 def main():
-    thing = TestClass()
-    thing.test_7()
-
+    test_class = TestClass()
+    test_class.test_1()
+main()

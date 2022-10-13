@@ -32,18 +32,18 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     meta_temp = [str(date.today())]
     for j in range(0, structure[1], 1):
         dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset",
-                            meta=[{"note": "dataset metadata"}, {"date": meta_temp[0]}],
-                            author=[template_author.dict()], data_headings=["testing_heading"])
+                            meta={"note": "dataset metadata", "date": meta_temp[0]},
+                            author=[template_author.dict()], data_headings=["x", "y", "z"])
         datasets.append(dataset)
 
     for i in range(0, structure[0], 1):
         experiment = d.Experiment(name="experiment_" + str(i), children=datasets,
-                                  meta=[{"note": "experiment metadata"}, {"date": meta_temp[0]}],
+                                  meta={"note": "experiment metadata","date": meta_temp[0]},
                                   author=[template_author.dict()])
         experiments.append(experiment)
 
     project = d.Project(name=project_name, creator=author_name, groups=experiments,
-                        meta=[{"note": "project metadata"}, {"date": meta_temp[0]}], author=[template_author.dict()])
+                        meta={"note": "project metadata", "date": meta_temp[0]}, author=[template_author.dict()])
     with open(filename_in, 'w') as file:
         json.dump(project.dict(), file)
         file.close()
@@ -51,7 +51,7 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
 
 
 def create_test_file_dataset(filename_in, dataset_name):
-    meta_temp = [str(date.today())]
+    meta_temp = {"date" : str(date.today())}
     x = []
     y = []
     y2 = []
@@ -61,7 +61,7 @@ def create_test_file_dataset(filename_in, dataset_name):
         y2.append(random.randint(0, 100))
     test_data_3D = [x, y, y2]
     template_author = d.Author(name="wombat", permission="write")
-    dataset = d.Dataset(name="dataset_name", data=test_data_3D, data_type="3D dataset", meta=meta_temp,
+    dataset = d.Dataset(name=dataset_name, data=test_data_3D, data_type="3D dataset", meta=meta_temp,
                         author=[template_author.dict()], data_headings=["testing_heading"])
     with open(filename_in, 'w') as file:
         json.dump(dataset.convertJSON(), file)
@@ -124,7 +124,7 @@ def create_ring_object(ring_id, author_in):
     return d.Ring(ring_id=ring_id, ring_dio=ring_dio, quality=quality, pitch=pitch, threshold=threshold,
                   pl_spectrum=pl_spectrum, pl_spectrum_headings=pl_spectrum_headings, trpl_spectrum=trpl_spectrum,
                   trpl_spectrum_headings=trpl_spectrum_headings, lasing_spectrum=lasing_spectrum,
-                  lasing_spectrum_headings=lasing_spectrum_headings, author=author_in)
+                  lasing_spectrum_headings=lasing_spectrum_headings, author=author_in, datasets=[])
 
 
 def generate_optics_project(filename_in, structure, project_name, experiment_name, author_name):

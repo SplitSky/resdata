@@ -75,7 +75,7 @@ class API_interface:
         names_list = self.get_dataset_names(project_id=project_name, experiment_id=experiment_name)
         datasets = []
         exp_name = "default"
-        exp_meta = ["default"]
+        exp_meta = {"note":"default"}
         exp_author = [{"name": "default", "permission": "none"}]
 
         for name in names_list:
@@ -208,7 +208,7 @@ class API_interface:
         full_name = "Shmek Johnson"
         self.create_user(username, password, email, full_name)
         self.generate_token(username, password)
-        dataset = d.Dataset(name="auth_test", data=[1, 2, 3], meta=["Auth meta"], data_type="testing",
+        dataset = d.Dataset(name="auth_test", data=[1, 2, 3], meta={"note" : "Auth meta"}, data_type="testing",
                             author=[d.Author(name="wombat", permission="write").dict()], data_headings=["test_heading"])
         dataset.set_credentials(username, self.token)
         response = requests.post(self.path + "testing_stuff", json=dataset.dict())
@@ -311,3 +311,7 @@ class API_interface:
     # def initialise_group(self)
     # groups initialise by using the authors
     # update the /names functions to provide access in groups.
+
+    def purge_everything(self):
+        response = requests.post(self.path +"purge")
+        print("purged")

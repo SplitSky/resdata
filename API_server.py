@@ -321,3 +321,20 @@ async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_i
 #        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
 #                            detail= "The dataset doesn't exist")
 #    author_list = result.get("author")
+
+@app.post("/purge")
+async def purge_function():
+    # testing function to be removed after
+    """clears the collection """
+    # return the names of all collections
+    names = client.list_database_names()
+    print("Printing the names: ")
+    print(names)
+    # 'Authentication', 'S_Church', 'admin', 'local'
+    # remove the not data databases
+    #names.remove('Authentication')
+    names.remove('admin')
+    names.remove('local') 
+    for db_name in names:
+        client.drop_database(db_name) # purge all documents in collection
+        #client.drop_collection(collection_name)

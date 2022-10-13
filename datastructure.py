@@ -124,7 +124,7 @@ class Simple_Request_body(BaseModel):
     """Request body used to update the variables within the project config file in the database."""
     name: str
     """Name of the project"""
-    meta: Union[List[str], None] = None
+    meta: Union[dict, None] = None
     "User generated metadata."""
     author: List[dict]
     """Project author list. See project."""
