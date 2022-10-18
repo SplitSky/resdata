@@ -305,3 +305,21 @@ class API_interface:
     def purge_everything(self):
         response = requests.post(self.path +"purge")
         print("purged")
+
+    def experiment_serach_meta(self, meta_search : dict, experiment_id : str, project_id : str):
+        """Fetches the datasets matching the meta variables"""
+        # API call - experiment level - returning the names of datasets that match
+        author_temp = d.Author(name=self.username ,permission="write")
+        dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
+        dataset.set_credentials(self.username, self.token)
+        response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
+        names = json.loads(response.json()).get('names')
+         
+        datasets = []
+        for name in names:
+            # repeat over each name
+            datasets.append(self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))
+        return datasets
+
+
+

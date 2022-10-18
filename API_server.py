@@ -304,24 +304,27 @@ async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_i
     client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
     return status.HTTP_200_OK
 
-#@app.post("/{project_id}/add_author")
-#async def add_author_to_project(project_id, author : d.Author):
-#    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
-#    user_temp.update_disable_status()
-#    user_doc = user_temp.fetch_user()
-#    credentials_exception = HTTPException(
-#            status_code= status.HTTP_401_UNAUTHORIZED,
-#            detail= "The user has not authenticated"
-#    )
-#
-#    if user_doc.get("disabled") == True:
-#        raise credentials_exception
-#    # fetch the author list
-#    result = client[project_id]['config'].find_one({"name" : project_id})
-#    if result == None:
-#        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
-#                            detail= "The dataset doesn't exist")
-#    author_list = result.get("author")
+
+@app.get("/{project_id}/{experiment_id}/meta_search")
+async def meta_search(project_id : str, experiment_id : str, search_variables : d.Dataset):
+    """Querying experiment and returning the names of the datasets that fit the meta data variables"""
+    experiments = client[project_id][experiment_id]
+    dataset_credentials = search_variables.return_credentials()
+    if dataset_credentials[0] != None and dataset_credentials[1] != None:
+        user = User_Auth(username_in=dataset_credentials[0], password_in=dataset_credentials[1], db_client_in=client)
+    # authenticate user using the security module or raise exception
+        if user.authenticate_token() is False:
+            return json.dumps({"message": False})
+        # authenticated
+        names = []
+        check_variables = search_variables.data # list of strings
+        for dataset in client[project_id][experiment_id].find():
+            # check condition
+            for entry in dataset['meta']:
+                if entry['name'] == author.name:
+                    names.append(dataset['name']) # returns all datasets including the config
+        
+    return {"names" : names}
 
 @app.post("/purge")
 async def purge_function():
