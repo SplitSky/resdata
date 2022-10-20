@@ -103,7 +103,7 @@ def load_file_dataset(filename_out):
     return dataset
 
 
-def create_ring_object(ring_id, author_in):
+def create_ring_object(ring_id : int, author_in : d.Author):
     x, y, y2 = [], [], []
     for i in range(0, 500):
         x.append(i)
@@ -115,16 +115,13 @@ def create_ring_object(ring_id, author_in):
     quality = random.randint(0, 10)
     pitch = random.random()
     threshold = random.random()
-    pl_spectrum = test_data_3D
-    pl_spectrum_headings = ["Frequency", "intensity", "Intensity error"]
-    trpl_spectrum = test_data_3D
-    trpl_spectrum_headings = ["Frequency", "intensity", "Intensity error"]
-    lasing_spectrum = test_data_3D
-    lasing_spectrum_headings = ["Frequency", "intensity", "Intensity error"]
-    return d.Ring(ring_id=ring_id, ring_dio=ring_dio, quality=quality, pitch=pitch, threshold=threshold,
-                  pl_spectrum=pl_spectrum, pl_spectrum_headings=pl_spectrum_headings, trpl_spectrum=trpl_spectrum,
-                  trpl_spectrum_headings=trpl_spectrum_headings, lasing_spectrum=lasing_spectrum,
-                  lasing_spectrum_headings=lasing_spectrum_headings, author=[author_in], datasets=[])
+    spectrum_headings = [["Frequency", "intensity", "Intensity error"],["Frequency", "intensity", "Intensity error"],["Frequency", "intensity", "Intensity error"]]
+    return d.Ring(ring_id=ring_id, ring_dio=ring_dio, quality=quality, pitch=pitch,
+                  threshold=threshold,spectrum_dataset=[test_data_3D, test_data_3D, test_data_3D],
+                  spectrum_data_types=["PL spectrum", "TRPL spectrum", "Lasing spectrum"] ,
+                  spectrum_headings= spectrum_headings,
+                  spectrum_names= ["PL spectrum","TRPL spectrum", "Lasing spectrum"],
+                  author=[author_in.dict()], datasets=[])
 
 
 def generate_optics_project(filename_in, structure, project_name, experiment_name, author_name):
@@ -133,14 +130,15 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
     filename_in     string      the name of the json file
     structure       list        a list containing the number of the experiments and datasets [0,0]
     '''
-
     template_author = d.Author(name=author_name, permission="write")
     # generate rings
     datasets = []
     for i in range(0, structure[0], 1):
         # generate rings
-        ring_temp = create_ring_object(i, template_author.dict())
+        ring_temp = create_ring_object(i, template_author)
         temp = ring_temp.convert_to_document_list()
+        print("temp")
+        print(temp)
         for entry in temp:
             datasets.append(entry)
 
@@ -148,11 +146,12 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
     for j in range(0, structure[1], 1):
         # generate experiements
         experiments.append(
-            d.Experiment(name=experiment_name + " " + str(j), children=datasets, meta={"date": date.today()},
+            d.Experiment(name=experiment_name + " " + str(j), children=datasets, meta={"date": str(date.today())},
                          author=[template_author.dict()]))
-    project = d.Project(name=project_name, creator=template_author.name, groups=experiments,meta={"date": date.today(),
-                            "note": "Test project"}, author=[template_author.dict()])
+    project = d.Project(name=project_name, creator=template_author.name, groups=experiments,
+                        meta={"date": str(date.today()),"note": "Test project"}, author=[template_author.dict()])
 
     with open(filename_in, 'w') as file:
-        json.dump(project.dict(), file)
+        json.dump(project.convertJSON(), file)
         file.close()
+

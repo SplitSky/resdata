@@ -185,47 +185,31 @@ class Ring(BaseModel):
     quality: Union[int, None]
     pitch: Union[float, None]
     threshold: Union[float, None]
-    pl_spectrum: Union[list, None]
-    pl_spectrum_headings: Union[list[str], None]
-    trpl_spectrum: Union[list, None]
-    trpl_spectrum_headings: Union[list[str], None]
-    lasing_spectrum: Union[list, None]
-    lasing_spectrum_headings: Union[list[str], None]
+    spectrum_dataset: list[list]
+    spectrum_headings: list[list[str]]
+    spectrum_names: list[str]
+    spectrum_data_types: list[str]
+
     author: list[dict]
     datasets: Union[list, None]
 
     def convert_to_document_list(self):
         self.datasets = [] # clear dataset
         # initialise the dimensions dataset
-        dataset = Dataset(name=self.ring_id,
+        dataset = Dataset(name="ring_no. " + str(self.ring_id),
                           data=[self.ring_dio, self.quality, self.pitch, self.threshold],
                           data_type="dimensions",
                           meta={"ring_id": self.ring_id},
-                          author=[self.author],
+                          author=self.author,
                           data_headings=["ring diameter", "quality", "pitch", "threshold"])
         self.datasets.append(dataset)
-        # initialise the PL spectrum
-        dataset = Dataset(name="PL spectrum - " + str(self.ring_id),
-                          data=self.pl_spectrum,
-                          data_type="PL spectrum",
-                          meta={"ring_id": self.ring_id},
-                          author=[self.author],
-                          data_headings=self.pl_spectrum_headings)
-        self.datasets.append(dataset)
-        # initialise the TRPL spectrum
-        dataset = Dataset(name="TRPL spectrum - " + str(self.ring_id),
-                          data=self.trpl_spectrum,
-                          data_type="TRPL spectrum",
-                          meta={"ring_id": self.ring_id},
-                          author=[self.author],
-                          data_headings=self.trpl_spectrum_headings)
-        self.datasets.append(dataset)
-        # initialise the lasing spectrum
-        dataset = Dataset(name="lasing spectrum - " + str(self.ring_id),
-                          data=self.lasing_spectrum,
-                          data_type="lasing spectrum",
-                          meta={"ring_id": self.ring_id},
-                          author=[self.author],
-                          data_headings=["frequency/ Hz", "intensity/ Jcm^-2", "intensity error/ Jcm^-2"])
-        self.datasets.append(dataset)
+        # initialise spectrum list
+        for i in range(0,len(self.spectrum_names)):
+            dataset = Dataset(name=self.spectrum_names[i] + " - ring no." + str(self.ring_id),
+                              data=self.spectrum_dataset[i],
+                              data_type=self.spectrum_data_types[i], 
+                              meta={"ring_id": self.ring_id}, 
+                              author=self.author, 
+                              data_headings=self.spectrum_headings[i])
+            self.datasets.append(dataset)
         return self.datasets

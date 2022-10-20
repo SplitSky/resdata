@@ -16,6 +16,10 @@ path = "http://127.0.0.1:8000/"
 # 10. User 2 insert dataset into experiment with read only permissions # TODO: This feature may not work but should be updated later
 
 class TestClass:
+    def test_0(self):
+        # check connection
+        ui = API_interface(path)
+        ui.check_connection()
     def test_1(self):
         # 1. creating a user
         username = "test_user"
@@ -35,14 +39,12 @@ class TestClass:
         password = "some_password123"
         ui = API_interface(path)
         ui.generate_token(username, password)
-        
         # generate test_project
         file_name = "test_project.json"
         project_name = "test_project_1"
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_in = t.load_file_project(filename_out=file_name)
         print(project_in.json())
-
         assert ui.insert_project(project=project_in) == True
 
     def test_3(self):
@@ -53,12 +55,10 @@ class TestClass:
         ui.generate_token(username, password)
         file_name = "test_project.json"
         project_name = "test_project_1"
-
         # return project
         project_from_db = ui.return_full_project(project_name=project_name)
         # load in the file
         project_from_file = t.load_file_project(filename_out=file_name)
-
         # compare assertions
         assert project_from_db.name == project_from_file.name
         assert project_from_db.meta == project_from_file.meta
@@ -89,7 +89,6 @@ class TestClass:
         # authentication of user and returns a token
         username = "test_user2"
         password = "wombat"
-
         ui = API_interface(path)
         ui.create_user(username_in=username, password_in=password, email="test_email", full_name="test_full_name")
         ui.generate_token(username, password)
@@ -102,11 +101,9 @@ class TestClass:
         ui = API_interface(path)
         ui.generate_token(username=username, password=password)
         ui.tree_print()
-
         # user 2 tree print
         username = "test_user2"
         password = "wombat"
-
         ui.generate_token(username=username, password=password)
         ui.tree_print()
 
@@ -142,16 +139,13 @@ class TestClass:
         ui = API_interface(path)
         ui.check_connection()
         ui.purge_everything()
-        
         # convert ring
         # 7. return a project to compare with the file
         username = "test_user"
         password = "some_password123"
         ui = API_interface(path)
-
         file_name = "test_project.json"
         project_name = "test_project_1"
-
         # create user
         ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
         ui.generate_token(username, password)
@@ -159,25 +153,21 @@ class TestClass:
         t.generate_optics_project(file_name, [1,1], project_name=project_name, experiment_name="test_experiment", author_name=username)
         project_from_file = t.load_file_project(filename_out=file_name)
         ui.insert_project(project_from_file)
-
         # return project
         project_from_db = ui.return_full_project(project_name=project_name)
         # load in the file
         project_from_file = t.load_file_project(filename_out=file_name)
-
         # compare assertions
         assert project_from_db.name == project_from_file.name
         assert project_from_db.meta == project_from_file.meta
         assert project_from_db.creator == project_from_file.creator
         assert project_from_db.author == project_from_file.author
-
         # compare experiments
         if project_from_file.groups == None or project_from_db.groups == None:
             raise Exception("")
         for i in range(0, len(project_from_file.groups)):
             file_experiment = project_from_file.groups[i]
             db_experiment = project_from_db.groups[i]
-            
             # compare the experiment variables
             assert file_experiment.name == db_experiment.name
             assert file_experiment.author == db_experiment.author
@@ -190,9 +180,38 @@ class TestClass:
                 assert file_dataset.data_type == db_dataset.data_type
                 assert file_dataset.author == db_dataset.author
                 assert file_dataset.data_headings == db_dataset.data_headings
-
+        
+    def test_8(self):
+        # returning dataset with a meta data variable
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything()
+        # convert ring
+        # 7. return a project to compare with the file
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        # create user
+        ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
+        ui.generate_token(username, password)
+        # create project
+        t.generate_optics_project(file_name, [1,4], project_name=project_name, experiment_name="test_experiment", author_name=username)
+        project_from_file = t.load_file_project(filename_out=file_name)
+        # pull the datasets by ring_id
+        ui.experiment_search_meta(meta_search={"ring_id" : 0} ,experiment_id="test_experiment", project_id=project_name)
         
 
+
+
+
+
+#def test_9(self):
+        # returning multiple datasets with meta variable
+
+   # def test_10(self):
+   #     # returning a ring from 
 
          
 def main():

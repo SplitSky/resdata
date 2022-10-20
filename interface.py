@@ -303,10 +303,10 @@ class API_interface:
             return True
 
     def purge_everything(self):
-        response = requests.post(self.path +"purge")
+        requests.post(self.path +"purge")
         print("purged")
 
-    def experiment_serach_meta(self, meta_search : dict, experiment_id : str, project_id : str):
+    def experiment_search_meta(self, meta_search : dict, experiment_id : str, project_id : str):
         """Fetches the datasets matching the meta variables"""
         # API call - experiment level - returning the names of datasets that match
         author_temp = d.Author(name=self.username ,permission="write")
