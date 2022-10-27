@@ -337,6 +337,139 @@ async def meta_search(project_id : str, experiment_id : str, search_variables : 
                             detail="Lacking authentication variables")
     return json.dumps({"names" : names}) # convert to JSON and return
 
+@app.post("/{project_id}/{experiment_id}/{dataset_id}/{group_name}/add_group_author")
+async def add_group_to_dataset(project_id : str, experiment_id : str, dataset_id : str, group_name : str, author : d.Author):
+    """API call for adding an author to the dataset or updating the permissions"""
+    # autheticate user
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    credentials_exception = HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user has not authenticated"
+    )
+    if user_doc.get("disabled") == True:
+        raise credentials_exception 
+    # fetch the author list
+    result = client[project_id][experiment_id].find_one({"name" : dataset_id})
+    if result == None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
+                            detail= "The dataset doesn't exist")
+    author_list = result.get("author") 
+    #author_list_new = author_list
+    # see if the author already exists. Raise exception if it does
+    for entry in author_list:
+        if author.name == entry.get("name"):
+            if author.permission == entry.get("permission"):
+                group = d.Author(name=group_name, permission=author.permission)
+                author_list.append(group.dict())
+                client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
+                return status.HTTP_200_OK # terminate successfully
+    
+    # author doesn't exist. Raise exception as not allowed to append to group if the user doesn't have access to the dataset
+    return status.HTTP_401_UNAUTHORIZED
+
+# names function for groups
+@app.get("/names_group") # projects
+async def return_all_project_names_group(author : d.Author):
+    """ Function which returns a list of project names that the user has permission to view."""
+    # validate user
+    # check if user was authenticated in and has a valid token
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    
+    if author.group_name == None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="Missing the group name search parameter")
+        
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
+    names = client.list_database_names()
+    names_out = []
+    # 'Authentication', 'S_Church', 'admin', 'local'
+    # remove the not data databases
+    names.remove('Authentication')
+    names.remove('admin')
+    names.remove('local')
+    for name in names:
+        # fetch database config file
+        temp_project = client[name]
+        config = temp_project["config"]
+        result = config.find_one()
+        if result == None:
+            raise HTTPException(
+                status_code=status.HTTP_204_NO_CONTENT,
+                detail="The project wasn't initialised properly")
+        authors = result.get("author")
+        for item in authors:
+            # item is a dictionary
+            if item.get("name") == author.group_name:
+                names_out.append(name)
+    return {"names" : names_out}
+
+
+@app.get("/{project_id}/names_group")
+async def return_all_experiment_names_group(project_id: str, user : d.Author) -> dict[str,List[str]]:
+    """Retrieve all experimental names in a given project that the user has the permission to access"""
+    experiment_names = client[project_id].list_collection_names()
+    user_temp = User_Auth(username_in=user.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    ### permission filtering
+    if user.group_name == None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="Missing the group name search parameter")
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
+    exp_names_out = []
+    if len(experiment_names) != 0:
+        experiment_names.remove('config')
+        # filtering based on permission
+        for name in experiment_names:
+            # get the authors and loop over them
+            experiment = client[project_id][name] # access the experiment config file
+            result = experiment.find_one({"name" : name})
+            if result != None:
+                author_list = result.get("author")
+                for author in author_list:
+                    if author.get("name") == user.group_name:
+                        exp_names_out.append(name)
+    return {"names" : exp_names_out}
+
+
+@app.get("/{project_id}/{experiment_id}/names_group") # datasets
+async def return_all_dataset_names_group(project_id: str, experiment_id: str, author : d.Author):
+    """ Retrieve all dataset names that the user has access to."""
+    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
+    user_temp.update_disable_status()
+    user_doc = user_temp.fetch_user()
+    if author.group_name == None:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="Missing the group name search parameter")   
+
+    if user_doc.get("disabled") == True:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "The user hasn't authenticated"
+        )
+    names = []
+    for dataset in client[project_id][experiment_id].find():
+        # see if user is an author
+        # TODO: verify this works
+        for entry in dataset['author']:
+            if entry['name'] == author.group_name:
+                names.append(dataset['name']) # returns all datasets including the config
+    return {"names" : names}
+##### End group API calls
+
+
+
+
+
 @app.post("/purge")
 async def purge_function():
     # testing function to be removed after

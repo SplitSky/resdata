@@ -142,14 +142,6 @@ class API_interface:
             return False
         else:
             return True
-
-    def get_project_names(self):
-        """ Returns the list of project names - Lists databases except admin, local and Authentication. """
-        user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + "names", json=user_in.dict())
-        project_list = response.json()  # this returns a python dictionary
-        return project_list.get("names")
-
     # initialize project
     def init_project(self, project: d.Project):
         """ Project initialisation function. Assigns the variables to the configuration file in the database. """
@@ -226,6 +218,13 @@ class API_interface:
         response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
         return response.json().get("names")
 
+    def get_project_names(self):
+        """ Returns the list of project names - Lists databases except admin, local and Authentication. """
+        user_in = d.Author(name=self.username, permission="none")
+        response = requests.get(self.path + "names", json=user_in.dict())
+        project_list = response.json()  # this returns a python dictionary
+        return project_list.get("names")
+
     def tree_print(self):
         """Returns the names of all the projects/experiments/datasets the user has access to."""
         if self.username == "":
@@ -287,11 +286,6 @@ class API_interface:
         """Recursively adds author to all experiments and datasets in the project specified. """
         names = self.get_experiment_names(project_id=project_id)
         responses = []
-        print(" ")
-        print("running add_author_to_project")
-        print("names")
-        print(names)
-        print(" ")
         for name in names:
             responses.append(
                 self.add_author_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
@@ -321,5 +315,100 @@ class API_interface:
             datasets.append(self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))
         return datasets
 
+# group management functions to be tested
+
+    # Note: Do not append groups to individual datasets unless you already appended it to the experiment and project. Otherwise it won't be returned
+    def add_group_to_dataset(self, author_permission:str, author_name:str, group_name:str, project_id:str, experiment_id:str, dataset_id:str):
+        """Appends a group to an existing dataset"""
+        # TODO: add authentication of variable types
+        if not (type(author_name) == str and type(author_permission) == str and type(group_name) == str):
+            raise Exception("Author name and permission have to be strings")
+        
+        author_in = d.Author(name=author_name, permission=author_permission)
+        response = requests.post(self.path + project_id + "/"+experiment_id+"/"+dataset_id+"/"+group_name + "/add_group_author",
+                                 json=author_in.dict())
+        if response == status.HTTP_200_OK:
+            return True
+        else:
+
+            return False
+
+    def add_group_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str, group_name: str):
+        """Adds the author to the experiment config file"""
+        return self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=experiment_id,
+                                          author_name=author_name, author_permission=author_permission, group_name=group_name)
+
+    def add_group_to_experiment_rec(self, project_id:str, experiment_id:str, author_name:str, author_permission:str, group_name:str):
+        """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
+        names = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
+        responses = []
+        for name in names:
+            responses.append(
+                self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,
+                                           author_name=author_name, author_permission=author_permission,group_name=group_name))
+        if False in responses:
+            return False
+        else:
+            return True
+
+    def add_group_to_project(self, project_id: str, author_name: str, author_permission: str, group_name: str):
+        """Updates the project config file and adds an author"""
+        return self.add_group_to_dataset(project_id=project_id, experiment_id='config', dataset_id=project_id,
+                                          author_name=author_name, author_permission=author_permission, group_name=group_name)
+
+    def add_group_to_project_rec(self, project_id: str, author_name: str, author_permission: str, group_name:str):
+        """Recursively adds author to all experiments and datasets in the project specified. """
+        names = self.get_experiment_names(project_id=project_id)
+        responses = []
+
+        for name in names:
+            responses.append(
+                self.add_group_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
+                                                  author_permission=author_permission, group_name=group_name))
+            # recursively appends the author to each dataset
+        if False in responses:
+            return False
+        else:
+            return True
+
+# group adding functions to be tested
+
+# group call function
+# employs the /names functions to recall every dataset/experiment/project that is a member of the group
+    def author_query(self, username: str):
+        """Return the names list with the specified author. Authenticates for the current user."""
+        """Group query. Returns a list of projects within the group"""
+        
 
 
+
+        if self.username == "":
+            raise Exception("The user needs to be authenticated first")
+        print("The data tree:")
+        proj_names = self.get_project_names()
+        if proj_names == None:
+            raise Exception("The user has no projects.")
+        for name in proj_names:
+            print(name)
+            exp_names = self.get_experiment_names(name)
+            for name2 in exp_names:
+                print("     ->" + name2)
+                dat_names = self.get_dataset_names(project_id=name, experiment_id=name2)
+                for name3 in dat_names:
+                    if name3 != name2:
+                        print("         -->" + name3)
+
+
+
+
+
+    # returning complex objects
+
+    def fetch_complex_object(self, object_id_name: str, object_id: int, project_id:str, experiment_id:str):
+        #  object_id is the number used to correlate the datasets together into linked objects
+        # based on the ring object in datasets
+        
+        # search the dataset names
+        datasets = self.experiment_search_meta(meta_search={object_id_name : object_id},experiment_id=experiment_id, project_id=project_id)
+
+        # 

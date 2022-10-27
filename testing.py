@@ -137,8 +137,6 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
         # generate rings
         ring_temp = create_ring_object(i, template_author)
         temp = ring_temp.convert_to_document_list()
-        print("temp")
-        print(temp)
         for entry in temp:
             datasets.append(entry)
 

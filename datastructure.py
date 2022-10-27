@@ -172,6 +172,11 @@ class Author(BaseModel):
     permission: str
     """The permissions granted to the user"""
 
+    # optional name used in groups
+    group_name: Union[str, None] = None
+    """The variable used in group assignment and """
+
+
     def load_data(self, dict_in):  # initialises the author object from json
         """Updates the variables based on Python dictionary input."""
         # temp = json.loads(json_in)
