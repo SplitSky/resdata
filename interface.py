@@ -373,42 +373,59 @@ class API_interface:
 
 # group adding functions to be tested
 
+
+# group /names functions
+    def get_experiment_names_group(self, project_id: str, group_name: str):
+        """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
+        user_in = d.Author(name=self.username, permission="none", group_name=group_name)
+        response = requests.get(self.path + project_id + "/names_group", json=user_in.dict())
+        return response.json().get("names")
+
+    def get_dataset_names_group(self, project_id: str, experiment_id: str, group_name: str):
+        """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
+        user_in = d.Author(name=self.username, permission="none", group_name=group_name)
+        response = requests.get(self.path + project_id + "/" + experiment_id + "/names_group", json=user_in.dict())
+        return response.json().get("names")
+
+    def get_project_names_group(self, group_name: str):
+        """ Returns the list of project names belonging to the group with the specified group name - Lists databases except admin, local and Authentication. """
+        user_in = d.Author(name=self.username, permission="none", group_name=group_name)
+        response = requests.get(self.path + "names_group", json=user_in.dict())
+        project_list = response.json()  # this returns a python dictionary
+        return project_list.get("names")
+
+
+
 # group call function
 # employs the /names functions to recall every dataset/experiment/project that is a member of the group
     def author_query(self, username: str):
-        """Return the names list with the specified author. Authenticates for the current user."""
-        """Group query. Returns a list of projects within the group"""
-        
-
-
+        """Return the names list with the specified author. Authenticates for the current user.
+        Group query. Returns a list of projects within the group
+        the return is configured in the following way: 
+        [{project_name : str, exp_list: [{exp_name: str, dataset_list: [] }]}]
+        """
+        names_list = []
+        temp_exp = []
+        temp_data = []
 
         if self.username == "":
             raise Exception("The user needs to be authenticated first")
-        print("The data tree:")
-        proj_names = self.get_project_names()
+        proj_names = self.get_project_names_group(group_name=username)
         if proj_names == None:
             raise Exception("The user has no projects.")
         for name in proj_names:
-            print(name)
-            exp_names = self.get_experiment_names(name)
+            exp_names = self.get_experiment_names_group(name,group_name=username)
             for name2 in exp_names:
-                print("     ->" + name2)
-                dat_names = self.get_dataset_names(project_id=name, experiment_id=name2)
+                temp_exp = []
+                dat_names = self.get_dataset_names_group(project_id=name, experiment_id=name2, group_name=username)
                 for name3 in dat_names:
+                    temp_data = []
                     if name3 != name2:
-                        print("         -->" + name3)
+                        temp_data.append(name3)
+                temp_exp.append({"experiment_id": name2, "dataset_list" : temp_data})            
+            temp_proj = {"project_id": name, "experiment_list":[]}
+            names_list.append(temp_proj)
+        return names_list
 
 
 
-
-
-    # returning complex objects
-
-    def fetch_complex_object(self, object_id_name: str, object_id: int, project_id:str, experiment_id:str):
-        #  object_id is the number used to correlate the datasets together into linked objects
-        # based on the ring object in datasets
-        
-        # search the dataset names
-        datasets = self.experiment_search_meta(meta_search={object_id_name : object_id},experiment_id=experiment_id, project_id=project_id)
-
-        # 

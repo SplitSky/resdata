@@ -404,6 +404,7 @@ async def return_all_project_names_group(author : d.Author):
                 status_code=status.HTTP_204_NO_CONTENT,
                 detail="The project wasn't initialised properly")
         authors = result.get("author")
+        author_found = False
         for item in authors:
             # item is a dictionary
             if item.get("name") == author.group_name:
