@@ -264,12 +264,12 @@ async def login_for_access_token(credentials: d.User) -> d.Token:
         detail="The credentials failed to validate"
     )
 
-@app.post("/{project_id}/{experiment_id}/{dataset_id}/add_author")
-async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_id : str,author : d.Author):
+@app.post("/{project_id}/{experiment_id}/{dataset_id}/{username}/add_author")
+async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_id : str,author : d.Author, username : str):
     """API call for adding an author to the dataset or updating the permissions"""
     # autheticate user
-    user_temp = User_Auth(username_in=author.name, password_in="", db_client_in=client)
-    user_temp.update_disable_status()
+    user_temp = User_Auth(username_in=username, password_in="", db_client_in=client)
+    user_temp.update_disable_status() # authenticate the user adding the author
     user_doc = user_temp.fetch_user()
     credentials_exception = HTTPException(
             status_code= status.HTTP_401_UNAUTHORIZED,
@@ -285,7 +285,6 @@ async def add_author_to_dataset(project_id : str, experiment_id : str, dataset_i
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,
                             detail= "The dataset doesn't exist")
     author_list = result.get("author") 
-    #author_list_new = author_list
     # see if the author already exists. Raise exception if it does
     for entry in author_list:
         if author.name == entry.get("name"):

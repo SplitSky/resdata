@@ -252,7 +252,7 @@ class API_interface:
         # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id + "/add_author",
+        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
@@ -284,6 +284,7 @@ class API_interface:
 
     def add_author_to_project_rec(self, project_id: str, author_name: str, author_permission: str):
         """Recursively adds author to all experiments and datasets in the project specified. """
+        self.add_author_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission)
         names = self.get_experiment_names(project_id=project_id)
         responses = []
         for name in names:
@@ -311,7 +312,6 @@ class API_interface:
          
         datasets = []
         for name in names:
-            # repeat over each name
             datasets.append(self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))
         return datasets
 

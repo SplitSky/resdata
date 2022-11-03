@@ -103,9 +103,9 @@ def load_file_dataset(filename_out):
     return dataset
 
 
-def create_ring_object(ring_id : int, author_in : d.Author):
+def create_ring_object(ring_id : int, author_in : d.Author, size : int):
     x, y, y2 = [], [], []
-    for i in range(0, 500):
+    for i in range(0, size):
         x.append(i)
         y.append(random.randint(0, 100))
         y2.append(random.randint(0, 2))
@@ -124,7 +124,7 @@ def create_ring_object(ring_id : int, author_in : d.Author):
                   author=[author_in.dict()], datasets=[])
 
 
-def generate_optics_project(filename_in, structure, project_name, experiment_name, author_name):
+def generate_optics_project(filename_in, structure, project_name, experiment_name, author_name, size_of_dataset):
     '''
     Returns a ring object
     filename_in     string      the name of the json file
@@ -135,7 +135,7 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
     datasets = []
     for i in range(0, structure[0], 1):
         # generate rings
-        ring_temp = create_ring_object(i, template_author)
+        ring_temp = create_ring_object(i, template_author, size_of_dataset)
         temp = ring_temp.convert_to_document_list()
         for entry in temp:
             datasets.append(entry)
