@@ -39,7 +39,7 @@ async def connection_test() -> bool:
         return False
 
 @app.get("/names")
-async def returm_all_project_names(author : d.Author):
+async def return_all_project_names(author : d.Author):
     """ Function which returns a list of project names that the user has permission to view."""
     # validate user
     # check if user was authenticated in and has a valid token
@@ -322,19 +322,40 @@ async def meta_search(project_id : str, experiment_id : str, search_variables : 
         # authenticated
         names = []
         for dataset in client[project_id][experiment_id].find():
+            # dataset is a dictionary
             found = True
             for search_meta in search_variables.meta:
                 # dataset.meta[search_meta] - look up of the meta dictionary
-                if dataset.meta[search_meta] == None or dataset.meta[search_meta] != search_variables.meta[search_meta]:
-                    found = False
-                    # break # maybe add to improve efficiency
+                print("dataset")
+                print(dataset)
+                print("search_meta")
+                print(search_meta)
+                dataset_meta_temp = dataset.get("meta")
+
+                print("meta search term")
+                print(dataset_meta_temp.get(search_meta))
+
+                if dataset_meta_temp.get(search_meta) == None: # database doesn't have the mete variable with the given name
+                    found = False # return false
+                    # break # TODO: maybe add to improve efficiency
+                else:
+                    if dataset_meta_temp.get(search_meta) != search_variables.meta.get(search_meta):
+                        found = False
+
+                print("Printing variables")
+                print("variable 1")
+                print(dataset_meta_temp.get(search_meta))
+                print("variable 2")
+                print(search_variables.meta.get(search_meta))
+
             # end of for loop
             if found == True:
+                print("into the loop")
                 names.append(dataset['name']) # appends names to a list
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Lacking authentication variables")
-    return json.dumps({"names" : names}) # convert to JSON and return
+    return {"names" : names} # convert to JSON and return
 
 @app.post("/{project_id}/{experiment_id}/{dataset_id}/{group_name}/add_group_author")
 async def add_group_to_dataset(project_id : str, experiment_id : str, dataset_id : str, group_name : str, author : d.Author):
@@ -465,9 +486,6 @@ async def return_all_dataset_names_group(project_id: str, experiment_id: str, au
                 names.append(dataset['name']) # returns all datasets including the config
     return {"names" : names}
 ##### End group API calls
-
-
-
 
 
 @app.post("/purge")

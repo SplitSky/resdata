@@ -185,7 +185,7 @@ class Author(BaseModel):
 
 
 class Ring(BaseModel):
-    ring_id: float
+    ring_id: int
     ring_dio: float
     quality: Union[int, None]
     pitch: Union[float, None]

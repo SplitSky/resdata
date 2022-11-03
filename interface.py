@@ -32,6 +32,7 @@ class API_interface:
 
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
         """ The function responsible for an insertion of a dataset. It authenticates the user and verifies the write permission."""
+
         if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name,
                                      dataset_id=dataset_in.name):
             raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
@@ -49,8 +50,6 @@ class API_interface:
         temp = json.loads(response.json())
         if temp.get("message") == None:
             # the database was found
-            print("Printing json")
-            print(temp)
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                              data_type=temp.get("data_type"), author=temp.get("author"),
                              data_headings=temp.get("data_headings"))
@@ -116,11 +115,15 @@ class API_interface:
 
     def check_project_exists(self, project_name: str):
         """ Function which returns True if a project exists and False if it doesn't. """
+        if len(project_name) == 0:
+            raise Exception("Project name cannot have no size")
         names_list = self.get_project_names()
         return project_name in names_list
 
     def check_experiment_exists(self, project_name: str, experiment_name: str):
         """ Function which returns True if an experiment exists and False if it doesn't. """
+        if len(project_name) == 0 or len(experiment_name) == 0:
+            raise Exception("Project or Experiment name have no size")
         names_list = self.get_experiment_names(project_id=project_name)
         return experiment_name in names_list
 
@@ -166,6 +169,8 @@ class API_interface:
 
     def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
         """ Checks whether a dataset of a given name exists in the specified location """
+        if len(project_id) == 0 or len(experiment_id) == 0 or len(dataset_id) == 0:
+            raise Exception("One of the variables has size zero")
         names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
         return dataset_id in names_list
 
@@ -304,12 +309,25 @@ class API_interface:
     def experiment_search_meta(self, meta_search : dict, experiment_id : str, project_id : str):
         """Fetches the datasets matching the meta variables"""
         # API call - experiment level - returning the names of datasets that match
+        # Check that the project and experiment exist
+        if len(experiment_id) == 0 or len(project_id) == 0:
+            raise Exception("The variables provided are size zero")
+        response = self.check_project_exists(project_name=project_id)
+        if response == False:
+            raise Exception("The project doesn't exist")
+        response = self.check_experiment_exists(project_name=project_id, experiment_name=experiment_id)
+        if response == False:
+            raise Exception("The experiment doesn't exist")
+
         author_temp = d.Author(name=self.username ,permission="write")
         dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
         response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
-        names = json.loads(response.json()).get('names')
-         
+        print("experiment search meta")
+        print(response)
+        
+        #names = json.loads(response.json()).get('names') 
+        names = response.json()
         datasets = []
         for name in names:
             datasets.append(self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))
@@ -330,7 +348,6 @@ class API_interface:
         if response == status.HTTP_200_OK:
             return True
         else:
-
             return False
 
     def add_group_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str, group_name: str):
