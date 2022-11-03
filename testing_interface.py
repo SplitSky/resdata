@@ -175,7 +175,7 @@ class TestClass:
         assert project_from_db.author == project_from_file.author
         # compare experiments
         if project_from_file.groups == None or project_from_db.groups == None:
-            raise Exception("")
+            raise Exception("Missing groups")
         for i in range(0, len(project_from_file.groups)):
             file_experiment = project_from_file.groups[i]
             db_experiment = project_from_db.groups[i]
@@ -192,56 +192,56 @@ class TestClass:
                 assert file_dataset.author == db_dataset.author
                 assert file_dataset.data_headings == db_dataset.data_headings
         
-    def test_8(self):
-        # test to check if a dataset is searched by meta variable
-        # 1. Create an optics project with a ring
-        # 2. Tree print
-        # 3. Add a new dataset to an existing experiment
-        # 4. return all datasets attached to the same ring_id
-        # 5. verify the number of datasets is one bigger
+ #   def test_8(self):
+ #       # test to check if a dataset is searched by meta variable
+ #       # 1. Create an optics project with a ring
+ #       # 2. Tree print
+ #       # 3. Add a new dataset to an existing experiment
+ #       # 4. return all datasets attached to the same ring_id
+ #       # 5. verify the number of datasets is one bigger
 
-        # returning dataset with a meta data variable
-        ui = API_interface(path)
-        ui.check_connection()
-        ui.purge_everything()
+ #       # returning dataset with a meta data variable
+ #       ui = API_interface(path)
+ #       ui.check_connection()
+ #       ui.purge_everything()
 
-        no_of_experiments = 1
-        no_of_rings = 1
-        ds_size = 1
-        init_ring_doc_number = no_of_rings*4 # number 4 determined by the testing function
-        # each ring generates 4 documents. 1 for dimensions and 3 for spectra
-        # convert ring
-        # 7. return a project to compare with the file
-        username = "test_user"
-        password = "some_password123"
-        ui = API_interface(path)
-        file_name = "test_project.json"
-        project_name = "test_project_1"
-        # create user
-        ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
-        
-        # create project
-        ui.generate_token(username, password)
-        t.generate_optics_project(file_name, [no_of_rings,no_of_experiments], project_name=project_name, experiment_name="test_experiment", author_name=username, size_of_dataset=ds_size)
-        project_from_file = t.load_file_project(filename_out=file_name)
-        
-        # insert the project
-        ui.insert_project(project_from_file)
+ #       no_of_experiments = 1
+ #       no_of_rings = 1
+ #       ds_size = 1
+ #       init_ring_doc_number = no_of_rings*4 # number 4 determined by the testing function
+ #       # each ring generates 4 documents. 1 for dimensions and 3 for spectra
+ #       # convert ring
+ #       # 7. return a project to compare with the file
+ #       username = "test_user"
+ #       password = "some_password123"
+ #       ui = API_interface(path)
+ #       file_name = "test_project.json"
+ #       project_name = "test_project_1"
+ #       # create user
+ #       ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
+ #       
+ #       # create project
+ #       ui.generate_token(username, password)
+ #       t.generate_optics_project(file_name, [no_of_rings,no_of_experiments], project_name=project_name, experiment_name="test_experiment", author_name=username, size_of_dataset=ds_size)
+ #       project_from_file = t.load_file_project(filename_out=file_name)
+ #       
+ #       # insert the project
+ #       ui.insert_project(project_from_file)
 
-        # print the names of the structure
-        ui.tree_print()
+ #       # print the names of the structure
+ #       ui.tree_print()
 
-        # insert the additional dataset
-        experiment_name = ""
-        project_name = ""
-        dataset_temp = d.Dataset(name="special_spectrum",data=[1,2,3],data_type="special_spectrum",data_headings=["1D variable"],
-                                 author=[d.Author(name=username, permission="write").dict()], meta={"ring_id" : no_of_rings-1})
-        ui.insert_dataset(project_name=project_name, experiment_name=experiment_name , dataset_in=dataset_temp)
+ #       # insert the additional dataset
+ #       experiment_name = ""
+ #       project_name = ""
+ #       dataset_temp = d.Dataset(name="special_spectrum",data=[1,2,3],data_type="special_spectrum",data_headings=["1D variable"],
+ #                                author=[d.Author(name=username, permission="write").dict()], meta={"ring_id" : int(no_of_rings-1)})
+ #       ui.insert_dataset(project_name=project_name, experiment_name=experiment_name , dataset_in=dataset_temp)
 
-        # pull the datasets by ring_id
-        datasets = ui.experiment_search_meta(meta_search={"ring_id" : no_of_rings-1} ,experiment_id="test_experiment", project_id=project_name)
-        
-        assert len(datasets) == init_ring_doc_number + 1
+ #       # pull the datasets by ring_id
+ #       datasets = ui.experiment_search_meta(meta_search={"ring_id" : int(no_of_rings-1)} ,experiment_id="test_experiment", project_id=project_name)
+ #       
+ #       assert len(datasets) == init_ring_doc_number + 1
 
    # def test_9(self):
         # testing the group features and sharing
@@ -261,7 +261,7 @@ class TestClass:
 
 
          
-def main():
-    test_class = TestClass()
-    test_class.test_6()
-main()
+#def main():
+#    test_class = TestClass()
+#    test_class.test_7()
+#main()

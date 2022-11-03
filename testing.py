@@ -150,6 +150,6 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
                         meta={"date": str(date.today()),"note": "Test project"}, author=[template_author.dict()])
 
     with open(filename_in, 'w') as file:
-        json.dump(project.convertJSON(), file)
+        json.dump(project.dict(), file)
         file.close()
 
