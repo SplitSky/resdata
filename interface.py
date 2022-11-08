@@ -323,11 +323,8 @@ class API_interface:
         dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
         response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
-        print("experiment search meta")
-        print(response)
-        
-        #names = json.loads(response.json()).get('names') 
         names = response.json()
+        names = names.get("names")
         datasets = []
         for name in names:
             datasets.append(self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))

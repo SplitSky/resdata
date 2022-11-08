@@ -233,25 +233,21 @@ class TestClass:
         
         # print the names of the structure
         ui.tree_print()
-
+        
         # insert the additional dataset
         experiment_name = experiment_name + str(" 0") # appends to the first experiment
         dataset_temp = d.Dataset(name="special_spectrum",data=[1,2,3],data_type="special_spectrum",data_headings=["1D variable"],
                                  author=[d.Author(name=username, permission="write").dict()], meta={"ring_id" : int(no_of_rings-1)})
-
-
         ui.insert_dataset(project_name=project_name, experiment_name=experiment_name , dataset_in=dataset_temp)
         # appends to the last ring
-
+        ui.tree_print()
         # TODO: modify the check_if_dataset_exists to handle exceptions if the names given are empty
         
         # pull the datasets by ring_id
         datasets = ui.experiment_search_meta(meta_search={"ring_id" : int(no_of_rings-1)} ,experiment_id=experiment_name, project_id=project_name)
         print(" ")
         print("datasets length: " + str(len(datasets)))
-        print("datasets found")
-        print(datasets)
-        #assert len(datasets) == init_ring_doc_number + 1
+        assert len(datasets) == init_ring_doc_number + 1
 
    # def test_9(self):
         # testing the group features and sharing
