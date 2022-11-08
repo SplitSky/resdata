@@ -193,21 +193,16 @@ class TestClass:
                 assert file_dataset.data_headings == db_dataset.data_headings
         
     def test_8(self):
-        # test 8 to be fixed. 
-
-
         # test to check if a dataset is searched by meta variable
         # 1. Create an optics project with a ring
         # 2. Tree print
         # 3. Add a new dataset to an existing experiment
         # 4. return all datasets attached to the same ring_id
         # 5. verify the number of datasets is one bigger
-
         # returning dataset with a meta data variable
         ui = API_interface(path)
         ui.check_connection()
         ui.purge_everything()
-
         no_of_experiments = 1
         no_of_rings = 1
         ds_size = 1
@@ -227,13 +222,10 @@ class TestClass:
         ui.generate_token(username, password)
         t.generate_optics_project(file_name, [no_of_rings,no_of_experiments], project_name=project_name, experiment_name=experiment_name, author_name=username, size_of_dataset=ds_size)
         project_from_file = t.load_file_project(filename_out=file_name)
-        
         # insert the project
         ui.insert_project(project_from_file)
-        
         # print the names of the structure
         ui.tree_print()
-        
         # insert the additional dataset
         experiment_name = experiment_name + str(" 0") # appends to the first experiment
         dataset_temp = d.Dataset(name="special_spectrum",data=[1,2,3],data_type="special_spectrum",data_headings=["1D variable"],
@@ -249,7 +241,7 @@ class TestClass:
         print("datasets length: " + str(len(datasets)))
         assert len(datasets) == init_ring_doc_number + 1
 
-   # def test_9(self):
+    def test_9(self):
         # testing the group features and sharing
         # 1. create user_1 & user 2
         # 2. create 1 project for user_2
@@ -258,7 +250,44 @@ class TestClass:
         # different projects
         # 5. Add author to group
         # 6. return group names using user_2
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything()
+        
+        full_name = "test user full name"
+        email = "email@email.com"
+        # initialise users
+        username = "user_1"
+        password = "some_password123"
+        ui.create_user(username, password, email, full_name)
+        username2 = "user_2"
+        ui.create_user(username2, password, email, full_name)
+        ui = API_interface(path)
+        file_name = "test_project.json"
+        
+        project_names = ["test_project_1","test_project_2","test_project_3","test_project_4"]
+        ui.generate_token(username, password)
+        username_temp = username
+        for i in range(0, len(project_names),1):
+            if i == 3:
+                ui.generate_token(username2, password)
+                username_temp = username2
+            t.create_test_file_project(filename_in=file_name,structure=[1,2],project_name=project_names[i],author_name=username_temp)
+            project = t.load_file_project(filename_out=file_name)
+            ui.insert_project(project)
 
+        # re-authenticate user_1
+        ui.generate_token(username,password)
+        # add author to one project
+        ui.add_author_to_project_rec("test_project_1", author_name=username2, author_permission="read")
+        ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
+        ui.add_author_to_dataset(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
+
+        ui.tree_print()
+        
+        
+        ui.generate_token(username2,password)
+        ui.tree_print()
 
 #    def test_9(self):
 #        ui = API_interface(path)
@@ -269,5 +298,5 @@ class TestClass:
          
 def main():
     test_class = TestClass()
-    test_class.test_8()
+    test_class.test_9()
 main()
