@@ -256,6 +256,18 @@ class API_interface:
             raise Exception("Author name and permission have to be strings")
         # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
+        
+        # verify the project and experiment exists
+        if self.check_project_exists(project_name=project_id) == False:
+            raise Exception("Project with that name doesn't exist")
+        if self.check_experiment_exists(project_name=project_id, experiment_name=experiment_id) == False:
+            raise Exception("Experiment with that name doesn't exist")
+
+        # add project author
+        self.add_author_to_project(project_id=project_id, author_name=author_name, author_permission=author_permissions)
+        # add experiment author
+        self.add_author_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permissions)
+
         author_in = d.Author(name=author_name, permission=author_permissions)
         response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
@@ -266,6 +278,10 @@ class API_interface:
 
     def add_author_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str):
         """Adds the author to the experiment config file"""
+        # check project exists
+        if not self.check_project_exists(project_name=project_id):
+            raise Exception("The project doesn't exist")
+        
         return self.add_author_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=experiment_id,
                                           author_name=author_name, author_permissions=author_permission)
 
@@ -386,6 +402,10 @@ class API_interface:
             return True
 
 # group adding functions to be tested
+
+###################################################################################################################################################    406
+    # the group functions two
+
 
 
 # group /names functions

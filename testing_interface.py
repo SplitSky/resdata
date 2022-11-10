@@ -284,10 +284,56 @@ class TestClass:
         ui.add_author_to_dataset(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
 
         ui.tree_print()
-        
-        
         ui.generate_token(username2,password)
         ui.tree_print()
+
+    def test_10(self):
+        # testing groups
+        # create 3 projects
+        # append one dataset to group
+        # append one experiment and all datasets to group
+        # append one project to group and all experiments and datasets
+        # fetch names of the group
+        # add author to group
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything()
+        
+        full_name = "test user full name"
+        email = "email@email.com"
+        # initialise users
+        username = "user_1"
+        password = "some_password123"
+        ui.create_user(username, password, email, full_name)
+        ui.generate_token(username, password)
+
+        filename = "test_file.json"
+        project_name = "test_project_"
+        for i in range(0,1,1):
+            t.create_test_file_project(filename_in=filename, structure=[1,1],project_name=project_name+str(i), author_name=username)
+            project = t.load_file_project(filename_out=filename)
+            ui.insert_project(project=project)
+            # populate the database with 3 projects
+
+        ui.tree_print()
+        
+        experiment_name = "experiment_0"
+        dataset_name = "dataset_0"
+
+        group_name = "test_group"
+        # add single dataset to group
+        #ui.add_group_to_dataset(author_permission="read",author_name=username,group_name=group_name,project_id="test_project_0",experiment_id=experiment_name, dataset_id=dataset_name)
+
+        # add single experiment to group
+        #ui.add_group_to_experiment(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_1", experiment_id=experiment_name)
+
+        # add single project to group
+        #ui.add_group_to_project(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_2")
+
+        print(ui.add_group_to_project_rec(project_id=project_name+"0",author_name=username,author_permission="read", group_name=group_name))
+
+        temp = ui.author_query(username=group_name) # return the group names
+        print(temp)
 
 #    def test_9(self):
 #        ui = API_interface(path)
@@ -298,5 +344,5 @@ class TestClass:
          
 def main():
     test_class = TestClass()
-    test_class.test_9()
+    test_class.test_10()
 main()
