@@ -3,14 +3,14 @@ import datastructure as d
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_from_dataset(dataset : d.Dataset):
+def plot_from_dataset(dataset : d.Dataset, label: str, title: str):
     # check dimensionality
     dims = len(dataset.data)
 
     if dataset.data_type in ["dimensions"]:
         # print out dimensions
         for i in range(0,len(dataset.data_headings),1):
-            print(dataset.data_headings[i] + " : " + dataset.data[i])
+            print(str(dataset.data_headings[i]) + " : " + str(dataset.data[i]))
     else:
         # plot out spectra
         if dims == 1:
@@ -18,18 +18,32 @@ def plot_from_dataset(dataset : d.Dataset):
             y = dataset.data
             x = np.arange(0,len(y))
             print("printing 1D spectrum")
-            plt.plot(x,y)
+            plt.xlabel = "number"
+            plt.ylabel = dataset.data_headings[0]
+            plt.title(title)
+            plt.plot(x,y, label=label)
+            plt.legend()
 
         elif dims == 2:
             # 2D plot 
             x,y = dataset.data
             print("printing 2D spectrum")
-            plt.plot(x,y)
+            plt.xlabel = dataset.data_headings[0]
+            plt.ylabel = dataset.data_headings[1]
+            plt.title(title)
+            plt.plot(x,y, label=label)
+            plt.legend()
 
         elif dims == 3:
             x, y, z = dataset.data
-            print("Printing 3D specturm")
-            plt.plot(x,y,z)
+            print("Printing 2D spectrum with error bars")
+            plt.xlabel = dataset.data_headings[0]
+            plt.ylabel = dataset.data_headings[1]
+            plt.plot(x,y)
+            plt.title(title)
+            plt.errorbar(x,y,z, label=label)
+            plt.legend()
 
         else:
             raise Exception("the dimensionality too high")
+        plt.show()
