@@ -47,3 +47,25 @@ def plot_from_dataset(dataset : d.Dataset, label: str, title: str):
         else:
             raise Exception("the dimensionality too high")
         plt.show()
+
+def summarise_dimensions(datasets: list[d.Dataset]):
+    # generate the temp variable
+    variable_keys = datasets[0].data_headings
+
+    var_temp = []
+    for entry in variable_keys:
+        var_temp.append([])
+
+    for dataset in datasets:
+        for i in range(0,len(dataset.data_headings),1):
+            var_temp[i].append(dataset.data[i])
+
+    # calculate means and errors
+    print("Average values for dimensions: ")
+    i = 0
+    for array in var_temp:
+        mean = np.array(array).mean()
+        std = np.array(array).std()
+        print(f"{datasets[0].data_headings[i]} : {mean} +/- {std}")
+        i += 1
+        

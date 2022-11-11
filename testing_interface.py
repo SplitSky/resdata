@@ -272,7 +272,7 @@ class TestClass:
             if i == 3:
                 ui.generate_token(username2, password)
                 username_temp = username2
-            t.create_test_file_project(filename_in=file_name,structure=[1,2],project_name=project_names[i],author_name=username_temp)
+            t.create_test_file_project(filename_in=file_name,structure=[2,2],project_name=project_names[i],author_name=username_temp)
             project = t.load_file_project(filename_out=file_name)
             ui.insert_project(project)
 
@@ -281,19 +281,22 @@ class TestClass:
         ui.tree_print()
         print("generate token")
         ui.generate_token(username,password)
+        print(" ")
         print("user 1")
         ui.tree_print()
         # add author to one project
         print("add author to project")
         
         ui.add_author_to_project_rec("test_project_1", author_name=username2, author_permission="read")
-        
-        #ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
-        #ui.add_author_to_dataset(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
+        ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
+        ui.add_author_to_dataset_rec(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
 
         ui.tree_print()
         ui.generate_token(username2,password)
         ui.tree_print()
+
+        temp = ui.author_query(username=username2)
+        print(temp)
 
     def test_10(self):
         # testing groups
@@ -338,7 +341,8 @@ class TestClass:
         # add single project to group
         #ui.add_group_to_project(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_2")
 
-        print(ui.add_group_to_project_rec(project_id=project_name+"0",author_name=username,author_permission="read", group_name=group_name))
+        print("add_group_to_project_rec")
+        print(ui.add_group_to_project_rec(project_id=project_name+"1",author_name=username,author_permission="read", group_name=group_name))
 
         temp = ui.author_query(username=group_name) # return the group names
         print(temp)
