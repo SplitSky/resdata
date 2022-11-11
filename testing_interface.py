@@ -277,11 +277,19 @@ class TestClass:
             ui.insert_project(project)
 
         # re-authenticate user_1
+        print("user 2")
+        ui.tree_print()
+        print("generate token")
         ui.generate_token(username,password)
+        print("user 1")
+        ui.tree_print()
         # add author to one project
+        print("add author to project")
+        
         ui.add_author_to_project_rec("test_project_1", author_name=username2, author_permission="read")
-        ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
-        ui.add_author_to_dataset(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
+        
+        #ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
+        #ui.add_author_to_dataset(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
 
         ui.tree_print()
         ui.generate_token(username2,password)
@@ -344,5 +352,5 @@ class TestClass:
          
 def main():
     test_class = TestClass()
-    test_class.test_10()
+    test_class.test_9()
 main()
