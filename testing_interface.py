@@ -291,7 +291,7 @@ class TestClass:
         ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
         ui.add_author_to_dataset_rec(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
 
-        ui.tree_print()
+        #ui.tree_print()
         ui.generate_token(username2,password)
         ui.tree_print()
 
@@ -299,6 +299,50 @@ class TestClass:
         print(temp)
 
     def test_10(self):
+        # testing the author query function
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything()
+        
+        full_name = "test user full name"
+        email = "email@email.com"
+        # initialise users
+        username = "user_1"
+        password = "some_password123"
+        ui.create_user(username, password, email, full_name)
+        ui = API_interface(path)
+        file_name = "test_project.json"
+        
+        project_number = 1
+        experiment_number = 2
+        dataset_number = 3
+        project_name = "test_project"
+
+        ui.generate_token(username, password)
+        t.create_test_file_project(filename_in=file_name,structure=[experiment_number,dataset_number],project_name=project_name,author_name=username)
+        project = t.load_file_project(filename_out=file_name)
+        ui.insert_project(project)
+
+        ui.tree_print()
+
+        temp = ui.author_query(username=username)
+        print(temp)
+        project_count = len(temp)
+        experiment_count = 0
+        dataset_count = 0
+        
+        for project in temp:
+            for experiment in project.get("experiment_list"):
+                experiment_count += 1
+                for dataset in experiment.get("dataset_list"):
+                    dataset_count += 1
+
+        assert project_count == project_number
+        assert experiment_count == experiment_number
+        assert dataset_count == dataset_number*experiment_number
+
+
+    def test_11(self):
         # testing groups
         # create 3 projects
         # append one dataset to group
@@ -356,5 +400,5 @@ class TestClass:
          
 def main():
     test_class = TestClass()
-    test_class.test_9()
+    test_class.test_10()
 main()

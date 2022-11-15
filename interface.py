@@ -297,7 +297,6 @@ class API_interface:
         self.add_author_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission)
         names = self.get_experiment_names(project_id=project_id)
         responses = []
-        print(names)
         for name in names:
             responses.append(
                 self.add_author_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
@@ -363,11 +362,6 @@ class API_interface:
             raise Exception("Author name and permission have to be strings")
         # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
-        
-        print("Print variables")
-        print(project_id)
-        print(experiment_id)
-
         author_in = d.Author(name=author_name, permission=author_permission)
         response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
                                  json=author_in.dict())
@@ -410,7 +404,6 @@ class API_interface:
         self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
         names = self.get_experiment_names(project_id=project_id)
         responses = []
-        print(names)
         for name in names:
             responses.append(
                 self.add_group_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
@@ -478,17 +471,21 @@ class API_interface:
         proj_names = self.get_project_names_group(group_name=username)
         if proj_names == None:
             raise Exception("The user has no projects.")
-        for name in proj_names:
-            exp_names = self.get_experiment_names_group(name,group_name=username)
-            for name2 in exp_names:
-                temp_exp = []
-                dat_names = self.get_dataset_names_group(project_id=name, experiment_id=name2, group_name=username)
-                for name3 in dat_names:
-                    temp_data = []
-                    if name3 != name2:
-                        temp_data.append(name3)
-                temp_exp.append({"experiment_id": name2, "dataset_list" : temp_data})            
-            temp_proj = {"project_id": name, "experiment_list":[]}
+        for proj_name in proj_names:
+            # loop over the project names
+            exp_names = self.get_experiment_names_group(project_id=proj_name,group_name=username)
+            temp_exp = []
+            for exp_name in exp_names:
+
+                temp_data = []
+                dat_names = self.get_dataset_names_group(project_id=proj_name, experiment_id=exp_name, group_name=username)
+                for dat_name in dat_names:
+                    if exp_name != dat_name:
+                        # avoids returning the config dataset for experiment
+                        temp_data.append(dat_name)
+                    
+                temp_exp.append({"experiment_id": exp_name, "dataset_list" : temp_data})            
+            temp_proj = {"project_id": proj_name, "experiment_list":temp_exp}
             names_list.append(temp_proj)
         return names_list
 
