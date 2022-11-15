@@ -368,10 +368,10 @@ async def add_group_to_dataset(project_id : str, experiment_id : str, dataset_id
                 author_list.append(group.dict())
                 client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
                 print("The document updated")
-                return status.HTTP_200_OK # terminate successfully
+                return True # terminate successfully 
     
     # author doesn't exist. Raise exception as not allowed to append to group if the user doesn't have access to the dataset
-    return status.HTTP_401_UNAUTHORIZED
+    return False
 
 # names function for groups
 @app.get("/names_group") # projects

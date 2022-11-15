@@ -365,10 +365,9 @@ class API_interface:
         author_in = d.Author(name=author_name, permission=author_permission)
         response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
                                  json=author_in.dict())
-        if response == status.HTTP_200_OK:
-            return True
-        else:
-            return False
+        print("add_group_to_dataset response")
+        print(response.json())
+        return response.json() 
       
     def add_group_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str, group_name: str):
         """Adds the author to the experiment config file"""
@@ -409,6 +408,7 @@ class API_interface:
                 self.add_group_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
                                                   author_permission=author_permission, group_name=group_name))
             # recursively appends the author to each dataset
+        print(responses)
         if False in responses:
             return False
         else:
@@ -420,16 +420,15 @@ class API_interface:
              raise Exception("Author name and permission have to be strings")
     
         # appends the author to the path that leads to this dataset to guarantee access
-        self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
-        self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name)
-
-        author_in = d.Author(name=author_name, permission=author_permission)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
-                                 json=author_in.dict())
-        if response == status.HTTP_200_OK:
-            return True
-        else:
+        responses = []
+        responses.append(self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name))
+        responses.append(self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name))
+        responses.append(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, group_name=group_name, project_id=project_id,experiment_id=experiment_id, dataset_id=dataset_id))
+        
+        if False in responses:
             return False
+        else:
+            return True
 # group adding functions to be tested
 
 # group /names functions
@@ -489,5 +488,5 @@ class API_interface:
             names_list.append(temp_proj)
         return names_list
 
-
+        
 

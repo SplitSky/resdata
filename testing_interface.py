@@ -20,6 +20,7 @@ class TestClass:
         # check connection
         ui = API_interface(path)
         ui.check_connection()
+
     def test_1(self):
         # 1. creating a user
         username = "test_user"
@@ -29,7 +30,6 @@ class TestClass:
         ui = API_interface(path)
         # purge everything
         ui.purge_everything()
-
         assert ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name) == True
         # user created successfully
 
@@ -361,11 +361,13 @@ class TestClass:
         password = "some_password123"
         ui.create_user(username, password, email, full_name)
         ui.generate_token(username, password)
-
+        project_number = 2
+        experiment_number = 2
+        dataset_number = 2
         filename = "test_file.json"
         project_name = "test_project_"
-        for i in range(0,1,1):
-            t.create_test_file_project(filename_in=filename, structure=[1,1],project_name=project_name+str(i), author_name=username)
+        for i in range(0,project_number,1):
+            t.create_test_file_project(filename_in=filename, structure=[experiment_number,dataset_number],project_name=project_name+str(i), author_name=username)
             project = t.load_file_project(filename_out=filename)
             ui.insert_project(project=project)
             # populate the database with 3 projects
@@ -374,31 +376,76 @@ class TestClass:
         
         experiment_name = "experiment_0"
         dataset_name = "dataset_0"
-
         group_name = "test_group"
         # add single dataset to group
         #ui.add_group_to_dataset(author_permission="read",author_name=username,group_name=group_name,project_id="test_project_0",experiment_id=experiment_name, dataset_id=dataset_name)
-
+        # dataset_count: +1
+        
         # add single experiment to group
         #ui.add_group_to_experiment(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_1", experiment_id=experiment_name)
+        # dataset_count: +1
+        # experiment_count: +1
+        # project_count: +1
 
         # add single project to group
         #ui.add_group_to_project(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_2")
+        
 
-        print("add_group_to_project_rec")
-        print(ui.add_group_to_project_rec(project_id=project_name+"1",author_name=username,author_permission="read", group_name=group_name))
-
-        temp = ui.author_query(username=group_name) # return the group names
+        # counting the entries added to the author
+        temp = ui.author_query(username=username)
         print(temp)
+        project_count = len(temp)
+        experiment_count = 0
+        dataset_count = 0
+        for project in temp:
+            for experiment in project.get("experiment_list"):
+                experiment_count += 1
+                for dataset in experiment.get("dataset_list"):
+                    dataset_count += 1
 
-#    def test_9(self):
-#        ui = API_interface(path)
-#        ui.check_connection()
-#        ui.purge_everything()
+        assert project_count == project_number
+        assert experiment_count == experiment_number*project_number
+        assert dataset_count == dataset_number*experiment_number*project_number
 
+        # adding things to the group
+        # counting variables for verification
+        project_count_group = 0
+        experiment_count_group = 0
+        dataset_count_group = 0
 
+        
+        ## dataset added to group
+        #temp = ui.add_group_to_dataset_rec(author_name=username, author_permission="write",group_name=group_name, project_id=project_name+"0", experiment_id=experiment_name, dataset_id=dataset_name)
+        #print(temp)
+
+        # project added to group
+        print("add_group_to_project_rec")
+        print("project added name")
+        print(project_name+"0")
+        print(ui.add_group_to_project_rec(project_id=project_name+"0",author_name=username,author_permission="read", group_name=group_name))
+        # project_count_group: +1
+        project_count_group += 1
+        # experiment_count_group: +experiment_number
+        experiment_count_group += experiment_number
+        # dataset_count_group: + experiment_number*dataset_number
+        dataset_count_group += (experiment_number*dataset_number)
+
+        # verify the number in the group
+        temp = ui.author_query(username=group_name)
+        project_count = len(temp)
+        experiment_count = 0
+        dataset_count = 0
+        for project in temp:
+            for experiment in project.get("experiment_list"):
+                experiment_count += 1
+                for dataset in experiment.get("dataset_list"):
+                    dataset_count += 1
+
+        assert project_count == project_count_group
+        assert experiment_count == experiment_count_group
+        assert dataset_count == dataset_count_group
          
 def main():
     test_class = TestClass()
-    test_class.test_10()
+    test_class.test_11()
 main()
