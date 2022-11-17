@@ -422,7 +422,7 @@ class TestClass:
         print("add_group_to_project_rec")
         print("project added name")
         print(project_name+"0")
-        print(ui.add_group_to_project_rec(project_id=project_name+"0",author_name=username,author_permission="read", group_name=group_name))
+        print(ui.add_group_to_project_rec(project_id=project_name+"0",author_name=username,author_permission="write", group_name=group_name))
         # project_count_group: +1
         project_count_group += 1
         # experiment_count_group: +experiment_number
@@ -431,7 +431,9 @@ class TestClass:
         dataset_count_group += (experiment_number*dataset_number)
 
         # verify the number in the group
+        temp = []
         temp = ui.author_query(username=group_name)
+        print(temp)
         project_count = len(temp)
         experiment_count = 0
         dataset_count = 0
@@ -440,6 +442,16 @@ class TestClass:
                 experiment_count += 1
                 for dataset in experiment.get("dataset_list"):
                     dataset_count += 1
+
+        print("counting")
+        print("project_count: " + str(project_count))
+        print("experiment_count: " + str(experiment_count))
+        print("dataset_count: " + str(dataset_count))
+        print("group counting")
+        print("project_count: " + str(project_count_group))
+        print("experiment_count: " + str(experiment_count_group))
+        print("dataset_count: " + str(dataset_count_group))      
+
 
         assert project_count == project_count_group
         assert experiment_count == experiment_count_group

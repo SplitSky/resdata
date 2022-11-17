@@ -363,11 +363,12 @@ async def add_group_to_dataset(project_id : str, experiment_id : str, dataset_id
     # see if the author already exists. Raise exception if it does
     for entry in author_list:
         if author.name == entry.get("name"):
-            if author.permission == entry.get("permission"):
+            #if author.permission == entry.get("permission"):
+            if author.permission == "write":
+                # verifies the user has write access to assign group
                 group = d.Author(name=group_name, permission=author.permission)
                 author_list.append(group.dict())
                 client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
-                print("The document updated")
                 return True # terminate successfully 
     
     # author doesn't exist. Raise exception as not allowed to append to group if the user doesn't have access to the dataset
@@ -392,25 +393,28 @@ async def return_all_project_names_group(author : d.Author):
             detail= "The user hasn't authenticated"
         )
     names = client.list_database_names()
+
     names_out = []
     # 'Authentication', 'S_Church', 'admin', 'local'
     # remove the not data databases
     names.remove('Authentication')
     names.remove('admin')
     names.remove('local')
+    
+
     for name in names:
         # fetch database config file
         temp_project = client[name]
         config = temp_project["config"]
         result = config.find_one()
+        # there is always only one dataset here
         if result == None:
             raise HTTPException(
                 status_code=status.HTTP_204_NO_CONTENT,
                 detail="The project wasn't initialised properly")
-        authors = result.get("author")
-        author_found = False
-        for item in authors:
-            # item is a dictionary
+        authors = result.get("author") # fetches the author dictionary
+
+        for item in authors: # loop over authors
             if item.get("name") == author.group_name:
                 names_out.append(name)
     return {"names" : names_out}

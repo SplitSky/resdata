@@ -253,7 +253,6 @@ class API_interface:
         """Appends a user defined author to an existing dataset. Utility function. Doesn't guarantee user's access to this dataset. Use add_author_to_dataset_rec to guarantee access."""
         if not (type(author_name) == type("string") and type(author_permissions) == type("string")):
             raise Exception("Author name and permission have to be strings")
-        # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
 
         author_in = d.Author(name=author_name, permission=author_permissions)
@@ -365,8 +364,6 @@ class API_interface:
         author_in = d.Author(name=author_name, permission=author_permission)
         response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
                                  json=author_in.dict())
-        print("add_group_to_dataset response")
-        print(response.json())
         return response.json() 
       
     def add_group_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str, group_name: str):
@@ -380,9 +377,10 @@ class API_interface:
 
     def add_group_to_experiment_rec(self, project_id:str, experiment_id:str, author_name:str, author_permission:str, group_name:str):
         """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
-        self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        #self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
         names = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
         responses = []
+        
         for name in names:
             responses.append(
                 self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,
@@ -408,7 +406,6 @@ class API_interface:
                 self.add_group_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
                                                   author_permission=author_permission, group_name=group_name))
             # recursively appends the author to each dataset
-        print(responses)
         if False in responses:
             return False
         else:
@@ -468,6 +465,7 @@ class API_interface:
         if self.username == "":
             raise Exception("The user needs to be authenticated first")
         proj_names = self.get_project_names_group(group_name=username)
+
         if proj_names == None:
             raise Exception("The user has no projects.")
         for proj_name in proj_names:
