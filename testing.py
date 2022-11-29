@@ -2,6 +2,7 @@ import datastructure as d
 import json
 from datetime import date
 import random
+import numpy as np
 
 '''
 json file in -> dictionary format
@@ -58,7 +59,7 @@ def create_test_file_dataset(filename_in, dataset_name):
     for i in range(0, 100):
         x.append(i)
         y.append(random.randint(0, 100))
-        y2.append(random.randint(0, 100))
+        y2.append(random.randint(0, 1))
     test_data_3D = [x, y, y2]
     template_author = d.Author(name="wombat", permission="write")
     dataset = d.Dataset(name=dataset_name, data=test_data_3D, data_type="3D dataset", meta=meta_temp,
@@ -153,3 +154,76 @@ def generate_optics_project(filename_in, structure, project_name, experiment_nam
         json.dump(project.dict(), file)
         file.close()
 
+def betterGenerateArray(N):
+    random_set = np.random.uniform(0, 1, N)
+    return random_set
+
+def generate_model_data(list_size : int, lambda_temp : float):
+    # generates a 2D dimensional array of an exponential function
+   step = 0.1
+   N = list_size
+   #bins = np.arange(0, 1, step)
+   temp = betterGenerateArray(N)
+   expDist = -1 * lambda_temp * np.log(temp)
+   histogram = np.histogram(expDist)
+   y = histogram[0]
+   x = histogram[1][:len(histogram[1]) - 1] + step / 2
+   y = np.log(y)
+   # eliminate zeroes
+   temp = []
+   for counter in range(0, len(y), 1):
+       if y[counter] == -np.inf:
+           temp.append(counter)
+   y = np.delete(y, temp)
+   x = np.delete(x, temp)
+   return [x, y]
+
+
+def create_ring_object_2(ring_id : int, author_in : d.Author, size : int, dataset_size: int, value: int):
+    x, y, y2 = [], [], []
+    for i in range(0, size):
+        #x.append(i)
+        #y.append(random.randint(0, 100))
+        y2.append(random.randint(0, 2))
+    x,y = generate_model_data(list_size=dataset_size, lambda_temp=value)
+    test_data_3D = [x, y, y2]
+
+    ring_dio = random.random()
+    quality = random.randint(0, 10)
+    pitch = random.random()
+    threshold = random.random()
+    spectrum_headings = [["Frequency", "intensity", "Intensity error"],["Frequency", "intensity", "Intensity error"],["Frequency", "intensity", "Intensity error"]]
+    return d.Ring(ring_id=ring_id, ring_dio=ring_dio, quality=quality, pitch=pitch,
+                  threshold=threshold,spectrum_dataset=[test_data_3D, test_data_3D, test_data_3D],
+                  spectrum_data_types=["PL spectrum", "TRPL spectrum", "Lasing spectrum"] ,
+                  spectrum_headings= spectrum_headings,
+                  spectrum_names= ["PL spectrum","TRPL spectrum", "Lasing spectrum"],
+                  author=[author_in.dict()], datasets=[])
+
+def generate_optics_project_2(filename_in, structure, project_name, experiment_name, author_name, size_of_dataset, value):
+    '''
+    Returns a ring object
+    filename_in     string      the name of the json file
+    structure       list        a list containing the number of the experiments and datasets [0,0]
+    '''
+    template_author = d.Author(name=author_name, permission="write")
+    # generate rings
+    datasets = []
+    for i in range(0, structure[0], 1):
+        # generate rings
+        ring_temp = create_ring_object_2(i, template_author, size_of_dataset, dataset_size=size_of_dataset, value=value)
+        temp = ring_temp.convert_to_document_list()
+        for entry in temp:
+            datasets.append(entry)
+
+    experiments = []
+    for j in range(0, structure[1], 1):
+        # generate experiements
+        experiments.append(
+            d.Experiment(name=experiment_name + " " + str(j), children=datasets, meta={"date": str(date.today())},
+                         author=[template_author.dict()]))
+    project = d.Project(name=project_name, creator=template_author.name, groups=experiments,
+                        meta={"date": str(date.today()),"note": "Test project"}, author=[template_author.dict()])
+    with open(filename_in, 'w') as file:
+        json.dump(project.dict(), file)
+        file.close()

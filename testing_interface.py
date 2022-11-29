@@ -361,7 +361,7 @@ class TestClass:
         password = "some_password123"
         ui.create_user(username, password, email, full_name)
         ui.generate_token(username, password)
-        project_number = 2
+        project_number = 3
         experiment_number = 2
         dataset_number = 2
         filename = "test_file.json"
@@ -377,20 +377,7 @@ class TestClass:
         experiment_name = "experiment_0"
         dataset_name = "dataset_0"
         group_name = "test_group"
-        # add single dataset to group
-        #ui.add_group_to_dataset(author_permission="read",author_name=username,group_name=group_name,project_id="test_project_0",experiment_id=experiment_name, dataset_id=dataset_name)
-        # dataset_count: +1
         
-        # add single experiment to group
-        #ui.add_group_to_experiment(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_1", experiment_id=experiment_name)
-        # dataset_count: +1
-        # experiment_count: +1
-        # project_count: +1
-
-        # add single project to group
-        #ui.add_group_to_project(author_permission="read", author_name=username, group_name=group_name, project_id="test_project_2")
-        
-
         # counting the entries added to the author
         temp = ui.author_query(username=username)
         print(temp)
@@ -407,28 +394,40 @@ class TestClass:
         assert experiment_count == experiment_number*project_number
         assert dataset_count == dataset_number*experiment_number*project_number
 
+        # verifies the datasets inserted
+
         # adding things to the group
         # counting variables for verification
         project_count_group = 0
         experiment_count_group = 0
         dataset_count_group = 0
 
-        
-        ## dataset added to group
-        #temp = ui.add_group_to_dataset_rec(author_name=username, author_permission="write",group_name=group_name, project_id=project_name+"0", experiment_id=experiment_name, dataset_id=dataset_name)
-        #print(temp)
-
-        # project added to group
-        print("add_group_to_project_rec")
-        print("project added name")
-        print(project_name+"0")
-        print(ui.add_group_to_project_rec(project_id=project_name+"0",author_name=username,author_permission="write", group_name=group_name))
-        # project_count_group: +1
+        # add single dataset to group
+        ui.add_group_to_dataset_rec(author_permission="read",author_name=username,group_name=group_name,project_id="test_project_0",experiment_id=experiment_name, dataset_id=dataset_name)
+        # dataset_count: +1
+        dataset_count_group += 1
+        # project_counit: +1
         project_count_group += 1
-        # experiment_count_group: +experiment_number
-        experiment_count_group += experiment_number
-        # dataset_count_group: + experiment_number*dataset_number
-        dataset_count_group += (experiment_number*dataset_number)
+        # experiment_count: +1
+        experiment_count_group += 1
+
+       # # add single experiment to group
+       # temp = ui.add_group_to_experiment_rec("test_project_1", experiment_name, username, "write", group_name)
+       # # dataset_count: +1
+       # dataset_count_group += 1*dataset_number
+       # # experiment_count: +1
+       # experiment_count_group += 1
+       # # project_count: +1
+       # project_count_group += 1
+
+       # # add single project to group
+       # assert ui.add_group_to_project_rec(project_id=project_name+"2",author_name=username,author_permission="write", group_name=group_name) == True
+       # # project_count_group: +1
+       # project_count_group += 1
+       # # experiment_count_group: +experiment_number
+       # experiment_count_group += experiment_number
+       # # dataset_count_group: + experiment_number*dataset_number
+       # dataset_count_group += (experiment_number*dataset_number)
 
         # verify the number in the group
         temp = []

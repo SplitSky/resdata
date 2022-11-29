@@ -377,40 +377,53 @@ class API_interface:
 
     def add_group_to_experiment_rec(self, project_id:str, experiment_id:str, author_name:str, author_permission:str, group_name:str):
         """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
-        #self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        status_temp = True
+        temp = self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        print(temp)
+        print("it's running. got catch it")
+        # adds path
+        if not temp:
+            status_temp = False
         names = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
-        responses = []
-        
+        print("dataset names")
+        print(names)
         for name in names:
-            responses.append(
-                self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,
-                                           author_name=author_name, author_permission=author_permission,group_name=group_name))
-        if False in responses:
-            return False
-        else:
-            return True
+            #if name != experiment_id:
+            #    # filter out experiment config names
+            temp = self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,author_name=author_name, author_permission=author_permission,group_name=group_name)
+            print("add_group_to_dataset")
+            print("response: " + str(temp))
+            if not temp:
+                status_temp = False
+        return status_temp
 
     def add_group_to_project(self, project_id: str, author_name: str, author_permission: str, group_name: str):
         """Updates the project config file and adds an author"""
         return self.add_group_to_dataset(project_id=project_id, experiment_id='config', dataset_id=project_id,
                                           author_name=author_name, author_permission=author_permission,group_name=group_name)
-
         
     def add_group_to_project_rec(self, project_id: str, author_name: str, author_permission: str, group_name:str):
         """Recursively adds author to all experiments and datasets in the project specified. """
-        self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        status_temp = True
+        temp = self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        if temp == False:
+            status_temp = False
         names = self.get_experiment_names(project_id=project_id)
-        responses = []
         for name in names:
-            responses.append(
-                self.add_group_to_experiment_rec(project_id=project_id, experiment_id=name, author_name=author_name,
-                                                  author_permission=author_permission, group_name=group_name))
+            temp = self.add_group_to_experiment(project_id=project_id, experiment_id=name, author_name=author_name,
+                                                  author_permission=author_permission, group_name=group_name)
+            # recursively adds groups to all datasets
+            if temp == False:
+                status_temp = False
             # recursively appends the author to each dataset
-        if False in responses:
-            return False
-        else:
-            return True      
-
+            dataset_names = self.get_dataset_names(project_id=project_id, experiment_id=name)
+            for name2 in dataset_names:
+                if name2 != name: # filters out experiment config files
+                    temp = self.add_group_to_dataset(author_name=author_name, author_permission=author_permission, group_name=group_name, project_id=project_id, experiment_id=name, dataset_id=name2 )
+                    if temp == False:
+                        status_temp = False
+        return status_temp
+   
     def add_group_to_dataset_rec(self, author_permission:str, author_name:str, group_name:str, project_id:str, experiment_id:str, dataset_id:str):
         """Adds an group to the project,experiment and dataset to enable to access. Uses the utility function add_group_to_dataset"""
         if not (type(author_name) == type("string") and type(author_permission) == type("string")):
@@ -418,10 +431,14 @@ class API_interface:
     
         # appends the author to the path that leads to this dataset to guarantee access
         responses = []
-        responses.append(self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name))
-        responses.append(self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name))
-        responses.append(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, group_name=group_name, project_id=project_id,experiment_id=experiment_id, dataset_id=dataset_id))
-        
+        print("checking the things exist")
+        print(self.check_dataset_exists(project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id))
+        temp = self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id, group_name=group_name)
+        print(temp)
+       # print(self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name))
+       # print(self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name))
+       # print(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id, group_name=group_name))
+       # print(responses) 
         if False in responses:
             return False
         else:
@@ -447,8 +464,6 @@ class API_interface:
         response = requests.get(self.path + "names_group", json=user_in.dict())
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
-
-
 
 # group call function
 # employs the /names functions to recall every dataset/experiment/project that is a member of the group
