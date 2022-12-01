@@ -162,6 +162,8 @@ class User(BaseModel):
     """Optional email variable"""
     full_name: Union[str, None] = None
     """Optional full name variable"""
+    tunnel_key: Union[str, None] = None
+    """Optional key used for secure communication with API"""
 
 
 class Author(BaseModel):

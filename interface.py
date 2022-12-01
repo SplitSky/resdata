@@ -6,6 +6,7 @@ from typing import List
 import requests
 from fastapi import status
 import datastructure as d
+from variables import API_key
 
 
 def return_hash(password: str):
@@ -179,6 +180,7 @@ class API_interface:
         # generate hash
         user_hash = return_hash(password=password_in)
         user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)
+        user.tunnel_key = return_hash(password=API_key)
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
         # API call to create user

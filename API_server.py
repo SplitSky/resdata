@@ -3,6 +3,7 @@
 """Data structure imports"""
 import json
 from datetime import datetime, timedelta
+from time import sleep
 
 """ Server and client imports """
 from typing import List, Union
@@ -16,8 +17,9 @@ import datastructure as d
 import variables as var
 """Authentication imports"""
 from security import User_Auth
-from variables import secret_key, algorithm, access_token_expire, cluster_id
-
+from variables import secret_key, algorithm, access_token_expire, cluster_id, API_key
+import hashlib as h
+from secrets import compare_digest
 string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
 
 """Connect to the backend variables"""
@@ -26,6 +28,12 @@ string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?r
 client = MongoClient(string)
 """Initialises the API"""
 app = FastAPI()
+
+def return_hash(password: str):
+    """ Hash function used by the API to decode. It is used to only send hashes and not plain passwords."""
+    temp = h.shake_256()
+    temp.update(password.encode('utf8'))
+    return temp.hexdigest(64)
 
 
 @app.get("/")
@@ -196,6 +204,13 @@ async def return_project_data(project_id: str) -> str:
 async def create_user(user: d.User) -> dict:
     # TODO: don't allow duplicate usernames -> not implemented
     """Create a new user"""
+    # verify the interface has the right code
+    sleep(1)
+    temp_key = user.tunnel_key
+    if type(temp_key) != None:
+        if not return_hash(API_key) == temp_key:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not using the appropriate interface.")
+
     auth_obj = User_Auth(user.username, user.hash_in, client)
     response = False
     if user.full_name != None and user.email != None:
