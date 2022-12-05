@@ -381,20 +381,14 @@ class API_interface:
         """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
         status_temp = True
         temp = self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
-        print(temp)
-        print("it's running. got catch it")
         # adds path
         if not temp:
             status_temp = False
         names = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
-        print("dataset names")
-        print(names)
         for name in names:
             #if name != experiment_id:
             #    # filter out experiment config names
             temp = self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,author_name=author_name, author_permission=author_permission,group_name=group_name)
-            print("add_group_to_dataset")
-            print("response: " + str(temp))
             if not temp:
                 status_temp = False
         return status_temp
@@ -433,19 +427,16 @@ class API_interface:
     
         # appends the author to the path that leads to this dataset to guarantee access
         responses = []
-        print("checking the things exist")
-        print(self.check_dataset_exists(project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id))
-        temp = self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id, group_name=group_name)
-        print(temp)
-       # print(self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name))
-       # print(self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name))
-       # print(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id, group_name=group_name))
-       # print(responses) 
+        if not self.check_dataset_exists(project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id):
+            raise Exception("The dataset doesn't exist")
+        responses.append(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id, group_name=group_name))
+        # create path to dataset recursively
+        responses.append(self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name))
+        responses.append(self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name))
         if False in responses:
             return False
         else:
             return True
-# group adding functions to be tested
 
 # group /names functions
     def get_experiment_names_group(self, project_id: str, group_name: str):

@@ -378,16 +378,16 @@ async def add_group_to_dataset(project_id : str, experiment_id : str, dataset_id
     # see if the author already exists. Raise exception if it does
     for entry in author_list:
         if author.name == entry.get("name"):
-            #if author.permission == entry.get("permission"):
-            if author.permission == "write":
+            if entry.get("permission") == "write":
                 # verifies the user has write access to assign group
                 group = d.Author(name=group_name, permission=author.permission)
                 author_list.append(group.dict())
                 client[project_id][experiment_id].find_one_and_update({"name" : dataset_id},{'$set' : {"author" : author_list}})
                 return True # terminate successfully 
-    
     # author doesn't exist. Raise exception as not allowed to append to group if the user doesn't have access to the dataset
-    return False
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The author doesn't have permission to add group to this dataset")
+    #return False
+
 
 # names function for groups
 @app.get("/names_group") # projects
