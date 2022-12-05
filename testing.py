@@ -176,7 +176,7 @@ def generate_model_data(list_size : int, lambda_temp : float):
            temp.append(counter)
    y = np.delete(y, temp)
    x = np.delete(x, temp)
-   return [x, y]
+   return [list(x), list(y)]
 
 
 def create_ring_object_2(ring_id : int, author_in : d.Author, size : int, dataset_size: int, value: int):

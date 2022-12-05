@@ -394,6 +394,7 @@ class API_interface:
         return status_temp
 
     def add_group_to_project(self, project_id: str, author_name: str, author_permission: str, group_name: str):
+        # TODO: change author_permission to group_permission
         """Updates the project config file and adds an author"""
         return self.add_group_to_dataset(project_id=project_id, experiment_id='config', dataset_id=project_id,
                                           author_name=author_name, author_permission=author_permission,group_name=group_name)
