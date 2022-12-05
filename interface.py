@@ -496,4 +496,12 @@ class API_interface:
         return names_list
 
         
+    def tree_print_group(self, group_name: str):
+        structure = self.author_query(group_name)
+        for project in structure:
+            print(project.get("project_id"))
+            for experiment in project.get("experiment_list"):
+                print("     -> " + experiment.get("experiment_id"))
+                for dataset in experiment.get("dataset_list"):
+                    print("         --> " + dataset)
 
