@@ -3,7 +3,6 @@ import json
 from datetime import date
 import random
 import numpy as np
-
 '''
 json file in -> dictionary format
 h5 file in -> conversion to json file format
@@ -17,7 +16,6 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     filename_in     string      the name of the json file
     structure       list        a list containing the number of the experiments and datasets [0,0]
     '''
-
     x = []
     y = []
     y2 = []

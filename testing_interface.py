@@ -2,6 +2,7 @@ import testing as t
 from interface import API_interface
 import datastructure as d
 path = "http://127.0.0.1:8000/"
+import time
 
 # tests to conduct
 
@@ -16,22 +17,34 @@ path = "http://127.0.0.1:8000/"
 # 10. User 2 insert dataset into experiment with read only permissions # TODO: This feature may not work but should be updated later
 
 # functions used to simplify the testing
-def create_project(dataset_size, structure, array_var_type):
+def send_fetch_cycle(dataset_size: int, structure, array_var_type):
     # dataset_size - indicates the size of the document that is produced
     # structure - [x,y] -> x = number of experiments; y = number of documents
     # array_var_type - the type of the number within the 
+
     username = "test_user"
     password = "some_password123"
     ui = API_interface(path)
-    ui.generate_token(username, password)
+    ui.purge_everything()
+    ui.create_user(username, password, "email", "full_name")
+    #create user
+
+    ui.generate_token(username, password) # authenticate the user
     # generate test_project
     file_name = "test_project.json"
     project_name = "test_project_1"
     t.create_test_file_project_time(filename_in=file_name, structure=structure, project_name=project_name, author_name=username, dataset_size=dataset_size ,variable_type=array_var_type)
     project_in = t.load_file_project(filename_out=file_name)
-    print(project_in.json())
+    # insert project
+    start = time.perf_counter() # start timing the function
     assert ui.insert_project(project=project_in) == True
+    # fetch project
+    ui.return_full_project(project_name=project_name)
+    end = time.perf_counter()
 
+    difference = (end - start)
+    print("Difference: " + str(difference))
+    return difference
 
 class TestClass:
     def test_0(self):
@@ -122,7 +135,7 @@ class TestClass:
         # user 2 tree print
         username = "test_user2"
         password = "wombat"
-        ui.generate_token(username=username, password=password)
+        ui.generate_token([10, 100, 1000, 10000, 100000, 1000000],username=username, password=password)
         ui.tree_print()
 
 
@@ -476,21 +489,9 @@ class TestClass:
         assert experiment_count == experiment_count_group
         assert dataset_count == dataset_count_group
         
-    def test_12(self):
-        # test for calculating timing complexity
-        dataset_size = 1
-        no_of_datasets = 1
-        no_of_experiments = 1
-        no_of_projects = 1
-        data_type = "array"
-
-        # runs and collects data regarding the time dependency on the complexity to estimate
-        # the O notation
-
-
 
 
 def main():
     test_class = TestClass()
-    test_class.test_0()
+    test_class.test_11()
 main()
