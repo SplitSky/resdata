@@ -505,3 +505,7 @@ class API_interface:
                 for dataset in experiment.get("dataset_list"):
                     print("         --> " + dataset)
 
+
+    def authenticate_interface():
+        # add an authentication layer on top of the user  
+        # 
