@@ -205,18 +205,32 @@ async def return_project_data(project_id: str) -> str:
         }
     return json.dumps(json_dict)
 
-@app.post("/create_user")
-async def create_user(user: d.User) -> dict:
-    # TODO: don't allow duplicate usernames -> not implemented
+@app.post("/create_user/{ui_public_key}")
+async def create_user(user: d.User, ui_public_key) -> dict:
     """Create a new user"""
-    # verify the interface has the right code
     sleep(1)
+    auth_obj = User_Auth(user.username, user.hash_in, client)
+    # passes initial string key authentication
+    auth_obj.read_keys()
     temp_key = user.tunnel_key
     if type(temp_key) != None:
         if not return_hash(API_key) == temp_key:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not using the appropriate interface.")
+    
+    private_key, public_key = auth_obj.read_keys()
 
-    auth_obj = User_Auth(user.username, user.hash_in, client)
+    user.username = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.username)
+    user.full_name = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.full_name)
+    user.email = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.email)
+    user.hash_in = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.hash_in)
+
+    # print variables for testing
+    print(user.username)
+    print(user.full_name)
+    print(user.email)
+    print(user.hash_in)
+
+    # create the user
     response = False
     if user.full_name != None and user.email != None:
         response = auth_obj.add_user(user.full_name, user.email)
@@ -415,7 +429,6 @@ async def return_all_project_names_group(author : d.Author):
     names = client.list_database_names()
 
     names_out = []
-    # 'Authentication', 'S_Church', 'admin', 'local'
     # remove the not data databases
     names.remove('Authentication')
     names.remove('admin')
@@ -509,40 +522,12 @@ async def purge_function():
         client.drop_database(db_name) # purge all documents in collection
 
 
-@app.post("/get_public_key/{ui_public_key}")
-async def return_public_key(ui_public_key: string):
+@app.post("/get_public_key")
+async def return_public_key():
     """Fetch the public key for encryption from the API"""
-    sleep(5)
+    sleep(1)
     u = User_Auth(username_in="", password_in="", db_client_in=client)
     # generate public and private keys
     private_key, public_key = u.generate_keys()
+    return {"public_key" : public_key}
 
-    # convert into bytes for storage
-    pem, pem2 = u.convert_keys_for_storage(private_key, public_key)
-
-    # insert it into the database
-
-
-
-
-
-    """Create a new user"""
-    # verify the interface has the right code
-    sleep(1)
-    temp_key = user.tunnel_key
-    if type(temp_key) != None:
-        if not return_hash(API_key) == temp_key:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not using the appropriate interface.")
-
-    auth_obj = User_Auth(user.username, user.hash_in, client)
-    response = False
-    if user.full_name != None and user.email != None:
-        response = auth_obj.add_user(user.full_name, user.email)
-    if response:
-        # successfully created user
-        return {"message": "User Successfully created"}
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User already exists"
-        )

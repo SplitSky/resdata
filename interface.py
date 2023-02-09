@@ -7,6 +7,7 @@ import requests
 from fastapi import status
 import datastructure as d
 from variables import API_key
+from ui_security import ui_security
 
 
 def return_hash(password: str):
@@ -177,6 +178,10 @@ class API_interface:
 
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
+        # generate public/private keys
+        u = ui_security(username_in=username_in, password_in=password_in)
+        u.generate_keys()
+        private_key, public_key = u.read_keys()
         # generate hash
         user_hash = return_hash(password=password_in)
         user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)
@@ -184,7 +189,7 @@ class API_interface:
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
         # API call to create user
-        response = requests.post(self.path + "create_user", json=user_out)
+        response = requests.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
         if response.status_code == 200:
             return True
         else:

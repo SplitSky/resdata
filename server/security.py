@@ -1,4 +1,5 @@
 from __future__ import annotations
+from os import wait
 from typing import Mapping, Any, Union
 from datetime import datetime, timedelta
 from pydantic.typing import NoneType
@@ -239,6 +240,7 @@ class User_Auth(object):
     def generate_keys(self):
         private_key = rsa.generate_private_key(public_exponent=65337, key_size=2048, backend=default_backend())
         public_key = private_key.public_key()
+        self.save_keys(private_key,public_key)
         return private_key, public_key
 
     def convert_keys_for_storage(self, private_key, public_key):
@@ -276,4 +278,22 @@ class User_Auth(object):
                                                 algorithm=hashes.SHA256(),label=None
                                             )
                                         )
+    def decrypt_message(self, message, private_key):
+        return private_key.decrypt(message, 
+                                   padding.OAEP(mgf=padding.MGF1(
+                                                    algorithm=hashes.SHA256()),
+                                                algorithm=hashes.SHA256(),
+                                                label=None)
+                                   )
+
+    def get_signed_message(self, private_key, ui_public_key, message):
+        final_message = self.decrypt_message(message, private_key)
+        return self.decrypt_message(final_message, ui_public_key)
+
+    def encrypt_and_sign_message(self, public_key, ui_private_key, message):
+        # sign
+        message_final = self.encrypt_message(message, ui_private_key) 
+        # encrypt
+        return self.encrypt_message(message_final, public_key)
+    
         
