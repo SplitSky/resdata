@@ -7,6 +7,11 @@ import hashlib as h
 import random
 from secrets import compare_digest
 from datetime import datetime, timedelta
+
+# cryptography module
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 # Server communications
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
@@ -25,6 +30,8 @@ class User_Auth(object):
         self.username = username_in
         self.password = password_in
         self.client = db_client_in
+        self.public_file_name = 'public_key.pem'
+        self.private_file_name = 'private_key.pem'
 
     def check_password_valid(self) -> bool:
         """Verifies that the password is valid"""
@@ -213,7 +220,7 @@ class User_Auth(object):
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User doesn't exist")
 
-   # def check_user_permission(self, username, permission_requested, project_id, experiment_id):
+# def check_user_permission(self, username, permission_requested, project_id, experiment_id):
    #     """Checks whether a user has the requested permission or higher"""
    #     collection_variable = self.client[project_id][experiment_id]
    #     result = collection_variable.find_one({"name" : experiment_id})
@@ -227,4 +234,46 @@ class User_Auth(object):
    #             if entry.get("permission") == permission_requested or entry.get("permission") == "admin":
    #                 return True
    #     return False
-                     
+                    
+
+    def generate_keys(self):
+        private_key = rsa.generate_private_key(public_exponent=65337, key_size=2048, backend=default_backend())
+        public_key = private_key.public_key()
+        return private_key, public_key
+
+    def convert_keys_for_storage(self, private_key, public_key):
+        pem = private_key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
+        pem2 = public_key.public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo)
+        return pem,pem2
+
+    def save_keys(self, private_key, public_key):
+        pem, pem2 = self.convert_keys_for_storage(private_key, public_key)
+        
+        with open(self.private_file_name, 'wb') as f:
+            f.write(pem)
+            f.close()
+
+        with open(self.public_file_name, 'wb') as f:
+            f.write(pem2)
+            f.close()
+        
+    def read_keys(self):
+        with open(self.private_file_name, "rb") as f:
+            private_key = serialization.load_pem_private_key(
+                f.read(),password=None, backend=default_backend()
+            )
+            f.close()
+        with open(self.public_file_name, "rb") as f:
+            public_key = serialization.load_pem_public_key(
+                f.read(), backend=default_backend()
+            )
+        return private_key, public_key
+
+    def encrypt_message(self,message, public_key):
+        return public_key.encrypt(message,
+                                       padding.OAEP(
+                                                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                                                algorithm=hashes.SHA256(),label=None
+                                            )
+                                        )
+        

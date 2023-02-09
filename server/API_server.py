@@ -21,6 +21,11 @@ from variables import secret_key, algorithm, access_token_expire, cluster_id, AP
 import hashlib as h
 from secrets import compare_digest
 string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
+"""Cryptography imports"""
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
 
 """Connect to the backend variables"""
 #string = f"mongodb+srv://{var.username}:{var.password}@cluster0.{cluster_id}.mongodb.net/?retryWrites=true&w=majority"
@@ -502,3 +507,42 @@ async def purge_function():
     names.remove('local') 
     for db_name in names:
         client.drop_database(db_name) # purge all documents in collection
+
+
+@app.post("/get_public_key/{ui_public_key}")
+async def return_public_key(ui_public_key: string):
+    """Fetch the public key for encryption from the API"""
+    sleep(5)
+    u = User_Auth(username_in="", password_in="", db_client_in=client)
+    # generate public and private keys
+    private_key, public_key = u.generate_keys()
+
+    # convert into bytes for storage
+    pem, pem2 = u.convert_keys_for_storage(private_key, public_key)
+
+    # insert it into the database
+
+
+
+
+
+    """Create a new user"""
+    # verify the interface has the right code
+    sleep(1)
+    temp_key = user.tunnel_key
+    if type(temp_key) != None:
+        if not return_hash(API_key) == temp_key:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not using the appropriate interface.")
+
+    auth_obj = User_Auth(user.username, user.hash_in, client)
+    response = False
+    if user.full_name != None and user.email != None:
+        response = auth_obj.add_user(user.full_name, user.email)
+    if response:
+        # successfully created user
+        return {"message": "User Successfully created"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User already exists"
+        )
