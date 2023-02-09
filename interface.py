@@ -505,7 +505,14 @@ class API_interface:
                 for dataset in experiment.get("dataset_list"):
                     print("         --> " + dataset)
 
-
-    def authenticate_interface():
-        # add an authentication layer on top of the user  
-        # 
+#"""Functions to write
+#1. Fetch API public key
+#2. Generate interface public and private keys as environment variables
+#3. Generate private and public keys in the API as .env file
+#4. send/receive message -> secure asymmetric function call
+#5. Adjust authentication for user creation and user authentication call
+#
+#"""
+#    def fetch_public_key(self):
+#        response = requests.get(self.path +"get_public_key"+ , json=user_in.dict())
+#        public_key = request.json()
