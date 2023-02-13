@@ -7,8 +7,10 @@ import requests
 from fastapi import status
 import datastructure as d
 from variables import API_key
-from ui_security import ui_security
+from PIL import Image
+import numpy as np
 
+from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
@@ -179,12 +181,34 @@ class API_interface:
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
         # generate public/private keys
-        u = ui_security(username_in=username_in, password_in=password_in)
+        u = key_manager()
         u.generate_keys()
         private_key, public_key = u.read_keys()
+        
+        print(private_key)
+        print(public_key)
+
+        # fetch API public key
+        response = requests.post(self.path + "get_public_key")
+        #api_public_key = response["public_key"]
+        print(response.json())
+        bytes_out = response.json().get("public_key")
+        # serialize key into object
+        public_key = u.serialize_public_key(bytes_out)
+
         # generate hash
         user_hash = return_hash(password=password_in)
+        
+        #encrypt and sign the entries
+        username_in = u.encrypt_message(public_key=public_key,message=username_in).decode('utf-8')
+        user_hash = u.encrypt_message(public_key=public_key, message=user_hash).decode('utf-8')
+        email = u.encrypt_message(public_key=public_key, message=email).decode('utf-8')
+        full_name = u.encrypt_message(public_key=public_key, message=full_name).decode('utf-8')
+
+        # mage the json object to send
         user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)
+        
+        #assign the tunnel key for the API
         user.tunnel_key = return_hash(password=API_key)
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
@@ -521,3 +545,15 @@ class API_interface:
 #    def fetch_public_key(self):
 #        response = requests.get(self.path +"get_public_key"+ , json=user_in.dict())
 #        public_key = request.json()
+    def convert_img_to_array(self, filename: str):
+        # TODO: Add path variable and allow for custom folders
+        img = Image.open(filename)
+        return list(np.array(img)) # TODO: Very lazy. Fix this
+
+    def convert_array_to_img(self, array: list, filename: str):
+        img = Image.fromarray(array)
+        try:
+            img.save(filename)
+            return True
+        except:
+            return False

@@ -11,7 +11,7 @@ class ui_security(object):
         self.private_file_name = 'privateKeyFile.pem'
 
     def generate_keys(self):
-        private_key = rsa.generate_private_key(public_exponent=65337, key_size=2048, backend=default_backend())
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
         public_key = private_key.public_key()
         self.save_keys(private_key,public_key)
         return private_key, public_key
@@ -58,13 +58,20 @@ class ui_security(object):
                                                 algorithm=hashes.SHA256(),
                                                 label=None)
                                    )
+    def serialize_public_key(self, pem):
+        return serialization.load_pem_public_key(
+                pem, backend=default_backend()
+            )
 
-    def get_signed_message(self, private_key, ui_public_key, message):
-        final_message = self.decrypt_message(message, private_key)
-        return self.decrypt_message(final_message, ui_public_key)
 
-    def encrypt_and_sign_message(self, public_key, ui_private_key, message):
-        # sign
-        message_final = self.encrypt_message(message, ui_private_key) 
-        # encrypt
-        return self.encrypt_message(message_final, public_key)
+
+    # TODO: Remove the functions. encyrption doesn't support singing
+    #def get_signed_message(self, private_key, ui_public_key, message):
+    #    final_message = self.decrypt_message(message, private_key)
+    #    return self.decrypt_message(final_message, ui_public_key)
+
+    #def encrypt_and_sign_message(self, public_key, ui_private_key, message):
+    #    # sign
+    #    message_final = self.encrypt_message(message, ui_private_key) 
+    #    # encrypt
+    #    return self.encrypt_message(message_final, public_key)

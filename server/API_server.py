@@ -219,16 +219,32 @@ async def create_user(user: d.User, ui_public_key) -> dict:
     
     private_key, public_key = auth_obj.read_keys()
 
-    user.username = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.username)
-    user.full_name = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.full_name)
-    user.email = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.email)
-    user.hash_in = auth_obj.get_signed_message(private_key=private_key, ui_public_key=ui_public_key,message=user.hash_in)
+    # remove
+    full_name = user.full_name
+    email = user.email
+    #
+
+    temp = user.username.encode('utf-8')
+    username = auth_obj.decrypt_message(private_key=private_key, message=temp)
+    
+    temp = user.hash_in.encode('utf-8')
+    hash_in = auth_obj.decrypt_message(private_key=private_key, message=temp)
+
+    if user.full_name != None:
+        temp = user.full_name.encode('utf-8')
+        full_name = auth_obj.decrypt_message(private_key=private_key, message=temp)
+
+    if user.email != None:
+        temp = user.email.encode('utf-8')
+        email = auth_obj.decrypt_message(private_key=private_key, message=temp)
+    
+
 
     # print variables for testing
-    print(user.username)
-    print(user.full_name)
-    print(user.email)
-    print(user.hash_in)
+    print(username)
+    print(full_name)
+    print(email)
+    print(hash_in)
 
     # create the user
     response = False
@@ -529,5 +545,7 @@ async def return_public_key():
     u = User_Auth(username_in="", password_in="", db_client_in=client)
     # generate public and private keys
     private_key, public_key = u.generate_keys()
-    return {"public_key" : public_key}
+    u.save_keys(private_key=private_key, public_key=public_key)
+    priv_bytes, pub_bytes = u.convert_keys_for_storage(private_key, public_key)
+    return {"public_key" : pub_bytes}
 
