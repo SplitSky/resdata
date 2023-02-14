@@ -496,6 +496,17 @@ class TestClass:
         arr = ui.convert_img_to_array(filename=file_name)
         cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg")
 
+        try :
+            with open("test_cat2.jpg") as f:
+                f.close()
+            result = True
+        except:
+            result = False
+        
+        assert result == True
+
+
+
 def main():
     test_class = TestClass()
     test_class.test_12()
