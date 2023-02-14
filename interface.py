@@ -516,7 +516,7 @@ class API_interface:
     def convert_img_to_array(self, filename: str):
         # TODO: Add path variable and allow for custom folders
         img = Image.open("images/"+filename)
-        return list(np.array(img)) # TODO: Very lazy. Fix this
+        return np.array(img).tolist() # TODO: Very lazy. Fix this
 
     def convert_array_to_img(self, array: list, filename: str):
         # converts an array into an image and saves in the script dicrectory

@@ -1,5 +1,5 @@
 # this file is used by Jupyter to run commands used in analysis and streamlines the interface
-import datastructure as d
+import server.datastructure as d
 import matplotlib.pyplot as plt
 import numpy as np
 
