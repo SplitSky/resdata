@@ -489,10 +489,14 @@ class TestClass:
         assert experiment_count == experiment_count_group
         assert dataset_count == dataset_count_group
 
-        
-
+    def test_12(self):
+        # tests creation and insertion of images
+        file_name = "test_cat.jpg"
+        ui = API_interface(path)
+        arr = ui.convert_img_to_array(filename=file_name)
+        cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg")
 
 def main():
     test_class = TestClass()
-    test_class.test_1()
+    test_class.test_12()
 main()
