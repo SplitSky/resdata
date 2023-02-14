@@ -5,9 +5,12 @@ import json
 from typing import List
 import requests
 from fastapi import status
-import datastructure as d
+import server.datastructure as d
 from variables import API_key
+from PIL import Image
+import numpy as np
 
+from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
@@ -177,14 +180,34 @@ class API_interface:
 
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
+        # TODO: Add signing to the encryption
+        # generate public/private keys
+        u = key_manager()
+        u.generate_keys()
+        private_key, public_key = u.read_keys()
+        # fetch API public key
+        response = requests.post(self.path + "get_public_key")
+        #api_public_key = response["public_key"]
+        bytes_out = response.json().get("public_key").encode('utf-8')
+        # serialize key into object
+        public_key = u.serialize_public_key(bytes_out)
         # generate hash
         user_hash = return_hash(password=password_in)
+        #encrypt and sign the entries
+        username_in = u.encrypt_message(public_key=public_key,message=username_in)
+        user_hash = u.encrypt_message(public_key=public_key, message=user_hash)
+        if len(email) > 0:
+            email = u.encrypt_message(public_key=public_key, message=email)
+        if len(full_name) > 0:
+            full_name = u.encrypt_message(public_key=public_key, message=full_name)
+        # mage the json object to send
         user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)
+        #assign the tunnel key for the API
         user.tunnel_key = return_hash(password=API_key)
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
         # API call to create user
-        response = requests.post(self.path + "create_user", json=user_out)
+        response = requests.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
         if response.status_code == 200:
             return True
         else:
@@ -199,21 +222,6 @@ class API_interface:
         response = requests.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
-
-    def try_authenticate(self):
-        # test function
-        # send empty database and extract the username and password and give results of authenticate user password
-        username = "shmek_the_legend"
-        password = "i_like_wombat"
-        email = "adwknjhd"
-        full_name = "Shmek Johnson"
-        self.create_user(username, password, email, full_name)
-        self.generate_token(username, password)
-        dataset = d.Dataset(name="auth_test", data=[1, 2, 3], meta={"note" : "Auth meta"}, data_type="testing",
-                            author=[d.Author(name="wombat", permission="write").dict()], data_headings=["test_heading"])
-        dataset.set_credentials(username, self.token)
-        response = requests.post(self.path + "testing_stuff", json=dataset.dict())
-        return response
 
     def get_experiment_names(self, project_id: str):
         user_in = d.Author(name=self.username, permission="none")
@@ -505,14 +513,16 @@ class API_interface:
                 for dataset in experiment.get("dataset_list"):
                     print("         --> " + dataset)
 
-#"""Functions to write
-#1. Fetch API public key
-#2. Generate interface public and private keys as environment variables
-#3. Generate private and public keys in the API as .env file
-#4. send/receive message -> secure asymmetric function call
-#5. Adjust authentication for user creation and user authentication call
-#
-#"""
-#    def fetch_public_key(self):
-#        response = requests.get(self.path +"get_public_key"+ , json=user_in.dict())
-#        public_key = request.json()
+    def convert_img_to_array(self, filename: str):
+        # TODO: Add path variable and allow for custom folders
+        img = Image.open("images/"+filename)
+        return list(np.array(img)) # TODO: Very lazy. Fix this
+
+    def convert_array_to_img(self, array: list, filename: str):
+        # converts an array into an image and saves in the script dicrectory
+        img = Image.fromarray(np.array(array))
+        try:
+            img.save("images/"+filename)
+            return True
+        except:
+            return False

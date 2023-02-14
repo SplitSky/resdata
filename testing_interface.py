@@ -1,6 +1,6 @@
 import testing as t
 from interface import API_interface
-import datastructure as d
+import server.datastructure as d
 path = "http://127.0.0.1:8000/"
 import time
 
@@ -135,7 +135,7 @@ class TestClass:
         # user 2 tree print
         username = "test_user2"
         password = "wombat"
-        ui.generate_token([10, 100, 1000, 10000, 100000, 1000000],username=username, password=password)
+        ui.generate_token(username=username, password=password) 
         ui.tree_print()
 
 
@@ -488,10 +488,15 @@ class TestClass:
         assert project_count == project_count_group
         assert experiment_count == experiment_count_group
         assert dataset_count == dataset_count_group
-        
 
+    def test_12(self):
+        # tests creation and insertion of images
+        file_name = "test_cat.jpg"
+        ui = API_interface(path)
+        arr = ui.convert_img_to_array(filename=file_name)
+        cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg")
 
 def main():
     test_class = TestClass()
-    test_class.test_11()
+    test_class.test_12()
 main()

@@ -21,6 +21,11 @@ from variables import secret_key, algorithm, access_token_expire, cluster_id, AP
 import hashlib as h
 from secrets import compare_digest
 string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
+"""Cryptography imports"""
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
 
 """Connect to the backend variables"""
 #string = f"mongodb+srv://{var.username}:{var.password}@cluster0.{cluster_id}.mongodb.net/?retryWrites=true&w=majority"
@@ -200,21 +205,38 @@ async def return_project_data(project_id: str) -> str:
         }
     return json.dumps(json_dict)
 
-@app.post("/create_user")
-async def create_user(user: d.User) -> dict:
-    # TODO: don't allow duplicate usernames -> not implemented
+@app.post("/create_user/{ui_public_key}")
+async def create_user(user: d.User, ui_public_key) -> dict:
     """Create a new user"""
-    # verify the interface has the right code
     sleep(1)
+    auth_obj = User_Auth(user.username, user.hash_in, client)
+    # passes initial string key authentication
+    auth_obj.read_keys()
     temp_key = user.tunnel_key
     if type(temp_key) != None:
         if not return_hash(API_key) == temp_key:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not using the appropriate interface.")
+    
+    private_key, public_key = auth_obj.read_keys()
 
-    auth_obj = User_Auth(user.username, user.hash_in, client)
+    list_temp = [user.username, user.hash_in, user.full_name, user.email]
+    temp = []
+
+    for message in list_temp:
+        temp.append(auth_obj.decrypt_message(message=message, private_key=private_key))
+    username = auth_obj.decrypt_message(private_key=private_key, message=user.username)
+    # create the user
+    username = temp[0]
+    hash_in = temp[1]
+    full_name = temp[2]
+    email = temp[3]
+
     response = False
-    if user.full_name != None and user.email != None:
-        response = auth_obj.add_user(user.full_name, user.email)
+    if full_name != None and email != None:
+        # reassign username and hash for the decrypted versions
+        auth_obj.username = username
+        auth_obj.password = hash_in
+        response = auth_obj.add_user(full_name, email)
     if response:
         # successfully created user
         return {"message": "User Successfully created"}
@@ -410,7 +432,6 @@ async def return_all_project_names_group(author : d.Author):
     names = client.list_database_names()
 
     names_out = []
-    # 'Authentication', 'S_Church', 'admin', 'local'
     # remove the not data databases
     names.remove('Authentication')
     names.remove('admin')
@@ -502,3 +523,16 @@ async def purge_function():
     names.remove('local') 
     for db_name in names:
         client.drop_database(db_name) # purge all documents in collection
+
+
+@app.post("/get_public_key")
+async def return_public_key():
+    """Fetch the public key for encryption from the API"""
+    sleep(1)
+    u = User_Auth(username_in="", password_in="", db_client_in=client)
+    # generate public and private keys
+    private_key, public_key = u.generate_keys()
+    u.save_keys(private_key=private_key, public_key=public_key)
+    priv_bytes, pub_bytes = u.convert_keys_for_storage(private_key, public_key)
+    return {"public_key" : pub_bytes}
+
