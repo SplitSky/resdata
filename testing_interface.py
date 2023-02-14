@@ -1,6 +1,6 @@
 import testing as t
 from interface import API_interface
-import datastructure as d
+import server.datastructure as d
 path = "http://127.0.0.1:8000/"
 import time
 
@@ -135,7 +135,7 @@ class TestClass:
         # user 2 tree print
         username = "test_user2"
         password = "wombat"
-        ui.generate_token([10, 100, 1000, 10000, 100000, 1000000],username=username, password=password)
+        ui.generate_token(username=username, password=password) 
         ui.tree_print()
 
 

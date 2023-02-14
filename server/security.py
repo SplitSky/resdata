@@ -63,25 +63,34 @@ class key_manager(object):
                 f.read(), backend=default_backend()
             )
         return private_key, public_key
-    def encrypt_message(self,message, public_key):
-        return public_key.encrypt(message,
+    def encrypt_message(self,message : str, public_key)->str:
+        message_temp = bytes(message, encoding='latin-1')
+        temp = public_key.encrypt(message_temp,
                                        padding.OAEP(
                                                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                                                 algorithm=hashes.SHA256(),label=None
                                             )
                                         )
-    def decrypt_message(self, message, private_key):
-        return private_key.decrypt(message, 
+        temp = temp.decode('latin-1')
+        return temp
+
+    def decrypt_message(self, message : str, private_key)->str:
+        message_temp = bytes(message, encoding='latin-1')
+        temp = private_key.decrypt(message_temp, 
                                    padding.OAEP(mgf=padding.MGF1(
                                                     algorithm=hashes.SHA256()),
                                                 algorithm=hashes.SHA256(),
                                                 label=None)
                                    )
+        temp = temp.decode('latin-1')
+        return temp
 
     def serialize_public_key(self, pem):
-        return serialization.load_pem_public_key(
+         
+        key =  serialization.load_pem_public_key(
                 pem, backend=default_backend()
             )
+        return key
 
 
 

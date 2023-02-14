@@ -219,37 +219,24 @@ async def create_user(user: d.User, ui_public_key) -> dict:
     
     private_key, public_key = auth_obj.read_keys()
 
-    # remove
-    full_name = user.full_name
-    email = user.email
-    #
+    list_temp = [user.username, user.hash_in, user.full_name, user.email]
+    temp = []
 
-    temp = user.username.encode('utf-8')
-    username = auth_obj.decrypt_message(private_key=private_key, message=temp)
-    
-    temp = user.hash_in.encode('utf-8')
-    hash_in = auth_obj.decrypt_message(private_key=private_key, message=temp)
-
-    if user.full_name != None:
-        temp = user.full_name.encode('utf-8')
-        full_name = auth_obj.decrypt_message(private_key=private_key, message=temp)
-
-    if user.email != None:
-        temp = user.email.encode('utf-8')
-        email = auth_obj.decrypt_message(private_key=private_key, message=temp)
-    
-
-
-    # print variables for testing
-    print(username)
-    print(full_name)
-    print(email)
-    print(hash_in)
-
+    for message in list_temp:
+        temp.append(auth_obj.decrypt_message(message=message, private_key=private_key))
+    username = auth_obj.decrypt_message(private_key=private_key, message=user.username)
     # create the user
+    username = temp[0]
+    hash_in = temp[1]
+    full_name = temp[2]
+    email = temp[3]
+
     response = False
-    if user.full_name != None and user.email != None:
-        response = auth_obj.add_user(user.full_name, user.email)
+    if full_name != None and email != None:
+        # reassign username and hash for the decrypted versions
+        auth_obj.username = username
+        auth_obj.password = hash_in
+        response = auth_obj.add_user(full_name, email)
     if response:
         # successfully created user
         return {"message": "User Successfully created"}

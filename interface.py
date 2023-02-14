@@ -5,7 +5,7 @@ import json
 from typing import List
 import requests
 from fastapi import status
-import datastructure as d
+import server.datastructure as d
 from variables import API_key
 from PIL import Image
 import numpy as np
@@ -180,30 +180,31 @@ class API_interface:
 
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
+        # TODO: Add signing to the encryption
         # generate public/private keys
         u = key_manager()
         u.generate_keys()
         private_key, public_key = u.read_keys()
-        
-        print(private_key)
-        print(public_key)
-
         # fetch API public key
         response = requests.post(self.path + "get_public_key")
         #api_public_key = response["public_key"]
         print(response.json())
-        bytes_out = response.json().get("public_key")
+        bytes_out = response.json().get("public_key").encode('utf-8')
         # serialize key into object
+        print(bytes_out)
+
         public_key = u.serialize_public_key(bytes_out)
 
         # generate hash
         user_hash = return_hash(password=password_in)
         
         #encrypt and sign the entries
-        username_in = u.encrypt_message(public_key=public_key,message=username_in).decode('utf-8')
-        user_hash = u.encrypt_message(public_key=public_key, message=user_hash).decode('utf-8')
-        email = u.encrypt_message(public_key=public_key, message=email).decode('utf-8')
-        full_name = u.encrypt_message(public_key=public_key, message=full_name).decode('utf-8')
+        username_in = u.encrypt_message(public_key=public_key,message=username_in)
+        user_hash = u.encrypt_message(public_key=public_key, message=user_hash)
+        if len(email) > 0:
+            email = u.encrypt_message(public_key=public_key, message=email)
+        if len(full_name) > 0:
+            full_name = u.encrypt_message(public_key=public_key, message=full_name)
 
         # mage the json object to send
         user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)

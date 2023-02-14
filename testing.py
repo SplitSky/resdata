@@ -1,4 +1,4 @@
-import datastructure as d
+import server.datastructure as d
 import json
 from datetime import date
 import random
