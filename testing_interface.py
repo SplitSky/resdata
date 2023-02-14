@@ -3,6 +3,7 @@ from interface import API_interface
 import server.datastructure as d
 path = "http://127.0.0.1:8000/"
 import time
+from os.path import exists
 
 # tests to conduct
 
@@ -496,18 +497,11 @@ class TestClass:
         arr = ui.convert_img_to_array(filename=file_name)
         cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg")
 
-        try :
-            with open("test_cat2.jpg") as f:
-                f.close()
-            result = True
-        except:
-            result = False
-        
-        assert result == True
+        assert exists("images/test_cat2.jpg") == True 
 
 
 
-def main():
-    test_class = TestClass()
-    test_class.test_12()
-main()
+#def main():
+#    test_class = TestClass()
+#    test_class.test_12()
+#main()
