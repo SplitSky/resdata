@@ -586,6 +586,7 @@ class API_interface:
         while not self.check_object_size(object=datasets[0]):
             fragments = []
             for entry in datasets:
+                a = 1 # remove
                 
             '''
             Note: When fetching the data from the datasets collect it using meta_search and 
