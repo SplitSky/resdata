@@ -499,9 +499,38 @@ class TestClass:
 
         assert exists("images/test_cat2.jpg") == True 
 
+    def test_13(self):
+        # test the API handling of images
+        file_name = "test_cat.jpg"
+        ui = API_interface(path)
+        ui.purge_everything()
+        arr = ui.convert_img_to_array(filename=file_name)
 
+        # create a project and send the dataset
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        ui.create_user(username_in=username, password_in=password, email="a", full_name="a")
+        ui.generate_token(username, password)
+        # generate test_project
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
+        project_in = t.load_file_project(filename_out=file_name)
+        print(project_in.json())
+        assert ui.insert_project(project=project_in) == True
 
-#def main():
-#    test_class = TestClass()
-#    test_class.test_12()
-#main()
+        # insert an additional dataset
+        author = d.Author(name=username, permission="write")
+        dataset_in = d.Dataset(name="image", data=arr, meta={"cat_name" : "cat"}, data_type="image", author=[author.dict()],data_headings=[])
+        #print(dataset_in)
+        ui.insert_dataset("project_test_0", "experiment_test 0",dataset_in)
+        ui.tree_print()
+        dataset = ui.return_full_dataset("project_test_0", "experiment_test 0", "image")
+        #ui.convert_array_to_img(dataset.data, "test_cat2.jpg")
+        
+
+def main():
+    test_class = TestClass()
+    test_class.test_13()
+main()

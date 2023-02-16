@@ -9,8 +9,14 @@ import server.datastructure as d
 from variables import API_key
 from PIL import Image
 import numpy as np
+import sys
 
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
+
+# max size variable
+max_size = 16793598 # bytes
+
+
 
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
@@ -516,7 +522,13 @@ class API_interface:
     def convert_img_to_array(self, filename: str):
         # TODO: Add path variable and allow for custom folders
         img = Image.open("images/"+filename)
-        return np.array(img).tolist() # TODO: Very lazy. Fix this
+        arraydata = np.asarray(img)
+        arraydata = arraydata.tolist()
+        #return np.array(img).tolist() # TODO: Very lazy. Fix this
+        print(arraydata)
+        print("type")
+        print(type(arraydata))
+        return arraydata
 
     def convert_array_to_img(self, array: list, filename: str):
         # converts an array into an image and saves in the script dicrectory
@@ -526,3 +538,63 @@ class API_interface:
             return True
         except:
             return False
+    def check_object_size(self, object: d.Dataset):
+        # Returns true if the dataset has size that exceeds max size
+        temp = object.json()
+        size = sys.getsizeof(json.dumps(temp))
+        if size >= max_size:
+            return False
+        else:
+            return True
+
+    def slice_array(self, dataset: d.Dataset):
+            array = dataset.data
+            # split into 2
+            half_point = len(array) // 2
+            arr1 = array[:half_point]
+            arr2 = array[half_point+1:]
+            return [arr1, arr2]
+
+    def fragment_datasets(self, dataset: d.Dataset):
+        # Fragment the dataset
+        # linking by meta_data variable -> "fragmented: True"
+        # -> "fragmented_id: int"
+
+        # dataset variables
+        '''
+        name
+        data x
+        meta
+        data_type
+        author
+        data_headings
+        '''
+        # check the dataset needs to be fragmented
+        if self.check_object_size(object=dataset):
+            # modify the metadata by adding the "fragmented" entry
+            if dataset.meta != None:
+                dataset.meta["fragmented"] = True
+            else:
+                dataset.meta = {"fragmented" : True}
+            # continue with data fragmentation
+            front_dataset = 
+        else:
+            return [dataset]
+
+        datasets = []
+        # while the object exceeds maximum size split into two. Do as many times as necessary
+        while not self.check_object_size(object=datasets[0]):
+            fragments = []
+            for entry in datasets:
+                
+            '''
+            Note: When fetching the data from the datasets collect it using meta_search and 
+            save an entry in the meta data called: "parent_dataset" to allow for linking the datasets together
+            Requires modifications in the "insert_dataset" and "return_dataset" functions
+            '''    
+
+
+        # end while
+        # return the datasets
+
+        
