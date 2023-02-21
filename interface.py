@@ -547,15 +547,14 @@ class API_interface:
         else:
             return True
 
-    def slice_array(self, dataset: d.Dataset):
-            array = dataset.data
+    def slice_array(self, array: list):
             # split into 2
             half_point = len(array) // 2
             arr1 = array[:half_point]
             arr2 = array[half_point+1:]
             return [arr1, arr2]
 
-    def fragment_datasets(self, dataset: d.Dataset):
+    def fragment_datasets(self, dataset: d.Dataset) -> List[d.Dataset]:
         # Fragment the dataset
         # linking by meta_data variable -> "fragmented: True"
         # -> "fragmented_id: int"
@@ -577,25 +576,58 @@ class API_interface:
             else:
                 dataset.meta = {"fragmented" : True}
             # continue with data fragmentation
-            front_dataset = 
         else:
             return [dataset]
 
-        datasets = []
+        # generate first dataset
+        front_dataset = d.Dataset(name=dataset.name, data=[0], meta=dataset.meta, data_type=dataset.data_type, username=dataset.username, token=dataset.token, data_headings=dataset.data_headings, author=dataset.author)
+
+        datasets = [dataset]
         # while the object exceeds maximum size split into two. Do as many times as necessary
         while not self.check_object_size(object=datasets[0]):
-            fragments = []
+            fragments = [] # stores the segmented arrays
+            datasets_temp = [] # stores the segmented datasets
             for entry in datasets:
-                a = 1 # remove
-                
+                arr1, arr2 = self.slice_array(entry.data)
+                fragments.append(arr1)
+                # TODO: Check if fragments is needed
+                fragments.append(arr2)
+                # recombine the datasets
+                temp = d.Dataset(name=dataset.name + "- part", data=arr1, meta=None, data_type=dataset.data_type, data_headings=dataset.data_headings, author=[])
+                datasets_temp.append(temp)
+                temp = d.Dataset(name=dataset.name + "- part", data=arr2, meta=None, data_type=dataset.data_type, data_headings=dataset.data_headings, author=[])
+                datasets_temp.append(temp)
+                # don't assign author to keep the dataset hidden
+            #end for
+            datasets = datasets_temp
+               
+        # data fragmented enough for storage
+
+        # populate the front dataset
+        front_dataset.data = datasets[0].data
+        datasets.pop(0)
+        temp_meta = {"number_of_fragments" : len(datasets)-1}
+        if front_dataset.meta == None:
+            front_dataset.meta = {"fragmented" : True, "number_of_fragments" : len(datasets)-1}
+        else:
+            front_dataset.meta["number_of_fragments"] = len(datasets)-1
+        # add the meta data variable fragmented id number
+        i = 0
+        for entry in datasets:
+            entry.name = front_dataset.name + "-part " + str(i)
+            if entry.meta == None:
+                entry.meta = {"fragment_id" : i, "parent_dataset" : front_dataset.name}
+            else:
+                entry.meta["fragment_id"] = i
+                entry.meta["parent_dataset"] = front_dataset.name
+
             '''
             Note: When fetching the data from the datasets collect it using meta_search and 
             save an entry in the meta data called: "parent_dataset" to allow for linking the datasets together
             Requires modifications in the "insert_dataset" and "return_dataset" functions
             '''    
-
-
         # end while
         # return the datasets
+        return datasets
 
         
