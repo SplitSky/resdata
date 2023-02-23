@@ -216,12 +216,9 @@ async def create_user(user: d.User, ui_public_key) -> dict:
     if type(temp_key) != None:
         if not return_hash(API_key) == temp_key:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not using the appropriate interface.")
-    
     private_key, public_key = auth_obj.read_keys()
-
     list_temp = [user.username, user.hash_in, user.full_name, user.email]
     temp = []
-
     for message in list_temp:
         temp.append(auth_obj.decrypt_message(message=message, private_key=private_key))
     username = auth_obj.decrypt_message(private_key=private_key, message=user.username)
@@ -230,7 +227,6 @@ async def create_user(user: d.User, ui_public_key) -> dict:
     hash_in = temp[1]
     full_name = temp[2]
     email = temp[3]
-
     response = False
     if full_name != None and email != None:
         # reassign username and hash for the decrypted versions
@@ -430,14 +426,11 @@ async def return_all_project_names_group(author : d.Author):
             detail= "The user hasn't authenticated"
         )
     names = client.list_database_names()
-
     names_out = []
     # remove the not data databases
     names.remove('Authentication')
     names.remove('admin')
     names.remove('local')
-    
-
     for name in names:
         # fetch database config file
         temp_project = client[name]
@@ -535,4 +528,32 @@ async def return_public_key():
     u.save_keys(private_key=private_key, public_key=public_key)
     priv_bytes, pub_bytes = u.convert_keys_for_storage(private_key, public_key)
     return {"public_key" : pub_bytes}
+
+@app.post("/{project_name}/{experiment_name}/{dataset_name}/collect_fragments_names")
+async def collect_fragments(project_name: str, experiment_name : str, dataset_name : str, user: d.User):
+    """Collect the dataset parts of a fragmented dataset and return their names"""
+    # authenticate user
+    current_user = User_Auth(username_in=user.username, password_in=user.hash_in, db_client_in=client)
+    if not current_user.authenticate_token():
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The token failed to authenticate")
+    # authenticate the user access to the dataset
+    if not current_user.check_author(project_id=project_name, experiment_id=experiment_name, dataset_id=dataset_name):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You don't have access to the dataset")
+    names = []
+    search_variables = {"parent_dataset" : dataset_name}
+    for dataset in client[project_name][experiment_name].find():
+        # dataset is a dictionary
+        found = True
+        for key_meta, value_meta in search_variables.items():
+        # dataset.meta[search_meta] - look up of the meta dictionary
+            if dataset.get("meta").get(key_meta) == None: # database doesn't have the mete variable with the given name
+                found = False # return false
+            else:
+                if dataset.get("meta").get(key_meta) != value_meta:
+                    found = False
+        # end of for loop
+        if found == True:
+            names.append(dataset.get("name")) # appends names to a list
+    return {"names" : names}
+
 

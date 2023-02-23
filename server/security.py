@@ -289,6 +289,17 @@ class User_Auth(key_manager):
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User doesn't exist")
 
+    def check_author(self, project_id, experiment_id, dataset_id) -> bool:
+        """Verifies the dataset in the given path has the specified author and returns True if access is allowed"""
+        experiment = self.client[project_id][experiment_id]
+        result = experiment.find_one({"name" : dataset_id})
+        if result != None:
+            author_list = result.get("author")
+            for author in author_list:
+                if author.get("name") == self.username:
+                    return True
+        return False
+
 # def check_user_permission(self, username, permission_requested, project_id, experiment_id):
    #     """Checks whether a user has the requested permission or higher"""
    #     collection_variable = self.client[project_id][experiment_id]

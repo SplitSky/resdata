@@ -142,4 +142,6 @@ notes.txt
 test.py
 variables2.py
 variables.py
+*.pem
+/*.pem
 

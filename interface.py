@@ -5,6 +5,7 @@ import json
 from typing import List
 import requests
 from fastapi import status
+from server.API_server import meta_search
 import server.datastructure as d
 from variables import API_key
 from PIL import Image
@@ -48,16 +49,36 @@ class API_interface:
             raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-        requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
-        return True
+        
+        # dataset is less than maximum size
+        if self.check_object_size(dataset_in):
+            requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+            return True
+        else:
+            # dataset needs fragmentation
+            datasets = self.fragment_datasets(dataset_in)
+            for dataset_temp in datasets:
+                # insert each dataset
+                dataset_temp.set_credentials(self.username, self.token)
+                requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+            return True
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):  # -> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
         user_in = d.User(username=self.username, hash_in=self.token)
         response = requests.post(
-            url=self.path + project_name + "/" + experiment_name + "/" + dataset_name + "/return_dataset",
+            url=f'{self.path}{project_name}/{experiment_name}/{dataset_name}/return_dataset',
             json=user_in.dict())
         temp = json.loads(response.json())
+
+        # see if the dataset is fragmented
+        if temp.meta["fragmented"] == True:
+            # recollect the dataset
+            front_dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
+                             data_type=temp.get("data_type"), author=temp.get("author"),
+                             data_headings=temp.get("data_headings"))
+            data_to_append = self.collect_frag_data(temp.get("name"),)
+
         if temp.get("message") == None:
             # the database was found
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
@@ -559,15 +580,6 @@ class API_interface:
         # linking by meta_data variable -> "fragmented: True"
         # -> "fragmented_id: int"
 
-        # dataset variables
-        '''
-        name
-        data x
-        meta
-        data_type
-        author
-        data_headings
-        '''
         # check the dataset needs to be fragmented
         if self.check_object_size(object=dataset):
             # modify the metadata by adding the "fragmented" entry
@@ -600,9 +612,7 @@ class API_interface:
                 # don't assign author to keep the dataset hidden
             #end for
             datasets = datasets_temp
-               
         # data fragmented enough for storage
-
         # populate the front dataset
         front_dataset.data = datasets[0].data
         datasets.pop(0)
@@ -626,8 +636,32 @@ class API_interface:
             save an entry in the meta data called: "parent_dataset" to allow for linking the datasets together
             Requires modifications in the "insert_dataset" and "return_dataset" functions
             '''    
-        # end while
+        # append the front dataset
+        datasets.insert(0,front_dataset)
         # return the datasets
         return datasets
 
+    def collect_frag_data(self, front_dataset : d.Dataset,user_in : d.User ,project_name, experiment_name) -> d.Dataset:
+        # get the names of the datasets by using meta search
         
+        # API call to retrieve the full list of names
+        response = requests.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
+        response = response.json()
+        response = requests.get(self.path + "names_group", json=user_in.dict())
+        
+        names = response.json()
+        print(f'names: {names}')
+        data_to_append = []
+        
+        for name in names:
+            dataset = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name)
+            if dataset != None:
+                data_to_append.append(dataset.data)
+        full_data = []
+        for entry in data_to_append:
+            full_data += entry
+
+        # append data 
+        front_dataset.data = full_data
+
+        return front_dataset
