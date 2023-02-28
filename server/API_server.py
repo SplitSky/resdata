@@ -117,6 +117,9 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) ->
 @app.post("/{project_id}/{experiment_id}/insert_dataset")
 async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_insert: d.Dataset) -> str:
     """Insert a dataset into the experiment listed"""
+    print("dataset inserted name")
+    print(dataset_to_insert.name)
+
     experiments = client[project_id][experiment_id]
     dataset_credentials = dataset_to_insert.return_credentials()
     if dataset_credentials[0] != None and dataset_credentials[1] != None:

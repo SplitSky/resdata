@@ -5,7 +5,6 @@ import json
 from typing import List
 import requests
 from fastapi import status
-from server.API_server import meta_search
 import server.datastructure as d
 from variables import API_key
 from PIL import Image
@@ -15,8 +14,8 @@ import sys
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
 # max size variable
-max_size = 16793598 # bytes
-
+#max_size = 16793598 # bytes
+max_size = 6478488
 
 
 def return_hash(password: str):
@@ -51,17 +50,32 @@ class API_interface:
         dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
         
         # dataset is less than maximum size
+        print("check object size")
+        #print(self.check_object_size(dataset_in))
+
         if self.check_object_size(dataset_in):
+            # dataset within parameters
+            # proceed without fragmentation
             requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
             return True
         else:
+            print("dataset fragmentation")
             # dataset needs fragmentation
             datasets = self.fragment_datasets(dataset_in)
+            responses = []
+            print("datasets are fragmented now sending")
             for dataset_temp in datasets:
+                print("dataset sent")
+                print(dataset_temp.name)
                 # insert each dataset
                 dataset_temp.set_credentials(self.username, self.token)
-                requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
-            return True
+                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+                print(response)
+                responses.append(response)
+            if False in responses:
+                return False
+            else:
+                return True
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):  # -> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
@@ -71,21 +85,19 @@ class API_interface:
             json=user_in.dict())
         temp = json.loads(response.json())
 
-        # see if the dataset is fragmented
-        if temp.meta["fragmented"] == True:
-            # recollect the dataset
-            front_dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
-                             data_type=temp.get("data_type"), author=temp.get("author"),
-                             data_headings=temp.get("data_headings"))
-            data_to_append = self.collect_frag_data(temp.get("name"),)
-
-        if temp.get("message") == None:
-            # the database was found
+        if temp.get("message") == None and temp.get("meta").get("fragmented") == False:
+            # the database was found and the data wasn't fragmented
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                              data_type=temp.get("data_type"), author=temp.get("author"),
                              data_headings=temp.get("data_headings"))
-        else:
-            return None
+        
+        # if the dataset is fragmented
+        # recollect the dataset
+        front_dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
+                        data_type=temp.get("data_type"), author=temp.get("author"),
+                        data_headings=temp.get("data_headings"))
+        front_dataset = self.collect_frag_data(front_dataset=front_dataset, project_name=project_name, experiment_name=experiment_name, user_in=user_in)
+        return front_dataset
 
     def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
         """ The function which utilises insert_dataset to recursively insert a full experiment and initialise it if it doesn't exist. """
@@ -546,9 +558,9 @@ class API_interface:
         arraydata = np.asarray(img)
         arraydata = arraydata.tolist()
         #return np.array(img).tolist() # TODO: Very lazy. Fix this
-        print(arraydata)
-        print("type")
-        print(type(arraydata))
+        #print(arraydata)
+        #print("type")
+        #print(type(arraydata))
         return arraydata
 
     def convert_array_to_img(self, array: list, filename: str):
@@ -560,9 +572,10 @@ class API_interface:
         except:
             return False
     def check_object_size(self, object: d.Dataset):
-        # Returns true if the dataset has size that exceeds max size
+        # Returns True if the dataset has size that doesn't exceeds max size
         temp = object.json()
         size = sys.getsizeof(json.dumps(temp))
+        print(f'size: {size}')
         if size >= max_size:
             return False
         else:
@@ -581,7 +594,7 @@ class API_interface:
         # -> "fragmented_id: int"
 
         # check the dataset needs to be fragmented
-        if self.check_object_size(object=dataset):
+        if not self.check_object_size(object=dataset):
             # modify the metadata by adding the "fragmented" entry
             if dataset.meta != None:
                 dataset.meta["fragmented"] = True
@@ -616,11 +629,10 @@ class API_interface:
         # populate the front dataset
         front_dataset.data = datasets[0].data
         datasets.pop(0)
-        temp_meta = {"number_of_fragments" : len(datasets)-1}
         if front_dataset.meta == None:
-            front_dataset.meta = {"fragmented" : True, "number_of_fragments" : len(datasets)-1}
+            front_dataset.meta = {"fragmented" : True, "number_of_fragments" : len(datasets)}
         else:
-            front_dataset.meta["number_of_fragments"] = len(datasets)-1
+            front_dataset.meta["number_of_fragments"] = len(datasets)
         # add the meta data variable fragmented id number
         i = 0
         for entry in datasets:
@@ -630,12 +642,8 @@ class API_interface:
             else:
                 entry.meta["fragment_id"] = i
                 entry.meta["parent_dataset"] = front_dataset.name
+            i += 1
 
-            '''
-            Note: When fetching the data from the datasets collect it using meta_search and 
-            save an entry in the meta data called: "parent_dataset" to allow for linking the datasets together
-            Requires modifications in the "insert_dataset" and "return_dataset" functions
-            '''    
         # append the front dataset
         datasets.insert(0,front_dataset)
         # return the datasets
@@ -658,6 +666,7 @@ class API_interface:
             if dataset != None:
                 data_to_append.append(dataset.data)
         full_data = []
+        # TODO: make sure the fragments are sorted in the right order
         for entry in data_to_append:
             full_data += entry
 
