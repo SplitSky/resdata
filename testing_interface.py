@@ -517,17 +517,16 @@ class TestClass:
         project_name = "test_project_1"
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_in = t.load_file_project(filename_out=file_name)
-        print(project_in.json())
         assert ui.insert_project(project=project_in) == True
-
-       # insert an additional dataset
+        # insert an additional dataset
         author = d.Author(name=username, permission="write")
         dataset_in = d.Dataset(name="image", data=arr, meta={"cat_name" : "cat"}, data_type="image", author=[author.dict()],data_headings=[])
         #print(dataset_in)
         ui.insert_dataset(project_name, "experiment_0",dataset_in)
-        #ui.tree_print()
-       # dataset = ui.return_full_dataset("project_test_0", "experiment_test 0", "image")
-       # #ui.convert_array_to_img(dataset.data, "test_cat2.jpg")
+        ui.tree_print()
+
+        dataset = ui.return_full_dataset("project_test_0", "experiment_test 0", "image")
+        #ui.convert_array_to_img(dataset.data, "test_cat2.jpg")
         
 
 def main():

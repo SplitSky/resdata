@@ -100,6 +100,13 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) ->
     # Connect to experiment
     experiment_collection = client[project_id][experiment_id]
     result = experiment_collection.find_one({"name": dataset_id})
+
+    #remove
+    print(result)
+    print(dataset_id)
+    print(user)
+    #remove
+
     if result is None:
         return json.dumps({"message": False})
     else:
@@ -117,8 +124,6 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) ->
 @app.post("/{project_id}/{experiment_id}/insert_dataset")
 async def insert_single_dataset(project_id: str, experiment_id: str, dataset_to_insert: d.Dataset) -> str:
     """Insert a dataset into the experiment listed"""
-    print("dataset inserted name")
-    print(dataset_to_insert.name)
 
     experiments = client[project_id][experiment_id]
     dataset_credentials = dataset_to_insert.return_credentials()

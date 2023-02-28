@@ -84,15 +84,18 @@ class API_interface:
             url=f'{self.path}{project_name}/{experiment_name}/{dataset_name}/return_dataset',
             json=user_in.dict())
         temp = json.loads(response.json())
-
-        if temp.get("message") == None and temp.get("meta").get("fragmented") == False:
+        print(temp)
+        if temp.get("message") == None and temp.get("meta").get("fragmented") != True:
             # the database was found and the data wasn't fragmented
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                              data_type=temp.get("data_type"), author=temp.get("author"),
                              data_headings=temp.get("data_headings"))
-        
+        elif temp.get("message") == False:
+            return False
         # if the dataset is fragmented
         # recollect the dataset
+        print("temp")
+        print(temp)
         front_dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                         data_type=temp.get("data_type"), author=temp.get("author"),
                         data_headings=temp.get("data_headings"))
