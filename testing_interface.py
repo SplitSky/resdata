@@ -518,7 +518,7 @@ class TestClass:
         experiment_name = "experiment_0"
         dataset_name = "image_test"
         picture_file_name = "test_cat.jpg"
-        final_picture_name = "test_cat.jpg"
+        final_picture_name = "test_cat2.jpg"
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_in = t.load_file_project(filename_out=file_name)
         assert ui.insert_project(project=project_in) == True
@@ -543,9 +543,11 @@ class TestClass:
         for i in range(0,len(temp)):
             print(temp[i] == dataset.data[i])
         assert dataset.data == temp
-        assert ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset) == True
+        temp2 = ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset)
+        assert temp2 == True
+
        
-#def main():
-#    test_class = TestClass()
-#    test_class.test_13()
-#main()
+def main():
+    test_class = TestClass()
+    test_class.test_13()
+main()
