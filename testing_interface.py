@@ -496,7 +496,7 @@ class TestClass:
         ui = API_interface(path)
         arr = ui.convert_img_to_array(filename=file_name)
         cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg")
-
+        assert cat_img == True
         assert exists("images/test_cat2.jpg") == True 
 
     def test_13(self):
@@ -515,21 +515,36 @@ class TestClass:
         # generate test_project
         file_name = "test_project.json"
         project_name = "test_project_1"
+        experiment_name = "experiment_0"
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_in = t.load_file_project(filename_out=file_name)
         assert ui.insert_project(project=project_in) == True
         # insert an additional dataset
         author = d.Author(name=username, permission="write")
-        dataset_in = d.Dataset(name="image", data=arr, meta={"cat_name" : "cat"}, data_type="image", author=[author.dict()],data_headings=[])
+        dataset_in = d.Dataset(name="image_test", data=arr, meta={"cat_name" : "cat"}, data_type="image", author=[author.dict()],data_headings=[])
         #print(dataset_in)
-        ui.insert_dataset(project_name, "experiment_0",dataset_in)
+        ui.insert_dataset(project_name, experiment_name,dataset_in)
         ui.tree_print()
 
-        dataset = ui.return_full_dataset("project_test_0", "experiment_test 0", "image")
-        #ui.convert_array_to_img(dataset.data, "test_cat2.jpg")
+        # return previous dataset to confirm return_dataset works
+        dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name="dataset_0")
+        print("first sanity check")
+        if dataset == False:
+            print("Failed")
+        else:
+            print(f'dataset name: {dataset.name}')
+
+        dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name,dataset_name="image_test")
+        if dataset == False:
+            print("Failed")
+        else:
+            print(f'dataset name: {dataset.name}')
+
+        #ui.convert_array_to_img(dataset.data, "test_cat2.jpg") 
+        # TODO: Still doesn't handle images but 90% done. Finish once possible
         
 
 def main():
     test_class = TestClass()
-    test_class.test_13()
+    test_class.test_12()
 main()

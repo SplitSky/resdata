@@ -101,12 +101,6 @@ async def return_dataset(project_id, experiment_id, dataset_id, user: d.User) ->
     experiment_collection = client[project_id][experiment_id]
     result = experiment_collection.find_one({"name": dataset_id})
 
-    #remove
-    print(result)
-    print(dataset_id)
-    print(user)
-    #remove
-
     if result is None:
         return json.dumps({"message": False})
     else:

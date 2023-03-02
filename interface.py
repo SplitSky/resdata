@@ -33,6 +33,7 @@ class API_interface:
         self.path: str = path_in
         self.token: str = ""
         self.username: str = ""
+        self.max_size = max_size
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
@@ -50,8 +51,6 @@ class API_interface:
         dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
         
         # dataset is less than maximum size
-        print("check object size")
-        #print(self.check_object_size(dataset_in))
 
         if self.check_object_size(dataset_in):
             # dataset within parameters
@@ -59,18 +58,13 @@ class API_interface:
             requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
             return True
         else:
-            print("dataset fragmentation")
             # dataset needs fragmentation
             datasets = self.fragment_datasets(dataset_in)
             responses = []
-            print("datasets are fragmented now sending")
             for dataset_temp in datasets:
-                print("dataset sent")
-                print(dataset_temp.name)
                 # insert each dataset
                 dataset_temp.set_credentials(self.username, self.token)
                 response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
-                print(response)
                 responses.append(response)
             if False in responses:
                 return False
@@ -79,23 +73,21 @@ class API_interface:
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):  # -> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
+        # TODO: raise exceptions not return False
         user_in = d.User(username=self.username, hash_in=self.token)
         response = requests.post(
             url=f'{self.path}{project_name}/{experiment_name}/{dataset_name}/return_dataset',
             json=user_in.dict())
         temp = json.loads(response.json())
-        print(temp)
         if temp.get("message") == None and temp.get("meta").get("fragmented") != True:
             # the database was found and the data wasn't fragmented
             return d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                              data_type=temp.get("data_type"), author=temp.get("author"),
                              data_headings=temp.get("data_headings"))
         elif temp.get("message") == False:
-            return False
+            raise Exception("The dataset wasn't found")
         # if the dataset is fragmented
         # recollect the dataset
-        print("temp")
-        print(temp)
         front_dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
                         data_type=temp.get("data_type"), author=temp.get("author"),
                         data_headings=temp.get("data_headings"))
@@ -128,6 +120,7 @@ class API_interface:
         for name in names_list:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
+            # TODO: Fix this error -> should disappear once return_full_dataset is fixed
             if temp != None:
                 if temp.data_type == "configuration file":
                     # update experiment parameters
@@ -561,14 +554,27 @@ class API_interface:
         arraydata = np.asarray(img)
         arraydata = arraydata.tolist()
         #return np.array(img).tolist() # TODO: Very lazy. Fix this
-        #print(arraydata)
-        #print("type")
-        #print(type(arraydata))
         return arraydata
 
     def convert_array_to_img(self, array: list, filename: str):
         # converts an array into an image and saves in the script dicrectory
-        img = Image.fromarray(np.array(array))
+        # tuples to arrays
+        for i in range(0,len(array)):
+            for j in range(0,len(array[i])):
+                array[i][j] = np.array(array[i][j])
+            array[i] = np.array(array[i])
+        temp = np.array(array)
+        
+        if len(temp[0][0]) == 1:
+            mode = "L"
+        elif len(temp[0][0]) == 3:
+            mode = "RGB"
+        else:
+            mode = None
+        
+        img = Image.fromarray(temp, mode=mode)
+        
+
         try:
             img.save("images/"+filename)
             return True
@@ -578,8 +584,7 @@ class API_interface:
         # Returns True if the dataset has size that doesn't exceeds max size
         temp = object.json()
         size = sys.getsizeof(json.dumps(temp))
-        print(f'size: {size}')
-        if size >= max_size:
+        if size >= self.max_size:
             return False
         else:
             return True
@@ -658,22 +663,39 @@ class API_interface:
         # API call to retrieve the full list of names
         response = requests.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
         response = response.json()
-        response = requests.get(self.path + "names_group", json=user_in.dict())
+        #response = requests.get(self.path + "names_group", json=user_in.dict())
         
-        names = response.json()
-        print(f'names: {names}')
+        names = response.get("names")
         data_to_append = []
-        
+       
+        # return datasets and sort them in fragment order
+        datasets = []
         for name in names:
             dataset = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name)
             if dataset != None:
-                data_to_append.append(dataset.data)
-        full_data = []
-        # TODO: make sure the fragments are sorted in the right order
-        for entry in data_to_append:
-            full_data += entry
+                datasets.append(dataset)
 
+        def quicksort_datasets(datasets):
+            if len(datasets) <= 1:
+                return datasets
+            pivot = datasets[len(datasets) // 2].meta["fragment_id"]
+            left = []
+            right = []
+            equal = []
+            for dataset in datasets:
+                fragment_number = dataset.meta["fragment_id"]
+                if fragment_number < pivot:
+                    left.append(dataset)
+                elif fragment_number == pivot:
+                    equal.append(dataset)
+                else:
+                    right.append(dataset)
+            return quicksort_datasets(left) + equal + quicksort_datasets(right)
+        
+        datasets = quicksort_datasets(datasets=datasets)
+        # append data to be added to dataset
+        for dataset in datasets:
+            data_to_append.append(dataset.data)
         # append data 
-        front_dataset.data = full_data
-
+        front_dataset.data = data_to_append
         return front_dataset
