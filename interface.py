@@ -552,34 +552,33 @@ class API_interface:
         # TODO: Add path variable and allow for custom folders
         img = Image.open("images/"+filename)
         arraydata = np.asarray(img)
+        data_type = arraydata.dtype
         arraydata = arraydata.tolist()
         #return np.array(img).tolist() # TODO: Very lazy. Fix this
-        return arraydata
+        return arraydata, str(data_type)
 
-    def convert_array_to_img(self, array: list, filename: str):
-        # converts an array into an image and saves in the script dicrectory
-        # tuples to arrays
-        for i in range(0,len(array)):
-            for j in range(0,len(array[i])):
-                array[i][j] = np.array(array[i][j])
-            array[i] = np.array(array[i])
-        temp = np.array(array)
-        
-        if len(temp[0][0]) == 1:
-            mode = "L"
-        elif len(temp[0][0]) == 3:
-            mode = "RGB"
+    def convert_array_to_img(self, array: list, filename: str, data_type: str):
+
+        if data_type == "uint8":    
+            temp = np.array(array, dtype=np.uint8)
+        elif data_type == "int64":
+            temp = np.array(array, dtype=np.int64)
+        elif data_type == "uint16":
+            temp = np.array(array, dtype=np.uint16)
+        elif data_type == "float32":
+            temp = np.array(array, dtype=np.float32)
         else:
-            mode = None
-        
-        img = Image.fromarray(temp, mode=mode)
-        
-
+            try:
+                temp = np.array(array)
+            except:
+                raise Exception("the data type not handled")
+        img = Image.fromarray(temp) #, mode=mode)
         try:
             img.save("images/"+filename)
             return True
         except:
             return False
+
     def check_object_size(self, object: d.Dataset):
         # Returns True if the dataset has size that doesn't exceeds max size
         temp = object.json()
@@ -593,7 +592,7 @@ class API_interface:
             # split into 2
             half_point = len(array) // 2
             arr1 = array[:half_point]
-            arr2 = array[half_point+1:]
+            arr2 = array[half_point:]
             return [arr1, arr2]
 
     def fragment_datasets(self, dataset: d.Dataset) -> List[d.Dataset]:
@@ -696,6 +695,31 @@ class API_interface:
         # append data to be added to dataset
         for dataset in datasets:
             data_to_append.append(dataset.data)
-        # append data 
-        front_dataset.data = data_to_append
+        # concatenate data
+        full_data = front_dataset.data
+        for entry in data_to_append:
+            full_data += entry
+        # append data
+        front_dataset.data = full_data
         return front_dataset
+
+    def generate_dataset_for_img(self, file_name : str, dataset_name: str, additional_meta=None) -> d.Dataset:
+        arr,data_type = self.convert_img_to_array(file_name)
+        if len(self.username) == 0:
+            raise Exception("Generate token and authenticate with the database first. Run generate_token function")
+        author = d.Author(name=self.username, permission="write")
+        if additional_meta == None:
+            dataset = d.Dataset(name=dataset_name, data=arr, meta={"entry_encoding": data_type}, data_type="image",author=[author.dict()],data_headings=[])
+        else:
+            meta_temp = {"entry_encoding": data_type}
+            meta_temp.update(additional_meta)
+            dataset = d.Dataset(name=dataset_name, data=arr, meta=meta_temp, data_type="image",author=[author.dict()],data_headings=[])
+        return dataset
+
+    def generate_img_from_dataset(self, file_name: str, dataset_in : d.Dataset):
+        if dataset_in.meta == None:
+            raise Exception("The dataset missing meta data. Decoding information missing")
+        data_type = dataset_in.meta.get("entry_encoding")
+        if data_type == None:
+            raise Exception("The dataset image wasn't encoded correctly or isn't an image.")
+        return self.convert_array_to_img(array=dataset_in.data, filename=file_name, data_type=data_type)

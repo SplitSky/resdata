@@ -494,8 +494,8 @@ class TestClass:
         # tests creation and insertion of images
         file_name = "test_cat.jpg"
         ui = API_interface(path)
-        arr = ui.convert_img_to_array(filename=file_name)
-        cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg")
+        arr, data_type = ui.convert_img_to_array(filename=file_name)
+        cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg",str(data_type))
         assert cat_img == True
         assert exists("images/test_cat2.jpg") == True 
 
@@ -504,7 +504,7 @@ class TestClass:
         file_name = "test_cat.jpg"
         ui = API_interface(path)
         ui.purge_everything()
-        arr = ui.convert_img_to_array(filename=file_name)
+        #arr, data_type = ui.convert_img_to_array(filename=file_name)
 
         # create a project and send the dataset
         username = "test_user"
@@ -516,13 +516,15 @@ class TestClass:
         file_name = "test_project.json"
         project_name = "test_project_1"
         experiment_name = "experiment_0"
+        dataset_name = "image_test"
+        picture_file_name = "test_cat.jpg"
+        final_picture_name = "test_cat.jpg"
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_in = t.load_file_project(filename_out=file_name)
         assert ui.insert_project(project=project_in) == True
+        
         # insert an additional dataset
-        author = d.Author(name=username, permission="write")
-        dataset_in = d.Dataset(name="image_test", data=arr, meta={"cat_name" : "cat"}, data_type="image", author=[author.dict()],data_headings=[])
-        #print(dataset_in)
+        dataset_in = ui.generate_dataset_for_img(file_name=picture_file_name, dataset_name=dataset_name)
         ui.insert_dataset(project_name, experiment_name,dataset_in)
         ui.tree_print()
 
@@ -533,18 +535,17 @@ class TestClass:
             print("Failed")
         else:
             print(f'dataset name: {dataset.name}')
+        dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name,dataset_name=dataset_name)
+        assert dataset != False
 
-        dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name,dataset_name="image_test")
-        if dataset == False:
-            print("Failed")
-        else:
-            print(f'dataset name: {dataset.name}')
-
-        #ui.convert_array_to_img(dataset.data, "test_cat2.jpg") 
-        # TODO: Still doesn't handle images but 90% done. Finish once possible
-        
-
-def main():
-    test_class = TestClass()
-    test_class.test_12()
-main()
+        # confirm the datasets are the same
+        temp, data_type = ui.convert_img_to_array(filename=picture_file_name)
+        for i in range(0,len(temp)):
+            print(temp[i] == dataset.data[i])
+        assert dataset.data == temp
+        assert ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset) == True
+       
+#def main():
+#    test_class = TestClass()
+#    test_class.test_13()
+#main()
