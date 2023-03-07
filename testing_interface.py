@@ -545,6 +545,7 @@ class TestClass:
         assert dataset.data == temp
         temp2 = ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset)
         assert temp2 == True
+        # a
 
        
 def main():

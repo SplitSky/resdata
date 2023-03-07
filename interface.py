@@ -723,3 +723,14 @@ class API_interface:
         if data_type == None:
             raise Exception("The dataset image wasn't encoded correctly or isn't an image.")
         return self.convert_array_to_img(array=dataset_in.data, filename=file_name, data_type=data_type)
+
+    def generate_dataset_for_list(self,dataset_name : str ,data : list, data_headings : list, meta: dict, data_type : str):
+        """Generates a dataset using just the essential pieces of data"""
+        if len(self.username) == 0:
+            raise Exception("The username isn't defined. Generate token for communication")
+        else:
+            # TODO: make a function that verifies the data type and assigns the appropriate variable
+            author_temp = d.Author(name=self.username, permission="write")
+            dataset = d.Dataset(name=dataset_name, data=data, meta=meta, data_type=data_type, data_headings=data_headings, author=[author_temp.dict()])
+            return dataset
+
