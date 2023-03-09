@@ -2,6 +2,7 @@
 import server.datastructure as d
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 def plot_from_dataset(dataset : d.Dataset, label: str, title: str):
     # check dimensionality
@@ -68,4 +69,59 @@ def summarise_dimensions(datasets: list[d.Dataset]):
         std = np.array(array).std()
         print(f"{datasets[0].data_headings[i]} : {mean} +/- {std}")
         i += 1
+       
+def unpack_h5_custom(json_file_name : str, username: str):
+    with open(json_file_name, "r") as file:
+        data = file.readlines()
+        file.close()
+    data = data[0]
+    json_data = json.loads(data)
+
+    # NOTE: This data has badly labelled ring_ids. They are non-unique hence they are relabelled
+    
+    # TODO: bad way of doing it. to improve change to detect single values and arrays of 3D coordinates and add them to dimensions -> rest separate to spectra
+    # dimension variables
+    dimensions_keys = ['ring_ID', 'sample_ID', 'position', 'fluence', 'abs_position', 'thresh_est' ,'threshold', 'lasing_wavelength', 'mode_spacing', 'lasing_spacing_error', 'lasing_amplitude', 'field_ID', 'pos_rot', 'array_ID', 'wl']
+    spectra_keys = ['PL_screen', 'pdep', 'p', 'pint' ,'images']
+    author_temp = d.Author(name=username, permission="write")
+    datasets = []
+    # loop over ring_id and append the variables
+    names = []
+    print(f'ring_id: {len(json_data.get("ring_ID"))}')
+
+    for key in json_data.keys():
+        print(f'{key} : {len(json_data.get(key))}')
+
+    print(json_data.get("sample_ID"))
+    
+    ring_ID = 0
+    #raise Exception("Staph")
+    for entry in json_data.get("ring_ID"):
+        print(f'ring_ID: {entry}')
+        print(f'new_ring_ID: {ring_ID}')
+        data_temp = []
+        for heading in dimensions_keys:
+            data_temp.append(json_data.get(heading)[ring_ID])
+        dataset_temp = d.Dataset(name="ring_id " + str(ring_ID) + " dimensions", data=data_temp, meta={"old_ring_id" : entry, "ring_id" : ring_ID}, data_type="dimensions",author=[author_temp.dict()], data_headings=dimensions_keys)
+        #datasets.append(dataset_temp)
+        names.append(save_dataset(dataset_temp))
         
+        # append the spectra
+        for spectrum_name in spectra_keys:
+            data_temp = json_data.get(spectrum_name)[ring_ID]
+            # TODO: check entry dimensionality
+            temp = "spectrum"
+            dataset_temp = d.Dataset(name="ring_id " + str(ring_ID) + " - " + spectrum_name, data=data_temp, meta={"old_ring_id" : entry, "ring_id" : ring_ID}, author=[author_temp.dict()], 
+                                     data_headings=[spectrum_name], data_type=temp)
+            #datasets.append(dataset_temp)
+            names.append(save_dataset(dataset_temp))
+        ring_ID += 1
+    return names
+
+# save datasets unpacked into individual .json files
+def save_dataset(dataset_in: d.Dataset):
+    filename = dataset_in.name + ".json"
+    with open(filename, "w") as f:
+        json.dump(dataset_in.convertJSON(), f)
+        f.close()
+    return filename
