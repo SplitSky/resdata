@@ -71,18 +71,23 @@ def summarise_dimensions(datasets: list[d.Dataset]):
         i += 1
        
 def unpack_h5_custom(json_file_name : str, username: str):
+    max_ring_id = 20
+
     with open(json_file_name, "r") as file:
         data = file.readlines()
         file.close()
     data = data[0]
     json_data = json.loads(data)
-
     # NOTE: This data has badly labelled ring_ids. They are non-unique hence they are relabelled
-    
     # TODO: bad way of doing it. to improve change to detect single values and arrays of 3D coordinates and add them to dimensions -> rest separate to spectra
     # dimension variables
-    dimensions_keys = ['ring_ID', 'sample_ID', 'position', 'fluence', 'abs_position', 'thresh_est' ,'threshold', 'lasing_wavelength', 'mode_spacing', 'lasing_spacing_error', 'lasing_amplitude', 'field_ID', 'pos_rot', 'array_ID', 'wl']
-    spectra_keys = ['PL_screen', 'pdep', 'p', 'pint' ,'images']
+    dimensions_keys = ['ring_ID', 'sample_ID', 'position', 'fluence', 'abs_position', 'thresh_est' ,'threshold', 'lasing_wavelength', 'mode_spacing', 'lasing_spacing_error', 'lasing_amplitude', 'field_ID', 'pos_rot', 'array_ID']
+    spectra_keys = ['PL_screen', 'pdep', 'p', 'pint' ,'images', 'wl']
+
+    ### compress into one dataset
+    #dimensions_keys += spectra_keys
+    #spectra_keys = []
+    
     author_temp = d.Author(name=username, permission="write")
     datasets = []
     # loop over ring_id and append the variables
@@ -92,10 +97,7 @@ def unpack_h5_custom(json_file_name : str, username: str):
     for key in json_data.keys():
         print(f'{key} : {len(json_data.get(key))}')
 
-    print(json_data.get("sample_ID"))
-    
     ring_ID = 0
-    #raise Exception("Staph")
     for entry in json_data.get("ring_ID"):
         print(f'ring_ID: {entry}')
         print(f'new_ring_ID: {ring_ID}')
@@ -105,6 +107,9 @@ def unpack_h5_custom(json_file_name : str, username: str):
         dataset_temp = d.Dataset(name="ring_id " + str(ring_ID) + " dimensions", data=data_temp, meta={"old_ring_id" : entry, "ring_id" : ring_ID}, data_type="dimensions",author=[author_temp.dict()], data_headings=dimensions_keys)
         #datasets.append(dataset_temp)
         names.append(save_dataset(dataset_temp))
+        append_name(names[len(names)-1])
+        send_dataset(dataset_temp)
+        
         
         # append the spectra
         for spectrum_name in spectra_keys:
@@ -115,7 +120,11 @@ def unpack_h5_custom(json_file_name : str, username: str):
                                      data_headings=[spectrum_name], data_type=temp)
             #datasets.append(dataset_temp)
             names.append(save_dataset(dataset_temp))
+            append_name(names[len(names)-1])
+            send_dataset(dataset_temp)
         ring_ID += 1
+        if ring_ID > max_ring_id:
+            break
     return names
 
 # save datasets unpacked into individual .json files
@@ -125,4 +134,49 @@ def save_dataset(dataset_in: d.Dataset):
         json.dump(dataset_in.convertJSON(), f)
         f.close()
     return filename
+
+def append_name(name: str):
+    file_name_temp = "names.txt"
+    with open(file_name_temp, "w+") as f:
+        f.write(name)
+        f.write('\n')
+        f.close()
+
+
+def send_dataset(dataset_in: d.Dataset):
+    import testing as t
+    username = "S_Church"
+    password = 'some_password'
+    email = 'email@test_email.com'
+    full_name = 'Tomasz Neska'
+    path = 'http://127.0.0.1:8000/'
+    file_name = "json_version.json"
+    # declaration of variables used
+    import interface as ui
+    api = ui.API_interface(path)
+    api.check_connection()
+    #api.purge_everything() ## clean up
+    #purge call - comment out if necessary -> just for development
+    # make user
+    #result = api.create_user(username_in=username, password_in=password,email=email,full_name=full_name)
+    #print("User created "  + str(result))
+    #api.generate_token(username=username, password=password)
+    project_name = "h5_demo_proj"
+    experiment_name ="h5_demo_exp"
+    # read in the names
+    print("Reading names in")
+    with open("names.txt", "r") as f:
+        names = f.readlines()
+        f.close()
+    # insert the billion datasets
+    counter = 0
+    for name in names:
+        name_temp = name[:len(name)-1]
+        dataset_in = t.load_file_dataset(name_temp)
+        api.insert_dataset(project_name=project_name, experiment_name=experiment_name, dataset_in=dataset_in)
+        counter+=1
+        if counter > 100:
+            api.tree_print()
+            raise Exception("Stop before it crashes")
+
 
