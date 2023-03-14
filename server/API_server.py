@@ -170,9 +170,11 @@ async def return_all_dataset_names(project_id: str, experiment_id: str, author :
         )
     
     names = []
-    for dataset in client[project_id][experiment_id].find():
-        # see if user is an author
-        # TODO: verify this works
+    result = client[project_id][experiment_id].find()
+    if result == None:
+        # the dataset path isn't initialised
+        return {"names" : []}
+    for dataset in result:
         for entry in dataset['author']:
             if entry['name'] == author.name:
                 names.append(dataset['name']) # returns all datasets including the config

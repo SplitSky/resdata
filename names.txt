@@ -1,1 +1,1 @@
-ring_id 0 dimensions.json
+ring_id 12 - wl.json
