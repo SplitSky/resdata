@@ -2,7 +2,6 @@
 with the API."""
 import hashlib as h
 import json
-from types import NotImplementedType
 from typing import List
 import requests
 from fastapi import status
@@ -12,10 +11,10 @@ from PIL import Image
 import numpy as np
 import sys
 
-from server.security import key_manager # import for development. Split security module into two pieces on deployment
+from server.security import key_manager  # import for development. Split security module into two pieces on deployment
 
 # max size variable
-#max_size = 16793598 # bytes
+# max_size = 16793598 # bytes
 max_size = 6478488
 
 
@@ -43,14 +42,15 @@ class API_interface:
         return response.status_code == status.HTTP_200_OK
 
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
-        """ The function responsible for an insertion of a dataset. It authenticates the user and verifies the write permission."""
+        """ The function responsible for an insertion of a dataset. It authenticates the user and verifies the write
+        permission."""
 
         if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name,
                                      dataset_id=dataset_in.name):
             raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
         dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-        
+
         # dataset is less than maximum size
 
         if self.check_object_size(dataset_in):
@@ -65,7 +65,8 @@ class API_interface:
             for dataset_temp in datasets:
                 # insert each dataset
                 dataset_temp.set_credentials(self.username, self.token)
-                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset',
+                                         json=dataset_temp.dict())
                 responses.append(response)
             if False in responses:
                 return False
@@ -100,14 +101,13 @@ class API_interface:
             for dataset_temp in datasets:
                 # insert each dataset
                 dataset_temp.set_credentials(self.username, self.token)
-                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset',
+                                         json=dataset_temp.dict())
                 responses.append(response)
             if False in responses:
                 return False
             else:
                 return True
-
-
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):  # -> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
@@ -127,9 +127,10 @@ class API_interface:
         # if the dataset is fragmented
         # recollect the dataset
         front_dataset = d.Dataset(name=temp.get("name"), data=temp.get("data"), meta=temp.get("meta"),
-                        data_type=temp.get("data_type"), author=temp.get("author"),
-                        data_headings=temp.get("data_headings"))
-        front_dataset = self.collect_frag_data(front_dataset=front_dataset, project_name=project_name, experiment_name=experiment_name, user_in=user_in)
+                                  data_type=temp.get("data_type"), author=temp.get("author"),
+                                  data_headings=temp.get("data_headings"))
+        front_dataset = self.collect_frag_data(front_dataset=front_dataset, project_name=project_name,
+                                               experiment_name=experiment_name, user_in=user_in)
         return front_dataset
 
     def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
@@ -152,7 +153,7 @@ class API_interface:
         names_list = self.get_dataset_names(project_id=project_name, experiment_id=experiment_name)
         datasets = []
         exp_name = "default"
-        exp_meta = {"note":"default"}
+        exp_meta = {"note": "default"}
         exp_author = [{"name": "default", "permission": "none"}]
 
         for name in names_list:
@@ -195,14 +196,20 @@ class API_interface:
         if len(project_name) == 0:
             raise Exception("Project name cannot have no size")
         names_list = self.get_project_names()
-        return project_name in names_list
+        if names_list is None:
+            return False
+        else:
+            return project_name in self.get_project_names()
 
     def check_experiment_exists(self, project_name: str, experiment_name: str):
         """ Function which returns True if an experiment exists and False if it doesn't. """
         if len(project_name) == 0 or len(experiment_name) == 0:
             raise Exception("Project or Experiment name have no size")
         names_list = self.get_experiment_names(project_id=project_name)
-        return experiment_name in names_list
+        if names_list is None:
+            return False
+        else:
+            return experiment_name in names_list
 
     def insert_project(self, project: d.Project):
         """ Function which inserts project recursively using the insert_experiment function. """
@@ -222,6 +229,7 @@ class API_interface:
             return False
         else:
             return True
+
     # initialize project
     def init_project(self, project: d.Project):
         """ Project initialisation function. Assigns the variables to the configuration file in the database. """
@@ -251,7 +259,10 @@ class API_interface:
         names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
         print("names list")
         print(names_list)
-        return dataset_id in names_list
+        if names_list is None:
+            return False
+        else:
+            return dataset_id in names_list
 
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
@@ -262,14 +273,14 @@ class API_interface:
         private_key, public_key = u.read_keys()
         # fetch API public key
         response = requests.post(self.path + "get_public_key")
-        #api_public_key = response["public_key"]
+        # api_public_key = response["public_key"]
         bytes_out = response.json().get("public_key").encode('utf-8')
         # serialize key into object
         public_key = u.serialize_public_key(bytes_out)
         # generate hash
         user_hash = return_hash(password=password_in)
-        #encrypt and sign the entries
-        username_in = u.encrypt_message(public_key=public_key,message=username_in)
+        # encrypt and sign the entries
+        username_in = u.encrypt_message(public_key=public_key, message=username_in)
         user_hash = u.encrypt_message(public_key=public_key, message=user_hash)
         if len(email) > 0:
             email = u.encrypt_message(public_key=public_key, message=email)
@@ -277,12 +288,12 @@ class API_interface:
             full_name = u.encrypt_message(public_key=public_key, message=full_name)
         # mage the json object to send
         user = d.User(username=username_in, hash_in=user_hash, email=email, full_name=full_name)
-        #assign the tunnel key for the API
+        # assign the tunnel key for the API
         user.tunnel_key = return_hash(password=API_key)
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
         # API call to create user
-        response = requests.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
+        response = requests.post(self.path + "create_user" + "/" + str(public_key), json=user_out)
         if response.status_code == 200:
             return True
         else:
@@ -341,8 +352,9 @@ class API_interface:
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
 
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
-                                 json=author_in.dict())
+        response = requests.post(
+            self.path + project_id + "/" + experiment_id + "/" + dataset_id + "/" + self.username + "/add_author",
+            json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
         else:
@@ -395,26 +407,27 @@ class API_interface:
                                   author_permissions: str):
         """Adds an author to the project,experiment and dataset to enable to access. Uses the utility function add_author_to_dataset"""
         if not (type(author_name) == type("string") and type(author_permissions) == type("string")):
-             raise Exception("Author name and permission have to be strings")
-    
+            raise Exception("Author name and permission have to be strings")
+
         # appends the author to the path that leads to this dataset to guarantee access
-        self.add_author_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permissions)
-        self.add_author_to_project(project_id=project_id, author_name=author_name,author_permission=author_permissions)
+        self.add_author_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name,
+                                      author_permission=author_permissions)
+        self.add_author_to_project(project_id=project_id, author_name=author_name, author_permission=author_permissions)
 
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
-                                 json=author_in.dict())
+        response = requests.post(
+            self.path + project_id + "/" + experiment_id + "/" + dataset_id + "/" + self.username + "/add_author",
+            json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
         else:
             return False
 
-
     def purge_everything(self):
-        requests.post(self.path +"purge")
+        requests.post(self.path + "purge")
         print("purged")
 
-    def experiment_search_meta(self, meta_search : dict, experiment_id : str, project_id : str):
+    def experiment_search_meta(self, meta_search: dict, experiment_id: str, project_id: str):
         """Fetches the datasets matching the meta variables"""
         # API call - experiment level - returning the names of datasets that match
         # Check that the project and experiment exist
@@ -427,51 +440,60 @@ class API_interface:
         if response == False:
             raise Exception("The experiment doesn't exist")
 
-        author_temp = d.Author(name=self.username ,permission="write")
-        dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
+        author_temp = d.Author(name=self.username, permission="write")
+        dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search",
+                            author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
         response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
         names = response.json()
         names = names.get("names")
         datasets = []
         for name in names:
-            datasets.append(self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))
+            datasets.append(
+                self.return_full_dataset(project_name=project_id, experiment_name=experiment_id, dataset_name=name))
         return datasets
 
-# group management functions to be tested
+    # group management functions to be tested
     # Note: Do not append groups to individual datasets unless you already appended it to the experiment and project. Otherwise it won't be returned
-    def add_group_to_dataset(self, author_permission:str, author_name:str, group_name:str, project_id:str, experiment_id:str, dataset_id:str):
+    def add_group_to_dataset(self, author_permission: str, author_name: str, group_name: str, project_id: str,
+                             experiment_id: str, dataset_id: str):
         """Appends a group to an existing dataset"""
         if not (type(author_name) == type("string") and type(author_permission) == type("string")):
             raise Exception("Author name and permission have to be strings")
         # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
         author_in = d.Author(name=author_name, permission=author_permission)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
-                                 json=author_in.dict())
-        return response.json() 
-      
-    def add_group_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str, group_name: str):
+        response = requests.post(
+            self.path + project_id + "/" + experiment_id + "/" + dataset_id + "/" + group_name + "/add_group_author",
+            json=author_in.dict())
+        return response.json()
+
+    def add_group_to_experiment(self, project_id: str, experiment_id: str, author_name: str, author_permission: str,
+                                group_name: str):
         """Adds the author to the experiment config file"""
         # check project exists
         if not self.check_project_exists(project_name=project_id):
             raise Exception("The project doesn't exist")
         return self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=experiment_id,
-                                          author_name=author_name, author_permission=author_permission,group_name=group_name)
+                                         author_name=author_name, author_permission=author_permission,
+                                         group_name=group_name)
 
-
-    def add_group_to_experiment_rec(self, project_id:str, experiment_id:str, author_name:str, author_permission:str, group_name:str):
+    def add_group_to_experiment_rec(self, project_id: str, experiment_id: str, author_name: str, author_permission: str,
+                                    group_name: str):
         """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
         status_temp = True
-        temp = self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        temp = self.add_group_to_project(project_id=project_id, author_name=author_name,
+                                         author_permission=author_permission, group_name=group_name)
         # adds path
         if not temp:
             status_temp = False
         names = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
         for name in names:
-            #if name != experiment_id:
+            # if name != experiment_id:
             #    # filter out experiment config names
-            temp = self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,author_name=author_name, author_permission=author_permission,group_name=group_name)
+            temp = self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=name,
+                                             author_name=author_name, author_permission=author_permission,
+                                             group_name=group_name)
             if not temp:
                 status_temp = False
         return status_temp
@@ -480,49 +502,59 @@ class API_interface:
         # TODO: change author_permission to group_permission
         """Updates the project config file and adds an author"""
         return self.add_group_to_dataset(project_id=project_id, experiment_id='config', dataset_id=project_id,
-                                          author_name=author_name, author_permission=author_permission,group_name=group_name)
-        
-    def add_group_to_project_rec(self, project_id: str, author_name: str, author_permission: str, group_name:str):
+                                         author_name=author_name, author_permission=author_permission,
+                                         group_name=group_name)
+
+    def add_group_to_project_rec(self, project_id: str, author_name: str, author_permission: str, group_name: str):
         """Recursively adds author to all experiments and datasets in the project specified. """
         status_temp = True
-        temp = self.add_group_to_project(project_id=project_id, author_name=author_name, author_permission=author_permission, group_name=group_name)
+        temp = self.add_group_to_project(project_id=project_id, author_name=author_name,
+                                         author_permission=author_permission, group_name=group_name)
         if temp == False:
             status_temp = False
         names = self.get_experiment_names(project_id=project_id)
         for name in names:
             temp = self.add_group_to_experiment(project_id=project_id, experiment_id=name, author_name=author_name,
-                                                  author_permission=author_permission, group_name=group_name)
+                                                author_permission=author_permission, group_name=group_name)
             # recursively adds groups to all datasets
             if temp == False:
                 status_temp = False
             # recursively appends the author to each dataset
             dataset_names = self.get_dataset_names(project_id=project_id, experiment_id=name)
             for name2 in dataset_names:
-                if name2 != name: # filters out experiment config files
-                    temp = self.add_group_to_dataset(author_name=author_name, author_permission=author_permission, group_name=group_name, project_id=project_id, experiment_id=name, dataset_id=name2 )
+                if name2 != name:  # filters out experiment config files
+                    temp = self.add_group_to_dataset(author_name=author_name, author_permission=author_permission,
+                                                     group_name=group_name, project_id=project_id, experiment_id=name,
+                                                     dataset_id=name2)
                     if temp == False:
                         status_temp = False
         return status_temp
-   
-    def add_group_to_dataset_rec(self, author_permission:str, author_name:str, group_name:str, project_id:str, experiment_id:str, dataset_id:str):
+
+    def add_group_to_dataset_rec(self, author_permission: str, author_name: str, group_name: str, project_id: str,
+                                 experiment_id: str, dataset_id: str):
         """Adds an group to the project,experiment and dataset to enable to access. Uses the utility function add_group_to_dataset"""
         if not (type(author_name) == type("string") and type(author_permission) == type("string")):
-             raise Exception("Author name and permission have to be strings")
-    
+            raise Exception("Author name and permission have to be strings")
+
         # appends the author to the path that leads to this dataset to guarantee access
         responses = []
         if not self.check_dataset_exists(project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id):
             raise Exception("The dataset doesn't exist")
-        responses.append(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name, project_id=project_id, experiment_id=experiment_id, dataset_id=dataset_id, group_name=group_name))
+        responses.append(self.add_group_to_dataset(author_permission=author_permission, author_name=author_name,
+                                                   project_id=project_id, experiment_id=experiment_id,
+                                                   dataset_id=dataset_id, group_name=group_name))
         # create path to dataset recursively
-        responses.append(self.add_group_to_project(project_id=project_id, author_name=author_name,author_permission=author_permission, group_name=group_name))
-        responses.append(self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permission, group_name=group_name))
+        responses.append(self.add_group_to_project(project_id=project_id, author_name=author_name,
+                                                   author_permission=author_permission, group_name=group_name))
+        responses.append(
+            self.add_group_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name,
+                                         author_permission=author_permission, group_name=group_name))
         if False in responses:
             return False
         else:
             return True
 
-# group /names functions
+    # group /names functions
     def get_experiment_names_group(self, project_id: str, group_name: str):
         """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
@@ -542,8 +574,8 @@ class API_interface:
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
 
-# group call function
-# employs the /names functions to recall every dataset/experiment/project that is a member of the group
+    # group call function
+    # employs the /names functions to recall every dataset/experiment/project that is a member of the group
     def author_query(self, username: str):
         """Return the names list with the specified author. Authenticates for the current user.
         Group query. Returns a list of projects within the group
@@ -562,23 +594,23 @@ class API_interface:
             raise Exception("The user has no projects.")
         for proj_name in proj_names:
             # loop over the project names
-            exp_names = self.get_experiment_names_group(project_id=proj_name,group_name=username)
+            exp_names = self.get_experiment_names_group(project_id=proj_name, group_name=username)
             temp_exp = []
             for exp_name in exp_names:
 
                 temp_data = []
-                dat_names = self.get_dataset_names_group(project_id=proj_name, experiment_id=exp_name, group_name=username)
+                dat_names = self.get_dataset_names_group(project_id=proj_name, experiment_id=exp_name,
+                                                         group_name=username)
                 for dat_name in dat_names:
                     if exp_name != dat_name:
                         # avoids returning the config dataset for experiment
                         temp_data.append(dat_name)
-                    
-                temp_exp.append({"experiment_id": exp_name, "dataset_list" : temp_data})            
-            temp_proj = {"project_id": proj_name, "experiment_list":temp_exp}
+
+                temp_exp.append({"experiment_id": exp_name, "dataset_list": temp_data})
+            temp_proj = {"project_id": proj_name, "experiment_list": temp_exp}
             names_list.append(temp_proj)
         return names_list
 
-        
     def tree_print_group(self, group_name: str):
         structure = self.author_query(group_name)
         for project in structure:
@@ -590,16 +622,16 @@ class API_interface:
 
     def convert_img_to_array(self, filename: str):
         # TODO: Add path variable and allow for custom folders
-        img = Image.open("images/"+filename)
+        img = Image.open("images/" + filename)
         arraydata = np.asarray(img)
         data_type = arraydata.dtype
         arraydata = arraydata.tolist()
-        #return np.array(img).tolist() # TODO: Very lazy. Fix this
+        # return np.array(img).tolist() # TODO: Very lazy. Fix this
         return arraydata, str(data_type)
 
     def convert_array_to_img(self, array: list, filename: str, data_type: str):
 
-        if data_type == "uint8":    
+        if data_type == "uint8":
             temp = np.array(array, dtype=np.uint8)
         elif data_type == "int64":
             temp = np.array(array, dtype=np.int64)
@@ -612,9 +644,9 @@ class API_interface:
                 temp = np.array(array)
             except:
                 raise Exception("the data type not handled")
-        img = Image.fromarray(temp) #, mode=mode)
+        img = Image.fromarray(temp)  # , mode=mode)
         try:
-            img.save("images/"+filename)
+            img.save("images/" + filename)
             return True
         except:
             return False
@@ -629,11 +661,11 @@ class API_interface:
             return True
 
     def slice_array(self, array: list):
-            # split into 2
-            half_point = len(array) // 2
-            arr1 = array[:half_point]
-            arr2 = array[half_point:]
-            return [arr1, arr2]
+        # split into 2
+        half_point = len(array) // 2
+        arr1 = array[:half_point]
+        arr2 = array[half_point:]
+        return [arr1, arr2]
 
     def fragment_datasets(self, dataset: d.Dataset) -> List[d.Dataset]:
         # Fragment the dataset
@@ -646,38 +678,42 @@ class API_interface:
             if dataset.meta != None:
                 dataset.meta["fragmented"] = True
             else:
-                dataset.meta = {"fragmented" : True}
+                dataset.meta = {"fragmented": True}
             # continue with data fragmentation
         else:
             return [dataset]
 
         # generate first dataset
-        front_dataset = d.Dataset(name=dataset.name, data=[0], meta=dataset.meta, data_type=dataset.data_type, username=dataset.username, token=dataset.token, data_headings=dataset.data_headings, author=dataset.author)
+        front_dataset = d.Dataset(name=dataset.name, data=[0], meta=dataset.meta, data_type=dataset.data_type,
+                                  username=dataset.username, token=dataset.token, data_headings=dataset.data_headings,
+                                  author=dataset.author)
 
         datasets = [dataset]
         # while the object exceeds maximum size split into two. Do as many times as necessary
         while not self.check_object_size(object=datasets[0]):
-            fragments = [] # stores the segmented arrays
-            datasets_temp = [] # stores the segmented datasets
+            fragments = []  # stores the segmented arrays
+            datasets_temp = []  # stores the segmented datasets
             for entry in datasets:
                 arr1, arr2 = self.slice_array(entry.data)
                 fragments.append(arr1)
                 # TODO: Check if fragments is needed
                 fragments.append(arr2)
                 # recombine the datasets
-                temp = d.Dataset(name=dataset.name + "- part", data=arr1, meta=None, data_type=dataset.data_type, data_headings=dataset.data_headings, author=[])
+                temp = d.Dataset(name=dataset.name + "- part", data=arr1, meta=None, data_type=dataset.data_type,
+                                 data_headings=dataset.data_headings, author=[])
                 datasets_temp.append(temp)
-                temp = d.Dataset(name=dataset.name + "- part", data=arr2, meta=None, data_type=dataset.data_type, data_headings=dataset.data_headings, author=[])
+                temp = d.Dataset(name=dataset.name + "- part", data=arr2, meta=None, data_type=dataset.data_type,
+                                 data_headings=dataset.data_headings, author=[])
                 datasets_temp.append(temp)
                 # don't assign author to keep the dataset hidden
-            #end for
+            # end for
             datasets = datasets_temp
         # data fragmented enough for storage
         # populate the front dataset
         front_dataset.data = datasets[0].data
         datasets.pop(0)
         if front_dataset.meta == None:
-            front_dataset.meta = {"fragmented" : True, "number_of_fragments" : len(datasets)}
+            front_dataset.meta = {"fragmented": True, "number_of_fragments": len(datasets)}
         else:
             front_dataset.meta["number_of_fragments"] = len(datasets)
         # add the meta data variable fragmented id number
@@ -685,32 +721,35 @@ class API_interface:
         for entry in datasets:
             entry.name = front_dataset.name + "-part " + str(i)
             if entry.meta == None:
-                entry.meta = {"fragment_id" : i, "parent_dataset" : front_dataset.name}
+                entry.meta = {"fragment_id": i, "parent_dataset": front_dataset.name}
             else:
                 entry.meta["fragment_id"] = i
                 entry.meta["parent_dataset"] = front_dataset.name
             i += 1
 
         # append the front dataset
-        datasets.insert(0,front_dataset)
+        datasets.insert(0, front_dataset)
         # return the datasets
         return datasets
 
-    def collect_frag_data(self, front_dataset : d.Dataset,user_in : d.User ,project_name, experiment_name) -> d.Dataset:
+    def collect_frag_data(self, front_dataset: d.Dataset, user_in: d.User, project_name, experiment_name) -> d.Dataset:
         # get the names of the datasets by using meta search
-        
+
         # API call to retrieve the full list of names
-        response = requests.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
+        response = requests.post(
+            f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names',
+            json=user_in.dict())
         response = response.json()
-        #response = requests.get(self.path + "names_group", json=user_in.dict())
-        
+        # response = requests.get(self.path + "names_group", json=user_in.dict())
+
         names = response.get("names")
         data_to_append = []
-       
+
         # return datasets and sort them in fragment order
         datasets = []
         for name in names:
-            dataset = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=name)
+            dataset = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
+                                               dataset_name=name)
             if dataset != None:
                 datasets.append(dataset)
 
@@ -730,7 +769,7 @@ class API_interface:
                 else:
                     right.append(dataset)
             return quicksort_datasets(left) + equal + quicksort_datasets(right)
-        
+
         datasets = quicksort_datasets(datasets=datasets)
         # append data to be added to dataset
         for dataset in datasets:
@@ -743,20 +782,22 @@ class API_interface:
         front_dataset.data = full_data
         return front_dataset
 
-    def generate_dataset_for_img(self, file_name : str, dataset_name: str, additional_meta=None) -> d.Dataset:
-        arr,data_type = self.convert_img_to_array(file_name)
+    def generate_dataset_for_img(self, file_name: str, dataset_name: str, additional_meta=None) -> d.Dataset:
+        arr, data_type = self.convert_img_to_array(file_name)
         if len(self.username) == 0:
             raise Exception("Generate token and authenticate with the database first. Run generate_token function")
         author = d.Author(name=self.username, permission="write")
         if additional_meta == None:
-            dataset = d.Dataset(name=dataset_name, data=arr, meta={"entry_encoding": data_type}, data_type="image",author=[author.dict()],data_headings=[])
+            dataset = d.Dataset(name=dataset_name, data=arr, meta={"entry_encoding": data_type}, data_type="image",
+                                author=[author.dict()], data_headings=[])
         else:
             meta_temp = {"entry_encoding": data_type}
             meta_temp.update(additional_meta)
-            dataset = d.Dataset(name=dataset_name, data=arr, meta=meta_temp, data_type="image",author=[author.dict()],data_headings=[])
+            dataset = d.Dataset(name=dataset_name, data=arr, meta=meta_temp, data_type="image", author=[author.dict()],
+                                data_headings=[])
         return dataset
 
-    def generate_img_from_dataset(self, file_name: str, dataset_in : d.Dataset):
+    def generate_img_from_dataset(self, file_name: str, dataset_in: d.Dataset):
         if dataset_in.meta == None:
             raise Exception("The dataset missing meta data. Decoding information missing")
         data_type = dataset_in.meta.get("entry_encoding")
@@ -764,17 +805,18 @@ class API_interface:
             raise Exception("The dataset image wasn't encoded correctly or isn't an image.")
         return self.convert_array_to_img(array=dataset_in.data, filename=file_name, data_type=data_type)
 
-    def generate_dataset_for_list(self,dataset_name : str ,data : list, data_headings : list, meta: dict, data_type : str):
+    def generate_dataset_for_list(self, dataset_name: str, data: list, data_headings: list, meta: dict, data_type: str):
         """Generates a dataset using just the essential pieces of data"""
         if len(self.username) == 0:
             raise Exception("The username isn't defined. Generate token for communication")
         else:
             # TODO: make a function that verifies the data type and assigns the appropriate variable
             author_temp = d.Author(name=self.username, permission="write")
-            dataset = d.Dataset(name=dataset_name, data=data, meta=meta, data_type=data_type, data_headings=data_headings, author=[author_temp.dict()])
+            dataset = d.Dataset(name=dataset_name, data=data, meta=meta, data_type=data_type,
+                                data_headings=data_headings, author=[author_temp.dict()])
             return dataset
 
-    def wrap_dataset(self,project_name: str, experiment_name: str, dataset_in: d.Dataset)->d.Project:
+    def wrap_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> d.Project:
         exp_temp = d.Experiment(name=experiment_name, children=[dataset_in], author=dataset_in.author)
         project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author, groups=[exp_temp])
         return project_temp
