@@ -3,6 +3,7 @@ import server.datastructure as d
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+import os
 
 def plot_from_dataset(dataset : d.Dataset, label: str, title: str):
     # check dimensionality
@@ -126,6 +127,73 @@ def unpack_h5_custom(json_file_name : str, username: str):
         if ring_ID > max_ring_id:
             return names
     return names
+
+def unpack_h5(json_file_name: str, username: str, unique_keys: List[str]):
+    # attempt to load data into json variable
+    try:
+        with open(json_file_name, "r") as file:
+            data = file.readlines()
+            file.close()
+        data = data[0]
+        json_data = json.loads(data)
+    except:
+        raise Exception("The file couldn't be opened.")
+    # verify that the keys in the unique keys are unique
+    multiple_keys = False
+    if len(unique_keys.keys()) > 1:
+        # combination of two keys is unique
+        # re-label the names
+        # check the length of the unique_keys is the same
+        temp = len(json_data.get(unique_keys[0]))
+        for i in range(1,len(unique_keys)):
+            if temp != len(json_data.get(unique_keys[i])):
+                raise Exception("The size arrays of the unique keys do not match")
+        multiple_keys=True
+
+    for key in unique_keys:
+        data = np.array(json_data.get(key))
+        if not np.unique(data) == data.size:
+            # the unique keys dictionary is wrong
+            raise Exception("The given unique key list isn't unique")
+
+    # unpack and save the datasets into a series of documents.
+    # while relabelling the names to keep them unique
+    # purge the working directory
+    def clean_up():
+        try:
+            my_dir = "cache"
+            file_list = [f for f in os.listdir(my_dir) if f.endswith(".json") or f.endswith(".txt")]
+            for f in file_list:
+                os.remove(os.path.join(my_dir, f))
+        except:
+            raise Exception("cache directory is missing")
+    clean_up()
+
+    ring_ID = 0
+    author_temp = [d.Author(name=username, permission="write").dict()]
+    for entry in json_data.get(unique_keys[0]):
+        # loop over the unique key
+        for dataset_key in json_data.keys(): 
+            data_temp = json_data.get(dataset_key)
+        dataset_temp = d.Dataset(name="ring_id " + str(ring_ID) + " - " + spectrum_name, data=data_temp, meta={"old_ring_id" : entry, "ring_id" : ring_ID}, author=author_temp, 
+                                     data_headings=[spectrum_name], data_type=temp)
+        #datasets.append(dataset_temp)
+        names.append(save_dataset(dataset_temp))
+        append_name(names[len(names)-1])
+        #send_datasets(dataset_temp)
+        ring_ID += 1
+    return names
+
+
+
+
+
+
+
+
+    
+
+    
 
 # save datasets unpacked into individual .json files
 def save_dataset(dataset_in: d.Dataset):

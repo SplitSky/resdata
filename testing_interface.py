@@ -4,6 +4,7 @@ import server.datastructure as d
 path = "http://127.0.0.1:8000/"
 import time
 from os.path import exists
+import jupyter_driver as jd
 
 # tests to conduct
 
@@ -545,7 +546,21 @@ class TestClass:
         assert dataset.data == temp
         temp2 = ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset)
         assert temp2 == True
-        # a
+
+    def test_14(self):
+        # load H5 file using custom function and populate the database. Then summarise data quantities.
+        username = "test_user1"
+        password = 'some_password'
+        email = 'email@email.com'
+        full_name = 'Test User'
+        file_name = "testing_data/json_version.json"
+        api = API_interface(path)
+        api.purge_everything()
+        api.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+        api.generate_token(username, password)
+        names = d.unpack_h5_custom(file_name, username)
+
+
 
        
 def main():
