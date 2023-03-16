@@ -1,9 +1,8 @@
-import datastructure as d
+import server.datastructure as d
 import json
 from datetime import date
 import random
 import numpy as np
-
 '''
 json file in -> dictionary format
 h5 file in -> conversion to json file format
@@ -17,7 +16,6 @@ def create_test_file_project(filename_in, structure, project_name, author_name):
     filename_in     string      the name of the json file
     structure       list        a list containing the number of the experiments and datasets [0,0]
     '''
-
     x = []
     y = []
     y2 = []
@@ -99,7 +97,7 @@ def load_file_dataset(filename_out):
         json_string = json.load(file)
         dataset = d.Dataset(name=json_string.get("name"), data=json_string.get("data"), meta=json_string.get("meta"),
                             data_type=json_string.get("data_type"), author=json_string.get("author"),
-                            data_headings=json_string.get("data_heading"))
+                            data_headings=json_string.get("data_headings"))
         file.close()
     return dataset
 
@@ -227,3 +225,63 @@ def generate_optics_project_2(filename_in, structure, project_name, experiment_n
     with open(filename_in, 'w') as file:
         json.dump(project.dict(), file)
         file.close()
+
+def create_test_file_project_time(filename_in, structure, project_name, author_name, variable_type, dataset_size):
+    '''
+    filename_in     string      the name of the json file
+    structure       list        a list containing the number of the experiments and datasets [0,0]
+    '''
+
+    x = []
+    y = []
+    y2 = []
+
+    if variable_type == "int":
+        for i in range(0, dataset_size):
+            x.append(i)
+            y.append(random.randint(0, 1000))
+            y2.append(random.randint(0, 1000))
+        test_data_3D = [x, y, y2]
+    elif variable_type == "float":
+        for i in range(0, dataset_size):
+            x.append(random.SystemRandom().uniform(5,10))
+            y.append(random.SystemRandom().uniform(5,10))
+            y2.append(random.SystemRandom().uniform(5,10))
+        test_data_3D = [x, y, y2]
+    elif variable_type == "bytes":
+        for i in range(0, dataset_size):
+            x.append(random.randbytes(64))
+            y.append(random.randbytes(64))
+            y2.append(random.randbytes(64))
+        test_data_3D = [x, y, y2] 
+    else:
+        for i in range(0, dataset_size):
+            x.append(random.random())
+            y.append(random.random())
+            y2.append(random.random())
+        test_data_3D = [x, y, y2]
+
+    # dataset1 = mn.Dataset(name="dataset1", data=test_data_2D, meta="test dataset 1", data_type="2D dataset")
+    experiments = []
+    datasets = []
+    template_author = d.Author(name=author_name, permission="write")
+    meta_temp = [str(date.today())]
+    for j in range(0, structure[1], 1):
+        dataset = d.Dataset(name="dataset_" + str(j), data=test_data_3D, data_type="3D dataset",
+                            meta={"note": "dataset metadata", "date": meta_temp[0]},
+                            author=[template_author.dict()], data_headings=["x", "y", "z"])
+        datasets.append(dataset)
+
+    for i in range(0, structure[0], 1):
+        experiment = d.Experiment(name="experiment_" + str(i), children=datasets,
+                                  meta={"note": "experiment metadata","date": meta_temp[0]},
+                                  author=[template_author.dict()])
+        experiments.append(experiment)
+
+    project = d.Project(name=project_name, creator=author_name, groups=experiments,
+                        meta={"note": "project metadata", "date": meta_temp[0]}, author=[template_author.dict()])
+    with open(filename_in, 'w') as file:
+        json.dump(project.dict(), file)
+        file.close()
+    # project.convertJSON()
+

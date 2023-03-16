@@ -1,7 +1,9 @@
 import testing as t
 from interface import API_interface
-import datastructure as d
+import server.datastructure as d
 path = "http://127.0.0.1:8000/"
+import time
+from os.path import exists
 
 # tests to conduct
 
@@ -14,6 +16,36 @@ path = "http://127.0.0.1:8000/"
 # 8. updating permissions for user 2 -> making it able to edit project belonging to user 1
 # 9. User 2 authenting and inserting a dataset in project belonging to user 1
 # 10. User 2 insert dataset into experiment with read only permissions # TODO: This feature may not work but should be updated later
+
+# functions used to simplify the testing
+def send_fetch_cycle(dataset_size: int, structure, array_var_type):
+    # dataset_size - indicates the size of the document that is produced
+    # structure - [x,y] -> x = number of experiments; y = number of documents
+    # array_var_type - the type of the number within the 
+
+    username = "test_user"
+    password = "some_password123"
+    ui = API_interface(path)
+    ui.purge_everything()
+    ui.create_user(username, password, "email", "full_name")
+    #create user
+
+    ui.generate_token(username, password) # authenticate the user
+    # generate test_project
+    file_name = "test_project.json"
+    project_name = "test_project_1"
+    t.create_test_file_project_time(filename_in=file_name, structure=structure, project_name=project_name, author_name=username, dataset_size=dataset_size ,variable_type=array_var_type)
+    project_in = t.load_file_project(filename_out=file_name)
+    # insert project
+    start = time.perf_counter() # start timing the function
+    assert ui.insert_project(project=project_in) == True
+    # fetch project
+    ui.return_full_project(project_name=project_name)
+    end = time.perf_counter()
+
+    difference = (end - start)
+    print("Difference: " + str(difference))
+    return difference
 
 class TestClass:
     def test_0(self):
@@ -104,7 +136,7 @@ class TestClass:
         # user 2 tree print
         username = "test_user2"
         password = "wombat"
-        ui.generate_token(username=username, password=password)
+        ui.generate_token(username=username, password=password) 
         ui.tree_print()
 
 
@@ -457,8 +489,66 @@ class TestClass:
         assert project_count == project_count_group
         assert experiment_count == experiment_count_group
         assert dataset_count == dataset_count_group
-         
+
+    def test_12(self):
+        # tests creation and insertion of images
+        file_name = "test_cat.jpg"
+        ui = API_interface(path)
+        arr, data_type = ui.convert_img_to_array(filename=file_name)
+        cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg",str(data_type))
+        assert cat_img == True
+        assert exists("images/test_cat2.jpg") == True 
+
+    def test_13(self):
+        # test the API handling of images
+        file_name = "test_cat.jpg"
+        ui = API_interface(path)
+        ui.purge_everything()
+        #arr, data_type = ui.convert_img_to_array(filename=file_name)
+
+        # create a project and send the dataset
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        ui.create_user(username_in=username, password_in=password, email="a", full_name="a")
+        ui.generate_token(username, password)
+        # generate test_project
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        experiment_name = "experiment_0"
+        dataset_name = "image_test"
+        picture_file_name = "test_cat.jpg"
+        final_picture_name = "test_cat2.jpg"
+        t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
+        project_in = t.load_file_project(filename_out=file_name)
+        assert ui.insert_project(project=project_in) == True
+        
+        # insert an additional dataset
+        dataset_in = ui.generate_dataset_for_img(file_name=picture_file_name, dataset_name=dataset_name)
+        ui.insert_dataset(project_name, experiment_name,dataset_in)
+        ui.tree_print()
+
+        # return previous dataset to confirm return_dataset works
+        dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name="dataset_0")
+        print("first sanity check")
+        if dataset == False:
+            print("Failed")
+        else:
+            print(f'dataset name: {dataset.name}')
+        dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name,dataset_name=dataset_name)
+        assert dataset != False
+
+        # confirm the datasets are the same
+        temp, data_type = ui.convert_img_to_array(filename=picture_file_name)
+        for i in range(0,len(temp)):
+            print(temp[i] == dataset.data[i])
+        assert dataset.data == temp
+        temp2 = ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset)
+        assert temp2 == True
+        # a
+
+       
 def main():
     test_class = TestClass()
-    test_class.test_11()
+    test_class.test_13()
 main()

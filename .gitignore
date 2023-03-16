@@ -1,4 +1,6 @@
 variables.py
+*.jpg
+*.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -142,4 +144,6 @@ notes.txt
 test.py
 variables2.py
 variables.py
+*.pem
+/*.pem
 
