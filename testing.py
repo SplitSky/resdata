@@ -285,3 +285,7 @@ def create_test_file_project_time(filename_in, structure, project_name, author_n
         file.close()
     # project.convertJSON()
 
+def save_file_project(file_name: str, project: d.Project):
+    with open(file_name, 'w') as file:
+        json.dump(project.dict(), file)
+        file.close()

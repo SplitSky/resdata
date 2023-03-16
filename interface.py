@@ -72,40 +72,40 @@ class API_interface:
             else:
                 return True
 
-    def insert_dataset_safe(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
-        """The function inserts the dataset while ensuring the path is present. Requires 3 calls per dataset insertion"""
-        if self.check_project_exists(project_name=project_name):
-            # set up basic project file
-            project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author)
-            self.init_project(project=project_temp)
-        if self.check_experiment_exists(project_name=project_name, experiment_name=experiment_name):
-            exp_temp = d.Experiment(name=experiment_name, children=[], author=dataset_in.author)
-            self.init_experiment(project_id=project_name, experiment=exp_temp)
+  #  def insert_dataset_safe(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
+  #      """The function inserts the dataset while ensuring the path is present. Requires 3 calls per dataset insertion"""
+  #      if self.check_project_exists(project_name=project_name):
+  #          # set up basic project file
+  #          project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author)
+  #          self.init_project(project=project_temp)
+  #      if self.check_experiment_exists(project_name=project_name, experiment_name=experiment_name):
+  #          exp_temp = d.Experiment(name=experiment_name, children=[], author=dataset_in.author)
+  #          self.init_experiment(project_id=project_name, experiment=exp_temp)
 
-        if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name,
-                                     dataset_id=dataset_in.name):
-            raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
-        dataset_in.set_credentials(self.username, self.token)
-        dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-        # dataset is less than maximum size
-        if self.check_object_size(dataset_in):
-            # dataset within parameters
-            # proceed without fragmentation
-            requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
-            return True
-        else:
-            # dataset needs fragmentation
-            datasets = self.fragment_datasets(dataset_in)
-            responses = []
-            for dataset_temp in datasets:
-                # insert each dataset
-                dataset_temp.set_credentials(self.username, self.token)
-                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
-                responses.append(response)
-            if False in responses:
-                return False
-            else:
-                return True
+  #      if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name,
+  #                                   dataset_id=dataset_in.name):
+  #          raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
+  #      dataset_in.set_credentials(self.username, self.token)
+  #      dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
+  #      # dataset is less than maximum size
+  #      if self.check_object_size(dataset_in):
+  #          # dataset within parameters
+  #          # proceed without fragmentation
+  #          requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+  #          return True
+  #      else:
+  #          # dataset needs fragmentation
+  #          datasets = self.fragment_datasets(dataset_in)
+  #          responses = []
+  #          for dataset_temp in datasets:
+  #              # insert each dataset
+  #              dataset_temp.set_credentials(self.username, self.token)
+  #              response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+  #              responses.append(response)
+  #          if False in responses:
+  #              return False
+  #          else:
+  #              return True
 
 
 
@@ -207,6 +207,9 @@ class API_interface:
     def insert_project(self, project: d.Project):
         """ Function which inserts project recursively using the insert_experiment function. """
         response_out = []
+        if " " in project.name:
+            raise Exception("The project name cannot contain the character ' '.")
+
         # set project in database
         # check if project exists. If not initialise it 
         if self.check_project_exists(project_name=project.name):
@@ -249,8 +252,6 @@ class API_interface:
         if len(project_id) == 0 or len(experiment_id) == 0 or len(dataset_id) == 0:
             raise Exception("One of the variables has size zero")
         names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
-        print("names list")
-        print(names_list)
         return dataset_id in names_list
 
     def create_user(self, username_in, password_in, email, full_name):
