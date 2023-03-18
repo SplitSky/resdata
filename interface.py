@@ -432,6 +432,9 @@ class API_interface:
         dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
         response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
+        if response == False:
+            print("No datasets found")
+            return []
         names = response.json()
         names = names.get("names")
         datasets = []

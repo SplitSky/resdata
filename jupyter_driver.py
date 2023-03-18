@@ -184,9 +184,8 @@ def unpack_h5_custom_ex(json_file_name : str, username: str):
     return names
 
 
-def unpack_h5_custom_proj(json_file_name : str, username: str, project_name : str, experiment_name : str):
+def unpack_h5_custom_proj(json_file_name : str, username: str, project_name : str, experiment_name : str, max_ring_id : int):
     # instead of saving individual datasets saves the data fully into one project
-    max_ring_id = 12 # loads in 10 rings
 
     with open(json_file_name, "r") as file:
         data = file.readlines()
