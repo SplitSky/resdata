@@ -562,4 +562,3 @@ async def collect_fragments(project_name: str, experiment_name : str, dataset_na
             names.append(dataset.get("name")) # appends names to a list
     return {"names" : names}
 
-

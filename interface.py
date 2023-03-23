@@ -2,7 +2,6 @@
 with the API."""
 import hashlib as h
 import json
-from types import NotImplementedType
 from typing import List
 import requests
 from fastapi import status
@@ -11,6 +10,7 @@ from variables import API_key
 from PIL import Image
 import numpy as np
 import sys
+import concurrent.futures
 
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
@@ -18,13 +18,16 @@ from server.security import key_manager # import for development. Split security
 #max_size = 16793598 # bytes
 max_size = 6478488
 
-
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
 
     temp = h.shake_256()
     temp.update(password.encode('utf8'))
     return temp.hexdigest(64)
+
+def has_common_element(list_A, list_B):
+    set_B = set(list_B)
+    return any(elem in set_B for elem in list_A)
 
 
 class API_interface:
@@ -49,8 +52,7 @@ class API_interface:
                                      dataset_id=dataset_in.name):
             raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
-        dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-        
+        dataset_in.author.append(d.Author(name=self.username, permission="write").dict())
         # dataset is less than maximum size
 
         if self.check_object_size(dataset_in):
@@ -71,43 +73,6 @@ class API_interface:
                 return False
             else:
                 return True
-
-  #  def insert_dataset_safe(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
-  #      """The function inserts the dataset while ensuring the path is present. Requires 3 calls per dataset insertion"""
-  #      if self.check_project_exists(project_name=project_name):
-  #          # set up basic project file
-  #          project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author)
-  #          self.init_project(project=project_temp)
-  #      if self.check_experiment_exists(project_name=project_name, experiment_name=experiment_name):
-  #          exp_temp = d.Experiment(name=experiment_name, children=[], author=dataset_in.author)
-  #          self.init_experiment(project_id=project_name, experiment=exp_temp)
-
-  #      if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name,
-  #                                   dataset_id=dataset_in.name):
-  #          raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
-  #      dataset_in.set_credentials(self.username, self.token)
-  #      dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-  #      # dataset is less than maximum size
-  #      if self.check_object_size(dataset_in):
-  #          # dataset within parameters
-  #          # proceed without fragmentation
-  #          requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
-  #          return True
-  #      else:
-  #          # dataset needs fragmentation
-  #          datasets = self.fragment_datasets(dataset_in)
-  #          responses = []
-  #          for dataset_temp in datasets:
-  #              # insert each dataset
-  #              dataset_temp.set_credentials(self.username, self.token)
-  #              response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
-  #              responses.append(response)
-  #          if False in responses:
-  #              return False
-  #          else:
-  #              return True
-
-
 
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):  # -> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
@@ -209,7 +174,6 @@ class API_interface:
         response_out = []
         if " " in project.name:
             raise Exception("The project name cannot contain the character ' '.")
-
         # set project in database
         # check if project exists. If not initialise it 
         if self.check_project_exists(project_name=project.name):
@@ -782,3 +746,49 @@ class API_interface:
         exp_temp = d.Experiment(name=experiment_name, children=[dataset_in], author=dataset_in.author)
         project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author, groups=[exp_temp])
         return project_temp
+
+    def insert_experiment_fast(self, project_name: str, experiment: d.Experiment) -> bool:
+        """ Quick data insertion. Inserts datasets individually one by one. Uses multi-threading to speed up the process"""
+        experiment_name = experiment.name
+        if not self.check_experiment_exists(project_name, experiment_name):
+            self.init_experiment(project_name, experiment)
+        # init the experiment
+        response = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            for dataset in experiment.children:
+                future = executor.submit(self.check_dataset_exists,project_name, experiment_name, dataset.name)
+                return_value = future.result()
+                if not return_value:
+                    future = executor.submit(self.insert_dataset, project_name, experiment_name, dataset)
+                    return_value = future.result()
+                    response.append(return_value)
+        if False in response:
+            return False
+        else:
+            return True
+
+    def insert_project_fast(self, project: d.Project):
+        """ Function which inserts project recursively using the insert_experiment function. """
+        response_out = []
+        if " " in project.name:
+            raise Exception("The project name cannot contain the character ' '.")
+        # set project in database
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future = executor.submit(self.check_project_exists, project.name)
+            return_value = future.result()
+            if return_value:
+                raise RuntimeError('Project Already exists')
+            else:
+                future = executor.submit(self.init_project, project)
+            temp = project.groups
+            if temp is not None:
+                for experiment in temp:
+                    future = executor.submit(self.insert_experiment_fast, project.name, experiment)
+                    return_value = future.result()
+                    response_out.append(return_value)
+        
+        if False in response_out:
+            return False
+        else:
+            return True
+
