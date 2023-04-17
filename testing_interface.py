@@ -569,9 +569,8 @@ class TestClass:
         api.tree_print()
     
     def test_15(self):
-        
         # return a project to compare with the file
-                # 2. inserting a project using that user
+        # 2. inserting a project using that user
         username = "test_user"
         password = "some_password123"
         ui = API_interface(path)
@@ -620,7 +619,31 @@ class TestClass:
                 assert file_dataset.author == db_dataset.author
                 assert file_dataset.data_headings == db_dataset.data_headings
 
+    def test_16(self):
+        # testing the multithreading insertion functions
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything() # clear the database
+        no_of_experiments = 1
+        no_of_datasets = 1
+        ds_size = 100
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        # create user
+        ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
+        experiment_name = "test_experiment"
+        # create project
+        ui.generate_token(username, password)
+        t.create_test_file_project(filename_in=file_name, structure=[no_of_experiments, no_of_datasets], project_name=project_name, author_name=username)
+        project_from_file = t.load_file_project(filename_out=file_name)
+        # insert the project
+        ui.insert_project_fast(project_from_file) # the project function uses the fast dataset and experiment functions
+        ui.tree_print()
+        project_out = ui.return_full_project(project_name=project_name)
 def main():
     test_class = TestClass()
-    test_class.test_15()
+    test_class.test_16()
 main()

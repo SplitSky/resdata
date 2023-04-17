@@ -52,7 +52,7 @@ class API_interface:
                                      dataset_id=dataset_in.name):
             raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
-        dataset_in.author.append(d.Author(name=self.username, permission="write").dict())
+        # dataset_in.author.append(d.Author(name=self.username, permission="write").dict())
         # dataset is less than maximum size
 
         if self.check_object_size(dataset_in):
@@ -271,6 +271,7 @@ class API_interface:
     def get_dataset_names(self, project_id: str, experiment_id: str):
         user_in = d.Author(name=self.username, permission="none")
         response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+        print(f'dataset names return = {response.json().get("names")}')
         return response.json().get("names")
 
     def get_project_names(self):
@@ -770,6 +771,7 @@ class API_interface:
     def insert_project_fast(self, project: d.Project):
         """ Function which inserts project recursively using the insert_experiment function. """
         response_out = []
+
         if " " in project.name:
             raise Exception("The project name cannot contain the character ' '.")
         # set project in database
@@ -792,3 +794,17 @@ class API_interface:
         else:
             return True
 
+   # def insert_project_bulk(self, project: d.Project):
+   #     # multithreading and session variables used for sending big data files
+   #     if " " in project.name:
+   #         raise Exception("The project name cannot contain the character ' '.")
+   #     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+   #         future = executor.submit(self.check_project_exists, project.name)
+   #         return_value = future.result()
+   #         if return_value:
+   #             raise RuntimeError('Project Already exists')
+   #         else:
+   #             s = requests.Session()
+   #             # init project
+   #             # insert experiments
+   #                 # insert datasets all in one session
