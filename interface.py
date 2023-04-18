@@ -38,11 +38,12 @@ class API_interface:
         self.token: str = ""
         self.username: str = ""
         self.max_size = max_size
+        self.s = requests.Session()
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
 
-        response = requests.get(self.path)
+        response = self.s.get(self.path)
         return response.status_code == status.HTTP_200_OK
 
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
@@ -58,7 +59,7 @@ class API_interface:
         if self.check_object_size(dataset_in):
             # dataset within parameters
             # proceed without fragmentation
-            requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+            self.s.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
             return True
         else:
             # dataset needs fragmentation
@@ -67,7 +68,7 @@ class API_interface:
             for dataset_temp in datasets:
                 # insert each dataset
                 dataset_temp.set_credentials(self.username, self.token)
-                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+                response = self.s.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
                 responses.append(response)
             if False in responses:
                 return False
@@ -78,7 +79,7 @@ class API_interface:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
         # TODO: raise exceptions not return False
         user_in = d.User(username=self.username, hash_in=self.token)
-        response = requests.post(
+        response = self.s.post(
             url=f'{self.path}{project_name}/{experiment_name}/{dataset_name}/return_dataset',
             json=user_in.dict())
         temp = json.loads(response.json())
@@ -149,7 +150,7 @@ class API_interface:
         for exp_name in exp_names_list:
             experiments.append(self.return_full_experiment(project_name, exp_name))
 
-        response = requests.get(self.path + project_name + "/details")
+        response = self.s.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json())  # conversion into dict
 
         return d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
@@ -194,7 +195,7 @@ class API_interface:
         """ Project initialisation function. Assigns the variables to the configuration file in the database. """
         request_body = d.Simple_Request_body(name=project.name, meta=project.meta, creator=project.creator,
                                              author=project.author)
-        response = requests.post(self.path + project.name + "/set_project",
+        response = self.s.post(self.path + project.name + "/set_project",
                                  json=request_body.dict())  # updates the project variables
         return response
 
@@ -226,7 +227,7 @@ class API_interface:
         u.generate_keys()
         private_key, public_key = u.read_keys()
         # fetch API public key
-        response = requests.post(self.path + "get_public_key")
+        response = self.s.post(self.path + "get_public_key")
         #api_public_key = response["public_key"]
         bytes_out = response.json().get("public_key").encode('utf-8')
         # serialize key into object
@@ -247,7 +248,7 @@ class API_interface:
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
         # API call to create user
-        response = requests.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
+        response = self.s.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
         if response.status_code == 200:
             return True
         else:
@@ -259,25 +260,25 @@ class API_interface:
         hash_in = return_hash(password)
         self.username = username
         credentials = d.User(username=username, hash_in=hash_in)
-        response = requests.post(self.path + "generate_token", json=credentials.dict())  # generates token
+        response = self.s.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
 
     def get_experiment_names(self, project_id: str):
         user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + project_id + "/names", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
         return response.json().get("names")
 
     def get_dataset_names(self, project_id: str, experiment_id: str):
         user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
         print(f'dataset names return = {response.json().get("names")}')
         return response.json().get("names")
 
     def get_project_names(self):
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """
         user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + "names", json=user_in.dict())
+        response = self.s.get(self.path + "names", json=user_in.dict())
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
 
@@ -307,7 +308,7 @@ class API_interface:
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
 
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
+        response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
@@ -368,7 +369,7 @@ class API_interface:
         self.add_author_to_project(project_id=project_id, author_name=author_name,author_permission=author_permissions)
 
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
+        response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
@@ -377,7 +378,7 @@ class API_interface:
 
 
     def purge_everything(self):
-        requests.post(self.path +"purge")
+        self.s.post(self.path +"purge")
         print("purged")
 
     def experiment_search_meta(self, meta_search : dict, experiment_id : str, project_id : str):
@@ -396,7 +397,7 @@ class API_interface:
         author_temp = d.Author(name=self.username ,permission="write")
         dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
         if response == False:
             print("No datasets found")
             return []
@@ -416,7 +417,7 @@ class API_interface:
         # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
         author_in = d.Author(name=author_name, permission=author_permission)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
+        response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
                                  json=author_in.dict())
         return response.json() 
       
@@ -495,19 +496,19 @@ class API_interface:
     def get_experiment_names_group(self, project_id: str, group_name: str):
         """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
-        response = requests.get(self.path + project_id + "/names_group", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/names_group", json=user_in.dict())
         return response.json().get("names")
 
     def get_dataset_names_group(self, project_id: str, experiment_id: str, group_name: str):
         """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/names_group", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/names_group", json=user_in.dict())
         return response.json().get("names")
 
     def get_project_names_group(self, group_name: str):
         """ Returns the list of project names belonging to the group with the specified group name - Lists databases except admin, local and Authentication. """
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
-        response = requests.get(self.path + "names_group", json=user_in.dict())
+        response = self.s.get(self.path + "names_group", json=user_in.dict())
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
 
@@ -669,7 +670,7 @@ class API_interface:
         # get the names of the datasets by using meta search
         
         # API call to retrieve the full list of names
-        response = requests.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
+        response = self.s.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
         response = response.json()
         #response = requests.get(self.path + "names_group", json=user_in.dict())
         
