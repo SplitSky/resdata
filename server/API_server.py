@@ -1,10 +1,8 @@
 """ The API_server file containing all the API calls used by the interface. """
-
 """Data structure imports"""
 import json
 from datetime import datetime, timedelta
 from time import sleep
-
 """ Server and client imports """
 from typing import List, Dict
 from fastapi import FastAPI, HTTPException, status
@@ -18,7 +16,7 @@ import variables as var
 
 """Authentication imports"""
 from security import User_Auth
-from variables import secret_key, algorithm, access_token_expire, cluster_id, API_key
+from variables import secret_key, algorithm, access_token_expire, API_key
 import hashlib as h
 
 
@@ -188,7 +186,7 @@ async def return_all_dataset_names(project_id: str, experiment_id: str, author: 
 
 
 @app.post("/{project_id}/set_project")
-async def update_project_data(project_id: str, data_in: d.Simple_Request_body):  # -> dict:
+async def update_project_data(project_id: str, data_in: d.Simple_Request_body):  # -> Dict:
     """Update a project with Simple Request"""
     collection = client[project_id]['config']
     json_dict = {
@@ -219,7 +217,7 @@ async def return_project_data(project_id: str) -> str:
 
 
 @app.post("/create_user/{ui_public_key}")
-async def create_user(user: d.User, ui_public_key) -> dict:
+async def create_user(user: d.User, ui_public_key) -> Dict:
     """Create a new user"""
     sleep(1)
     auth_obj = User_Auth(user.username, user.hash_in, client)
@@ -474,7 +472,7 @@ async def return_all_project_names_group(author: d.Author):
 
 
 @app.get("/{project_id}/names_group")
-async def return_all_experiment_names_group(project_id: str, user: d.Author) -> dict[str, List[str]]:
+async def return_all_experiment_names_group(project_id: str, user: d.Author) -> Dict[str, List[str]]:
     """Retrieve all experimental names in a given project that the user has the permission to access"""
     experiment_names = client[project_id].list_collection_names()
     user_temp = User_Auth(username_in=user.name, password_in="", db_client_in=client)
