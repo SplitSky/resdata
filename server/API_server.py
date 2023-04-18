@@ -21,7 +21,7 @@ import hashlib as h
 
 
 #string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
-string=f"mongodb+srv://splitsky:{var.password}@127.0.0.1/?retryWrites=true&w=majority"
+string = f"mongodb://splitsky:{var.password}@127.0.0.1/?retryWrites=true&w=majority"
 """Cryptography imports"""
 
 """Connect to the backend variables"""
