@@ -192,13 +192,13 @@ class Ring(BaseModel):
     quality: Union[int, None]
     pitch: Union[float, None]
     threshold: Union[float, None]
-    spectrum_dataset: list[list]
-    spectrum_headings: list[list[str]]
-    spectrum_names: list[str]
-    spectrum_data_types: list[str]
+    spectrum_dataset: List[List]
+    spectrum_headings: List[List[str]]
+    spectrum_names: List[str]
+    spectrum_data_types: List[str]
 
-    author: list[dict]
-    datasets: Union[list, None]
+    author: List[dict]
+    datasets: Union[List, None]
 
     def convert_to_document_list(self):
         self.datasets = [] # clear dataset
