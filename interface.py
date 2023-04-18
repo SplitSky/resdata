@@ -11,6 +11,7 @@ from PIL import Image
 import numpy as np
 import sys
 import concurrent.futures
+from datetime import datetime, timedelta
 
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
@@ -33,12 +34,18 @@ def has_common_element(list_A, list_B):
 class API_interface:
     """ The Class containing the interface functions and variables. """
 
-    def __init__(self, path_in: str) -> None:
+    def __init__(self, path_in: str, user_cache=False) -> None:
         self.path: str = path_in
         self.token: str = ""
         self.username: str = ""
         self.max_size = max_size
         self.s = requests.Session()
+
+        self.user_cache = user_cache
+        self.cache_proj_name: str
+        self.cache: dict
+        self.cache_time_delta = timedelta(minutes=0.5) # minutes
+        self.cache_timeout = datetime.utcnow()
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
@@ -264,16 +271,35 @@ class API_interface:
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
 
+    def update_cache(self, project_id: str) -> None:
+        self.cache = {}
+        self.cache_proj_name = project_id
+        exp_names = self.get_experiment_names(project_id=project_id)
+        for exp_name in exp_names:
+            self.cache[exp_name] = self.get_dataset_names(project_id=project_id, experiment_id=exp_name)
+
+
+    def get_dataset_names_from_cache(self, project_id: str, experiment: str):
+        self.cache[experiment_id]
+
     def get_experiment_names(self, project_id: str):
-        user_in = d.Author(name=self.username, permission="none")
-        response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
-        return response.json().get("names")
+        if self.user_cache:
+            self.update_cache(project_id=project_id)
+            return self.cache.keys()
+        else:
+            user_in = d.Author(name=self.username, permission="none")
+            response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
+            return response.json().get("names")
 
     def get_dataset_names(self, project_id: str, experiment_id: str):
-        user_in = d.Author(name=self.username, permission="none")
-        response = self.s.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
-        print(f'dataset names return = {response.json().get("names")}')
-        return response.json().get("names")
+        if self.user_cache:
+            # if cache not expired and the project matches and cache used
+
+            # TODO: finish from here
+        else:
+            user_in = d.Author(name=self.username, permission="none")
+            response = self.s.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+            return response.json().get("names")
 
     def get_project_names(self):
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """

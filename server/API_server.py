@@ -19,18 +19,13 @@ from security import User_Auth
 from variables import secret_key, algorithm, access_token_expire, API_key
 import hashlib as h
 
-
-#string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
-string = f"mongodb://splitsky:{var.password}@127.0.0.1/?retryWrites=true&w=majority"
-"""Cryptography imports"""
-
-"""Connect to the backend variables"""
-# string = f"mongodb+srv://{var.username}:{var.password}@cluster0.{cluster_id}.mongodb.net/?retryWrites=true&w=majority"
-# string = mongodb+srv://<username>:<password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority
+# testing string
+string = f"mongodb+srv://splitsky:{var.password}@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority"
+# virtual machine string
+#string = f"mongodb://splitsky:{var.password}@127.0.0.1/?retryWrites=true&w=majority"
 client = MongoClient(string)
 """Initialises the API"""
 app = FastAPI()
-
 
 def return_hash(password: str):
     """ Hash function used by the API to decode. It is used to only send hashes and not plain passwords."""
