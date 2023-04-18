@@ -561,14 +561,89 @@ class TestClass:
         api.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
         api.generate_token(username, password)
         #unique_keys = ["ring_ID", "sample_ID"]
-        
-        file_name = jd.unpack_h5_custom_proj(file_name, username, project_id, experiment_id)
+        max_ring_id = 20
+        file_name = jd.unpack_h5_custom_proj(file_name, username, project_id, experiment_id, max_ring_id=max_ring_id)
         project = t.load_file_project(filename_out=file_name)
         #jd.send_datasets(username, password, path, project_id, experiment_id)
         api.insert_project(project=project)
         api.tree_print()
+    
+    def test_15(self):
+        # return a project to compare with the file
+        # 2. inserting a project using that user
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        ui.purge_everything() 
+        ui.create_user(username, password, "aaa", "aaa")
+        ui.generate_token(username, password)
+        # generate test_project
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
+        project_in = t.load_file_project(filename_out=file_name)
+        print(project_in.json())
+        assert ui.insert_project_fast(project=project_in) == True
 
+        # return project
+        project_from_db = ui.return_full_project(project_name=project_name)
+        # load in the file
+        project_from_file = t.load_file_project(filename_out=file_name)
+        # compare assertions
+        assert project_from_db.name == project_from_file.name
+        assert project_from_db.meta == project_from_file.meta
+        assert project_from_db.creator == project_from_file.creator
+        assert project_from_db.author == project_from_file.author
+
+        # compare experiments
+        if project_from_file.groups == None or project_from_db.groups == None:
+            raise Exception("")
+        for i in range(0, len(project_from_file.groups)):
+            file_experiment = project_from_file.groups[i]
+            db_experiment = project_from_db.groups[i]
+            
+            # compare the experiment variables
+            assert file_experiment.name == db_experiment.name
+
+            print(file_experiment.author)
+            print(db_experiment.author)
+            assert file_experiment.author == db_experiment.author
+
+            assert file_experiment.meta == db_experiment.meta
+            for j in range(0, len(file_experiment.children)): # iterate over datasets
+                file_dataset = file_experiment.children[j]
+                db_dataset = db_experiment.children[j]
+                assert file_dataset.name == db_dataset.name
+                assert file_dataset.data == db_dataset.data
+                assert file_dataset.data_type == db_dataset.data_type
+                assert file_dataset.author == db_dataset.author
+                assert file_dataset.data_headings == db_dataset.data_headings
+
+    def test_16(self):
+        # testing the multithreading insertion functions
+        ui = API_interface(path)
+        ui.check_connection()
+        ui.purge_everything() # clear the database
+        no_of_experiments = 1
+        no_of_datasets = 1
+        ds_size = 100
+        username = "test_user"
+        password = "some_password123"
+        ui = API_interface(path)
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        # create user
+        ui.create_user(username_in=username, password_in=password, email="emai@email.com", full_name="test user")
+        experiment_name = "test_experiment"
+        # create project
+        ui.generate_token(username, password)
+        t.create_test_file_project(filename_in=file_name, structure=[no_of_experiments, no_of_datasets], project_name=project_name, author_name=username)
+        project_from_file = t.load_file_project(filename_out=file_name)
+        # insert the project
+        ui.insert_project_fast(project_from_file) # the project function uses the fast dataset and experiment functions
+        ui.tree_print()
+        project_out = ui.return_full_project(project_name=project_name)
 def main():
     test_class = TestClass()
-    test_class.test_14()
+    test_class.test_16()
 main()

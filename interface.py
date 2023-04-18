@@ -2,7 +2,6 @@
 with the API."""
 import hashlib as h
 import json
-from types import NotImplementedType
 from typing import List
 import requests
 from fastapi import status
@@ -11,6 +10,7 @@ from variables import API_key
 from PIL import Image
 import numpy as np
 import sys
+import concurrent.futures
 
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
@@ -18,13 +18,16 @@ from server.security import key_manager # import for development. Split security
 #max_size = 16793598 # bytes
 max_size = 6478488
 
-
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
 
     temp = h.shake_256()
     temp.update(password.encode('utf8'))
     return temp.hexdigest(64)
+
+def has_common_element(list_A, list_B):
+    set_B = set(list_B)
+    return any(elem in set_B for elem in list_A)
 
 
 class API_interface:
@@ -35,11 +38,12 @@ class API_interface:
         self.token: str = ""
         self.username: str = ""
         self.max_size = max_size
+        self.s = requests.Session()
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
 
-        response = requests.get(self.path)
+        response = self.s.get(self.path)
         return response.status_code == status.HTTP_200_OK
 
     def insert_dataset(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
@@ -49,14 +53,13 @@ class API_interface:
                                      dataset_id=dataset_in.name):
             raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
         dataset_in.set_credentials(self.username, self.token)
-        dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-        
+        # dataset_in.author.append(d.Author(name=self.username, permission="write").dict())
         # dataset is less than maximum size
 
         if self.check_object_size(dataset_in):
             # dataset within parameters
             # proceed without fragmentation
-            requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+            self.s.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
             return True
         else:
             # dataset needs fragmentation
@@ -65,55 +68,18 @@ class API_interface:
             for dataset_temp in datasets:
                 # insert each dataset
                 dataset_temp.set_credentials(self.username, self.token)
-                response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
+                response = self.s.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
                 responses.append(response)
             if False in responses:
                 return False
             else:
                 return True
 
-  #  def insert_dataset_safe(self, project_name: str, experiment_name: str, dataset_in: d.Dataset) -> bool:
-  #      """The function inserts the dataset while ensuring the path is present. Requires 3 calls per dataset insertion"""
-  #      if self.check_project_exists(project_name=project_name):
-  #          # set up basic project file
-  #          project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author)
-  #          self.init_project(project=project_temp)
-  #      if self.check_experiment_exists(project_name=project_name, experiment_name=experiment_name):
-  #          exp_temp = d.Experiment(name=experiment_name, children=[], author=dataset_in.author)
-  #          self.init_experiment(project_id=project_name, experiment=exp_temp)
-
-  #      if self.check_dataset_exists(project_id=project_name, experiment_id=experiment_name,
-  #                                   dataset_id=dataset_in.name):
-  #          raise RuntimeError('Dataset Already exists')  # doesn't allow for duplicate names in datasets
-  #      dataset_in.set_credentials(self.username, self.token)
-  #      dataset_in.author = [d.Author(name=self.username, permission="write").dict()]
-  #      # dataset is less than maximum size
-  #      if self.check_object_size(dataset_in):
-  #          # dataset within parameters
-  #          # proceed without fragmentation
-  #          requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
-  #          return True
-  #      else:
-  #          # dataset needs fragmentation
-  #          datasets = self.fragment_datasets(dataset_in)
-  #          responses = []
-  #          for dataset_temp in datasets:
-  #              # insert each dataset
-  #              dataset_temp.set_credentials(self.username, self.token)
-  #              response = requests.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_temp.dict())
-  #              responses.append(response)
-  #          if False in responses:
-  #              return False
-  #          else:
-  #              return True
-
-
-
     def return_full_dataset(self, project_name: str, experiment_name: str, dataset_name: str):  # -> d.Dataset | None:
         """ The function responsible for returning a dataset. It authenticates the user and verifies the read permission. """
         # TODO: raise exceptions not return False
         user_in = d.User(username=self.username, hash_in=self.token)
-        response = requests.post(
+        response = self.s.post(
             url=f'{self.path}{project_name}/{experiment_name}/{dataset_name}/return_dataset',
             json=user_in.dict())
         temp = json.loads(response.json())
@@ -184,7 +150,7 @@ class API_interface:
         for exp_name in exp_names_list:
             experiments.append(self.return_full_experiment(project_name, exp_name))
 
-        response = requests.get(self.path + project_name + "/details")
+        response = self.s.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json())  # conversion into dict
 
         return d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
@@ -209,7 +175,6 @@ class API_interface:
         response_out = []
         if " " in project.name:
             raise Exception("The project name cannot contain the character ' '.")
-
         # set project in database
         # check if project exists. If not initialise it 
         if self.check_project_exists(project_name=project.name):
@@ -230,7 +195,7 @@ class API_interface:
         """ Project initialisation function. Assigns the variables to the configuration file in the database. """
         request_body = d.Simple_Request_body(name=project.name, meta=project.meta, creator=project.creator,
                                              author=project.author)
-        response = requests.post(self.path + project.name + "/set_project",
+        response = self.s.post(self.path + project.name + "/set_project",
                                  json=request_body.dict())  # updates the project variables
         return response
 
@@ -262,7 +227,7 @@ class API_interface:
         u.generate_keys()
         private_key, public_key = u.read_keys()
         # fetch API public key
-        response = requests.post(self.path + "get_public_key")
+        response = self.s.post(self.path + "get_public_key")
         #api_public_key = response["public_key"]
         bytes_out = response.json().get("public_key").encode('utf-8')
         # serialize key into object
@@ -283,7 +248,7 @@ class API_interface:
         # user_out = json.dumps(user.dict())
         user_out = user.dict()
         # API call to create user
-        response = requests.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
+        response = self.s.post(self.path + "create_user" +"/"+ str(public_key), json=user_out)
         if response.status_code == 200:
             return True
         else:
@@ -295,24 +260,25 @@ class API_interface:
         hash_in = return_hash(password)
         self.username = username
         credentials = d.User(username=username, hash_in=hash_in)
-        response = requests.post(self.path + "generate_token", json=credentials.dict())  # generates token
+        response = self.s.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
 
     def get_experiment_names(self, project_id: str):
         user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + project_id + "/names", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
         return response.json().get("names")
 
     def get_dataset_names(self, project_id: str, experiment_id: str):
         user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+        print(f'dataset names return = {response.json().get("names")}')
         return response.json().get("names")
 
     def get_project_names(self):
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """
         user_in = d.Author(name=self.username, permission="none")
-        response = requests.get(self.path + "names", json=user_in.dict())
+        response = self.s.get(self.path + "names", json=user_in.dict())
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
 
@@ -342,7 +308,7 @@ class API_interface:
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
 
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
+        response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
@@ -403,7 +369,7 @@ class API_interface:
         self.add_author_to_project(project_id=project_id, author_name=author_name,author_permission=author_permissions)
 
         author_in = d.Author(name=author_name, permission=author_permissions)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
+        response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
         if response == status.HTTP_200_OK:
             return True
@@ -412,7 +378,7 @@ class API_interface:
 
 
     def purge_everything(self):
-        requests.post(self.path +"purge")
+        self.s.post(self.path +"purge")
         print("purged")
 
     def experiment_search_meta(self, meta_search : dict, experiment_id : str, project_id : str):
@@ -431,7 +397,10 @@ class API_interface:
         author_temp = d.Author(name=self.username ,permission="write")
         dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/meta_search", json=dataset.dict())
+        if response == False:
+            print("No datasets found")
+            return []
         names = response.json()
         names = names.get("names")
         datasets = []
@@ -448,7 +417,7 @@ class API_interface:
         # check the dataset exists
         # doesn't verify whether the dataset exists because it edits datasets that the user doesn't have access to
         author_in = d.Author(name=author_name, permission=author_permission)
-        response = requests.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
+        response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ group_name +"/add_group_author",
                                  json=author_in.dict())
         return response.json() 
       
@@ -527,19 +496,19 @@ class API_interface:
     def get_experiment_names_group(self, project_id: str, group_name: str):
         """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
-        response = requests.get(self.path + project_id + "/names_group", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/names_group", json=user_in.dict())
         return response.json().get("names")
 
     def get_dataset_names_group(self, project_id: str, experiment_id: str, group_name: str):
         """Function returning the names that are part of a group with the specified group_name and the auther has access to"""
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
-        response = requests.get(self.path + project_id + "/" + experiment_id + "/names_group", json=user_in.dict())
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/names_group", json=user_in.dict())
         return response.json().get("names")
 
     def get_project_names_group(self, group_name: str):
         """ Returns the list of project names belonging to the group with the specified group name - Lists databases except admin, local and Authentication. """
         user_in = d.Author(name=self.username, permission="none", group_name=group_name)
-        response = requests.get(self.path + "names_group", json=user_in.dict())
+        response = self.s.get(self.path + "names_group", json=user_in.dict())
         project_list = response.json()  # this returns a python dictionary
         return project_list.get("names")
 
@@ -701,7 +670,7 @@ class API_interface:
         # get the names of the datasets by using meta search
         
         # API call to retrieve the full list of names
-        response = requests.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
+        response = self.s.post(f'{self.path}{project_name}/{experiment_name}/{front_dataset.name}/collect_fragments_names', json=user_in.dict())
         response = response.json()
         #response = requests.get(self.path + "names_group", json=user_in.dict())
         
@@ -779,3 +748,64 @@ class API_interface:
         exp_temp = d.Experiment(name=experiment_name, children=[dataset_in], author=dataset_in.author)
         project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author, groups=[exp_temp])
         return project_temp
+
+    def insert_experiment_fast(self, project_name: str, experiment: d.Experiment) -> bool:
+        """ Quick data insertion. Inserts datasets individually one by one. Uses multi-threading to speed up the process"""
+        experiment_name = experiment.name
+        if not self.check_experiment_exists(project_name, experiment_name):
+            self.init_experiment(project_name, experiment)
+        # init the experiment
+        response = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            for dataset in experiment.children:
+                future = executor.submit(self.check_dataset_exists,project_name, experiment_name, dataset.name)
+                return_value = future.result()
+                if not return_value:
+                    future = executor.submit(self.insert_dataset, project_name, experiment_name, dataset)
+                    return_value = future.result()
+                    response.append(return_value)
+        if False in response:
+            return False
+        else:
+            return True
+
+    def insert_project_fast(self, project: d.Project):
+        """ Function which inserts project recursively using the insert_experiment function. """
+        response_out = []
+
+        if " " in project.name:
+            raise Exception("The project name cannot contain the character ' '.")
+        # set project in database
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future = executor.submit(self.check_project_exists, project.name)
+            return_value = future.result()
+            if return_value:
+                raise RuntimeError('Project Already exists')
+            else:
+                future = executor.submit(self.init_project, project)
+            temp = project.groups
+            if temp is not None:
+                for experiment in temp:
+                    future = executor.submit(self.insert_experiment_fast, project.name, experiment)
+                    return_value = future.result()
+                    response_out.append(return_value)
+        
+        if False in response_out:
+            return False
+        else:
+            return True
+
+   # def insert_project_bulk(self, project: d.Project):
+   #     # multithreading and session variables used for sending big data files
+   #     if " " in project.name:
+   #         raise Exception("The project name cannot contain the character ' '.")
+   #     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+   #         future = executor.submit(self.check_project_exists, project.name)
+   #         return_value = future.result()
+   #         if return_value:
+   #             raise RuntimeError('Project Already exists')
+   #         else:
+   #             s = requests.Session()
+   #             # init project
+   #             # insert experiments
+   #                 # insert datasets all in one session

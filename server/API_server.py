@@ -155,6 +155,7 @@ async def return_all_experiment_names(project_id: str, user : d.Author) -> dict[
                 for author in author_list:
                     if author.get("name") == user.name:
                         exp_names_out.append(name)
+    print(f'exp_names_out {exp_names_out}')
     return {"names" : exp_names_out}
 
 @app.get("/{project_id}/{experiment_id}/names")
@@ -178,6 +179,7 @@ async def return_all_dataset_names(project_id: str, experiment_id: str, author :
         for entry in dataset['author']:
             if entry['name'] == author.name:
                 names.append(dataset['name']) # returns all datasets including the config
+    print(names)
     return {"names" : names}
 
 @app.post("/{project_id}/set_project")
@@ -363,12 +365,14 @@ async def meta_search(project_id : str, experiment_id : str, search_variables : 
             found = True
             for key_meta, value_meta in search_variables.meta.items():
                 # dataset.meta[search_meta] - look up of the meta dictionary
-                if dataset.get("meta").get(key_meta) == None: # database doesn't have the mete variable with the given name
-                    found = False # return false
-                    # break # TODO: maybe add to improve efficiency
+                if dataset.get("meta") == None:
+                    found = False # the dataset doesn't have a defined meta variable
                 else:
-                    if dataset.get("meta").get(key_meta) != value_meta:
-                        found = False
+                    if dataset.get("meta").get(key_meta) == None: # database doesn't have the mete variable with the given name
+                        found = False # return false
+                    else:
+                        if dataset.get("meta").get(key_meta) != value_meta:
+                            found = False
             # end of for loop
             if found == True:
                 names.append(dataset.get("name")) # appends names to a list
@@ -559,5 +563,4 @@ async def collect_fragments(project_name: str, experiment_name : str, dataset_na
         if found == True:
             names.append(dataset.get("name")) # appends names to a list
     return {"names" : names}
-
 
