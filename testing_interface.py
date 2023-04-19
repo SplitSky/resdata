@@ -133,12 +133,12 @@ class TestClass:
         password = "some_password123"
         ui = API_interface(path)
         ui.generate_token(username=username, password=password)
-        ui.tree_print()
+        #ui.tree_print()
         # user 2 tree print
         username = "test_user2"
         password = "wombat"
         ui.generate_token(username=username, password=password) 
-        ui.tree_print()
+        #ui.tree_print()
 
 
     def test_6(self):
@@ -170,11 +170,14 @@ class TestClass:
         response = ui.add_author_to_project_rec(project_id=project_name, author_name=username2, author_permission="read")
         print(response)
         print("User 1 print")
-        ui.tree_print() # user 1 print
+        #ui.tree_print() # user 1 print
+        project_user_1 = ui.return_full_project(project_name=project_name)
         
         ui.generate_token(username=username2, password=password2) # authenticates as user 2
         print("User 2 print")
-        ui.tree_print() # user 2 print
+        #ui.tree_print() # user 2 print
+        project_user_2 = ui.return_full_project(project_name=project_name)
+        assert project_user_1 == project_user_2
 
         # TODO: add assert statement once the query by author is working
     
@@ -265,9 +268,7 @@ class TestClass:
                                  author=[d.Author(name=username, permission="write").dict()], meta={"ring_id" : int(no_of_rings-1)})
         ui.insert_dataset(project_name=project_name, experiment_name=experiment_name , dataset_in=dataset_temp)
         # appends to the last ring
-        ui.tree_print()
         # TODO: modify the check_if_dataset_exists to handle exceptions if the names given are empty
-        
         # pull the datasets by ring_id
         datasets = ui.experiment_search_meta(meta_search={"ring_id" : int(no_of_rings-1)} ,experiment_id=experiment_name, project_id=project_name)
         print(" ")
@@ -286,7 +287,6 @@ class TestClass:
         ui = API_interface(path)
         ui.check_connection()
         ui.purge_everything()
-        
         full_name = "test user full name"
         email = "email@email.com"
         # initialise users
@@ -297,7 +297,6 @@ class TestClass:
         ui.create_user(username2, password, email, full_name)
         ui = API_interface(path)
         file_name = "test_project.json"
-        
         project_names = ["test_project_1","test_project_2","test_project_3","test_project_4"]
         ui.generate_token(username, password)
         username_temp = username
@@ -308,7 +307,6 @@ class TestClass:
             t.create_test_file_project(filename_in=file_name,structure=[2,2],project_name=project_names[i],author_name=username_temp)
             project = t.load_file_project(filename_out=file_name)
             ui.insert_project(project)
-
         # re-authenticate user_1
         print("user 2")
         ui.tree_print()
@@ -319,7 +317,6 @@ class TestClass:
         ui.tree_print()
         # add author to one project
         print("add author to project")
-        
         ui.add_author_to_project_rec("test_project_1", author_name=username2, author_permission="read")
         ui.add_author_to_experiment_rec(project_id="test_project_2",experiment_id="experiment_0",author_name=username2, author_permission="read")
         ui.add_author_to_dataset_rec(project_id="test_project_3",experiment_id="experiment_0",dataset_id="dataset_0", author_name=username2 ,author_permissions="read")
@@ -561,12 +558,13 @@ class TestClass:
         api.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
         api.generate_token(username, password)
         #unique_keys = ["ring_ID", "sample_ID"]
-        max_ring_id = 20
+        max_ring_id = 5
         file_name = jd.unpack_h5_custom_proj(file_name, username, project_id, experiment_id, max_ring_id=max_ring_id)
         project = t.load_file_project(filename_out=file_name)
         #jd.send_datasets(username, password, path, project_id, experiment_id)
         api.insert_project(project=project)
-        api.tree_print()
+        temp = api.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
+        assert len(temp) == (max_ring_id+1)*2 + 1
     
     def test_15(self):
         # return a project to compare with the file
@@ -641,9 +639,40 @@ class TestClass:
         project_from_file = t.load_file_project(filename_out=file_name)
         # insert the project
         ui.insert_project_fast(project_from_file) # the project function uses the fast dataset and experiment functions
-        ui.tree_print()
-        project_out = ui.return_full_project(project_name=project_name)
-def main():
-    test_class = TestClass()
-    test_class.test_16()
-main()
+
+        # return project
+        project_from_db = ui.return_full_project(project_name=project_name)
+        # compare assertions
+        assert project_from_db.name == project_from_file.name
+        assert project_from_db.meta == project_from_file.meta
+        assert project_from_db.creator == project_from_file.creator
+        assert project_from_db.author == project_from_file.author
+
+        # compare experiments
+        if project_from_file.groups == None or project_from_db.groups == None:
+            raise Exception("")
+        for i in range(0, len(project_from_file.groups)):
+            file_experiment = project_from_file.groups[i]
+            db_experiment = project_from_db.groups[i]
+            
+            # compare the experiment variables
+            assert file_experiment.name == db_experiment.name
+
+            print(file_experiment.author)
+            print(db_experiment.author)
+            assert file_experiment.author == db_experiment.author
+
+            assert file_experiment.meta == db_experiment.meta
+            for j in range(0, len(file_experiment.children)): # iterate over datasets
+                file_dataset = file_experiment.children[j]
+                db_dataset = db_experiment.children[j]
+                assert file_dataset.name == db_dataset.name
+                assert file_dataset.data == db_dataset.data
+                assert file_dataset.data_type == db_dataset.data_type
+                assert file_dataset.author == db_dataset.author
+                assert file_dataset.data_headings == db_dataset.data_headings
+
+#def main():
+#    test_class = TestClass()
+#    test_class.test_14()
+#main()

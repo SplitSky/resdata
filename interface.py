@@ -43,13 +43,12 @@ class API_interface:
 
         self.user_cache = user_cache
         self.cache_proj_name: str
-        self.cache: dict
-        self.cache_time_delta = timedelta(minutes=0.5) # minutes
+        self.cache = {} # dict
+        self.cache_time_delta = timedelta(minutes=20) # minutes
         self.cache_timeout = datetime.utcnow()
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
-
         response = self.s.get(self.path)
         return response.status_code == status.HTTP_200_OK
 
@@ -62,7 +61,6 @@ class API_interface:
         dataset_in.set_credentials(self.username, self.token)
         # dataset_in.author.append(d.Author(name=self.username, permission="write").dict())
         # dataset is less than maximum size
-
         if self.check_object_size(dataset_in):
             # dataset within parameters
             # proceed without fragmentation
@@ -131,7 +129,6 @@ class API_interface:
         for name in names_list:
             temp = self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
                                             dataset_name=name)
-            # TODO: Fix this error -> should disappear once return_full_dataset is fixed
             if temp != None:
                 if temp.data_type == "configuration file":
                     # update experiment parameters
@@ -159,23 +156,10 @@ class API_interface:
 
         response = self.s.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json())  # conversion into dict
-
         return d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
                          meta=proj_dict.get("meta"), creator=proj_dict.get("creator"))
 
-    def check_project_exists(self, project_name: str):
-        """ Function which returns True if a project exists and False if it doesn't. """
-        if len(project_name) == 0:
-            raise Exception("Project name cannot have no size")
-        names_list = self.get_project_names()
-        return project_name in names_list
 
-    def check_experiment_exists(self, project_name: str, experiment_name: str):
-        """ Function which returns True if an experiment exists and False if it doesn't. """
-        if len(project_name) == 0 or len(experiment_name) == 0:
-            raise Exception("Project or Experiment name have no size")
-        names_list = self.get_experiment_names(project_id=project_name)
-        return experiment_name in names_list
 
     def insert_project(self, project: d.Project):
         """ Function which inserts project recursively using the insert_experiment function. """
@@ -184,6 +168,8 @@ class API_interface:
             raise Exception("The project name cannot contain the character ' '.")
         # set project in database
         # check if project exists. If not initialise it 
+        if self.user_cache:
+            self.update_cache(project_id=project.name)
         if self.check_project_exists(project_name=project.name):
             raise RuntimeError('Project Already exists')
         self.init_project(project)
@@ -219,12 +205,7 @@ class API_interface:
         # insert special dataset
         self.insert_dataset(project_name=project_id, experiment_name=experiment.name, dataset_in=dataset_in)
 
-    def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
-        """ Checks whether a dataset of a given name exists in the specified location. Assumes the path exists"""
-        if len(project_id) == 0 or len(experiment_id) == 0 or len(dataset_id) == 0:
-            raise Exception("One of the variables has size zero")
-        names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
-        return dataset_id in names_list
+
 
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
@@ -274,32 +255,21 @@ class API_interface:
     def update_cache(self, project_id: str) -> None:
         self.cache = {}
         self.cache_proj_name = project_id
+        self.cache_timeout = datetime.utcnow()+self.cache_time_delta
         exp_names = self.get_experiment_names(project_id=project_id)
         for exp_name in exp_names:
             self.cache[exp_name] = self.get_dataset_names(project_id=project_id, experiment_id=exp_name)
 
-
-    def get_dataset_names_from_cache(self, project_id: str, experiment: str):
-        self.cache[experiment_id]
-
     def get_experiment_names(self, project_id: str):
-        if self.user_cache:
-            self.update_cache(project_id=project_id)
-            return self.cache.keys()
-        else:
-            user_in = d.Author(name=self.username, permission="none")
-            response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
-            return response.json().get("names")
 
-    def get_dataset_names(self, project_id: str, experiment_id: str):
-        if self.user_cache:
-            # if cache not expired and the project matches and cache used
+        user_in = d.Author(name=self.username, permission="none")
+        response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
+        return response.json().get("names")
 
-            # TODO: finish from here
-        else:
-            user_in = d.Author(name=self.username, permission="none")
-            response = self.s.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
-            return response.json().get("names")
+    def get_dataset_names(self, project_id: str, experiment_id: str) -> List:
+        user_in = d.Author(name=self.username, permission="none")
+        response = self.s.get(self.path + project_id + "/" + experiment_id + "/names", json=user_in.dict())
+        return response.json().get("names")
 
     def get_project_names(self):
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """
@@ -802,6 +772,8 @@ class API_interface:
         if " " in project.name:
             raise Exception("The project name cannot contain the character ' '.")
         # set project in database
+        if self.user_cache:
+            self.update_cache(project_id=project.name)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             future = executor.submit(self.check_project_exists, project.name)
             return_value = future.result()
@@ -835,3 +807,35 @@ class API_interface:
    #             # init project
    #             # insert experiments
    #                 # insert datasets all in one session
+
+    def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
+        """ Checks whether a dataset of a given name exists in the specified location. Assumes the path exists"""
+        if len(project_id) == 0 or len(experiment_id) == 0 or len(dataset_id) == 0:
+            raise Exception("One of the variables has size zero")
+        if self.user_cache:
+            # if cache not expired and the project matches and cache used
+            if self.cache_timeout < datetime.utcnow() and project_id == self.cache_proj_name and experiment_id in self.cache.keys():
+                if self.cache[experiment_id] != None:
+                    names_list = self.cache[experiment_id]
+                    return dataset_id in names_list
+        names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
+        return dataset_id in names_list
+
+    def check_project_exists(self, project_name: str):
+        """ Function which returns True if a project exists and False if it doesn't. """
+        if len(project_name) == 0:
+            raise Exception("Project name cannot have no size")
+        names_list = self.get_project_names()
+        return project_name in names_list
+
+    def check_experiment_exists(self, project_name: str, experiment_name: str):
+        """ Function which returns True if an experiment exists and False if it doesn't. """
+        if len(project_name) == 0 or len(experiment_name) == 0:
+            raise Exception("Project or Experiment name have no size")
+        if self.user_cache:
+            if self.cache_timeout < datetime.utcnow() and project_name == self.cache_proj_name:
+                #self.update_cache(project_id=project_id)
+                names_list = self.cache.keys()
+                return experiment_name in names_list
+        names_list = self.get_experiment_names(project_id=project_name)
+        return experiment_name in names_list

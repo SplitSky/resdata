@@ -152,7 +152,6 @@ async def return_all_experiment_names(project_id: str, user: d.Author) -> Dict[s
                 for author in author_list:
                     if author.get("name") == user.name:
                         exp_names_out.append(name)
-    print(f'exp_names_out {exp_names_out}')
     return {"names": exp_names_out}
 
 
@@ -177,7 +176,6 @@ async def return_all_dataset_names(project_id: str, experiment_id: str, author: 
         for entry in dataset['author']:
             if entry['name'] == author.name:
                 names.append(dataset['name'])  # returns all datasets including the config
-    print(names)
     return {"names": names}
 
 
