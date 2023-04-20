@@ -105,6 +105,9 @@ class API_interface:
 
     def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
         """ The function which utilises insert_dataset to recursively insert a full experiment and initialise it if it doesn't exist. """
+        if self.user_cache and project_name != self.cache_proj_name:
+            self.update_cache(project_id=project_name)
+
         experiment_name = experiment.name
         if not self.check_experiment_exists(project_name, experiment_name):
             self.init_experiment(project_name, experiment)

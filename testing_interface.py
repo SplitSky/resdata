@@ -1,7 +1,8 @@
 import testing as t
 from interface import API_interface
 import server.datastructure as d
-path = "http://127.0.0.1:8000/"
+#path = "http://127.0.0.1:8000/"
+path = "http://10.99.96.195/"
 import time
 from os.path import exists
 import jupyter_driver as jd
@@ -18,8 +19,10 @@ import jupyter_driver as jd
 # 9. User 2 authenting and inserting a dataset in project belonging to user 1
 # 10. User 2 insert dataset into experiment with read only permissions # TODO: This feature may not work but should be updated later
 
+cache_status = True
+
 # functions used to simplify the testing
-def send_fetch_cycle(dataset_size: int, structure, array_var_type):
+def send_fetch_cycle(dataset_size, structure, array_var_type):
     # dataset_size - indicates the size of the document that is produced
     # structure - [x,y] -> x = number of experiments; y = number of documents
     # array_var_type - the type of the number within the 
@@ -51,7 +54,7 @@ def send_fetch_cycle(dataset_size: int, structure, array_var_type):
 class TestClass:
     def test_0(self):
         # check connection
-        ui = API_interface(path)
+        ui = API_interface(path, user_cache=cache_status)
         ui.check_connection()
 
     def test_1(self):
@@ -70,7 +73,7 @@ class TestClass:
         # 2. inserting a project using that user
         username = "test_user"
         password = "some_password123"
-        ui = API_interface(path)
+        ui = API_interface(path, user_cache=cache_status)
         ui.generate_token(username, password)
         # generate test_project
         file_name = "test_project.json"
@@ -84,7 +87,7 @@ class TestClass:
         # 3. return a project to compare with the file
         username = "test_user"
         password = "some_password123"
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.generate_token(username, password)
         file_name = "test_project.json"
         project_name = "test_project_1"
@@ -122,7 +125,7 @@ class TestClass:
         # authentication of user and returns a token
         username = "test_user2"
         password = "wombat"
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.create_user(username_in=username, password_in=password, email="test_email", full_name="test_full_name")
         ui.generate_token(username, password)
         assert len(ui.token) > 0
@@ -131,7 +134,7 @@ class TestClass:
         # user 1 tree print
         username = "test_user"
         password = "some_password123"
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.generate_token(username=username, password=password)
         #ui.tree_print()
         # user 2 tree print
@@ -143,7 +146,7 @@ class TestClass:
 
     def test_6(self):
         # uses the two previously created users to check if authors are added
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.purge_everything()
 
         project_name = "shared_project"
@@ -183,7 +186,7 @@ class TestClass:
     
     def test_7(self):
         # test whether generate optics experiment works properly as expected
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.check_connection()
         ui.purge_everything()
         # convert ring
@@ -236,7 +239,7 @@ class TestClass:
         # 4. return all datasets attached to the same ring_id
         # 5. verify the number of datasets is one bigger
         # returning dataset with a meta data variable
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.check_connection()
         ui.purge_everything()
         no_of_experiments = 1
@@ -284,7 +287,7 @@ class TestClass:
         # different projects
         # 5. Add author to group
         # 6. return group names using user_2
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.check_connection()
         ui.purge_everything()
         full_name = "test user full name"
@@ -330,7 +333,7 @@ class TestClass:
 
     def test_10(self):
         # testing the author query function
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.check_connection()
         ui.purge_everything()
         
@@ -380,7 +383,7 @@ class TestClass:
         # append one project to group and all experiments and datasets
         # fetch names of the group
         # add author to group
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.check_connection()
         ui.purge_everything()
         
@@ -491,7 +494,7 @@ class TestClass:
     def test_12(self):
         # tests creation and insertion of images
         file_name = "test_cat.jpg"
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         arr, data_type = ui.convert_img_to_array(filename=file_name)
         cat_img = ui.convert_array_to_img(arr, "test_cat2.jpg",str(data_type))
         assert cat_img == True
@@ -500,7 +503,7 @@ class TestClass:
     def test_13(self):
         # test the API handling of images
         file_name = "test_cat.jpg"
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.purge_everything()
         #arr, data_type = ui.convert_img_to_array(filename=file_name)
 
@@ -553,7 +556,7 @@ class TestClass:
         file_name = "testing_data/json_version.json"
         project_id = "Project_h5_Demo"
         experiment_id = "Experiment_h5_Demo"
-        api = API_interface(path)
+        api = API_interface(path,user_cache=cache_status)
         api.purge_everything()
         api.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
         api.generate_token(username, password)
@@ -571,7 +574,7 @@ class TestClass:
         # 2. inserting a project using that user
         username = "test_user"
         password = "some_password123"
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.purge_everything() 
         ui.create_user(username, password, "aaa", "aaa")
         ui.generate_token(username, password)
@@ -619,7 +622,7 @@ class TestClass:
 
     def test_16(self):
         # testing the multithreading insertion functions
-        ui = API_interface(path)
+        ui = API_interface(path,user_cache=cache_status)
         ui.check_connection()
         ui.purge_everything() # clear the database
         no_of_experiments = 1
@@ -672,7 +675,31 @@ class TestClass:
                 assert file_dataset.author == db_dataset.author
                 assert file_dataset.data_headings == db_dataset.data_headings
 
-#def main():
-#    test_class = TestClass()
-#    test_class.test_14()
-#main()
+    def test_17(self):
+        #thing
+        ui = API_interface(path,user_cache=cache_status)
+        ui.check_connection()
+        ui.purge_everything() # clear the database
+        username = "thing"
+        password = "thing"
+        email = "a"
+        full_name = "a"
+        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
+        ui.generate_token(username, password)
+        file_name = "test_project.json"
+        project_name = "test_project_1"
+        # return project
+
+
+        t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
+        project_from_file = t.load_file_project(filename_out=file_name)
+        ui.insert_project(project=project_from_file)
+        # project_from_db = ui.return_full_project(project_name=project_name)
+        # load in the file
+
+        
+
+def main():
+    test_class = TestClass()
+    test_class.test_0()
+main()
