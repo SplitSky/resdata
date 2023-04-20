@@ -1,8 +1,8 @@
 import testing as t
 from interface import API_interface
 import server.datastructure as d
-#path = "http://127.0.0.1:8000/"
-path = "http://10.99.96.195/"
+path = "http://127.0.0.1:8000/"
+#path = "http://10.99.96.195/"
 import time
 from os.path import exists
 import jupyter_driver as jd
@@ -677,7 +677,7 @@ class TestClass:
 
     def test_17(self):
         #thing
-        ui = API_interface(path,user_cache=cache_status)
+        ui = API_interface(path,user_cache=True)
         ui.check_connection()
         ui.purge_everything() # clear the database
         username = "thing"
@@ -699,7 +699,7 @@ class TestClass:
 
         
 
-def main():
-    test_class = TestClass()
-    test_class.test_0()
-main()
+#def main():
+#    test_class = TestClass()
+#    test_class.test_0()
+#main()

@@ -11,6 +11,7 @@ from PIL import Image
 import numpy as np
 import sys
 import concurrent.futures
+import data_handle as dh
 from datetime import datetime, timedelta
 
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
@@ -43,7 +44,7 @@ class API_interface:
 
         self.user_cache = user_cache
         self.cache_proj_name: str
-        self.cache = {} # dict
+        self.cache = dh.Tree(None)
         self.cache_time_delta = timedelta(minutes=20) # minutes
         self.cache_timeout = datetime.utcnow()
 
@@ -105,8 +106,6 @@ class API_interface:
 
     def insert_experiment(self, project_name: str, experiment: d.Experiment) -> bool:
         """ The function which utilises insert_dataset to recursively insert a full experiment and initialise it if it doesn't exist. """
-        if self.user_cache and project_name != self.cache_proj_name:
-            self.update_cache(project_id=project_name)
 
         experiment_name = experiment.name
         if not self.check_experiment_exists(project_name, experiment_name):
@@ -171,8 +170,6 @@ class API_interface:
             raise Exception("The project name cannot contain the character ' '.")
         # set project in database
         # check if project exists. If not initialise it 
-        if self.user_cache:
-            self.update_cache(project_id=project.name)
         if self.check_project_exists(project_name=project.name):
             raise RuntimeError('Project Already exists')
         self.init_project(project)
@@ -255,13 +252,8 @@ class API_interface:
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
 
-    def update_cache(self, project_id: str) -> None:
-        self.cache = {}
-        self.cache_proj_name = project_id
-        self.cache_timeout = datetime.utcnow()+self.cache_time_delta
-        exp_names = self.get_experiment_names(project_id=project_id)
-        for exp_name in exp_names:
-            self.cache[exp_name] = self.get_dataset_names(project_id=project_id, experiment_id=exp_name)
+        if self.user_cache:
+            self.update_cache()
 
     def get_experiment_names(self, project_id: str):
 
@@ -428,7 +420,6 @@ class API_interface:
         return self.add_group_to_dataset(project_id=project_id, experiment_id=experiment_id, dataset_id=experiment_id,
                                           author_name=author_name, author_permission=author_permission,group_name=group_name)
 
-
     def add_group_to_experiment_rec(self, project_id:str, experiment_id:str, author_name:str, author_permission:str, group_name:str):
         """Recursively adds authors for all datasets included within the experiment and the experiment config file."""
         status_temp = True
@@ -541,7 +532,6 @@ class API_interface:
                     if exp_name != dat_name:
                         # avoids returning the config dataset for experiment
                         temp_data.append(dat_name)
-                    
                 temp_exp.append({"experiment_id": exp_name, "dataset_list" : temp_data})            
             temp_proj = {"project_id": proj_name, "experiment_list":temp_exp}
             names_list.append(temp_proj)
@@ -558,7 +548,6 @@ class API_interface:
                     print("         --> " + dataset)
 
     def convert_img_to_array(self, filename: str):
-        # TODO: Add path variable and allow for custom folders
         img = Image.open("images/"+filename)
         arraydata = np.asarray(img)
         data_type = arraydata.dtype
@@ -567,7 +556,6 @@ class API_interface:
         return arraydata, str(data_type)
 
     def convert_array_to_img(self, array: list, filename: str, data_type: str):
-
         if data_type == "uint8":    
             temp = np.array(array, dtype=np.uint8)
         elif data_type == "int64":
@@ -699,7 +687,6 @@ class API_interface:
                 else:
                     right.append(dataset)
             return quicksort_datasets(left) + equal + quicksort_datasets(right)
-        
         datasets = quicksort_datasets(datasets=datasets)
         # append data to be added to dataset
         for dataset in datasets:
@@ -775,8 +762,6 @@ class API_interface:
         if " " in project.name:
             raise Exception("The project name cannot contain the character ' '.")
         # set project in database
-        if self.user_cache:
-            self.update_cache(project_id=project.name)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             future = executor.submit(self.check_project_exists, project.name)
             return_value = future.result()
@@ -817,10 +802,9 @@ class API_interface:
             raise Exception("One of the variables has size zero")
         if self.user_cache:
             # if cache not expired and the project matches and cache used
-            if self.cache_timeout < datetime.utcnow() and project_id == self.cache_proj_name and experiment_id in self.cache.keys():
-                if self.cache[experiment_id] != None:
-                    names_list = self.cache[experiment_id]
-                    return dataset_id in names_list
+            if self.cache_timeout < datetime.utcnow():
+                # query the cache data structure
+                return (self.cache.check_node_exists(node_name=experiment_id) and self.cache.check_node_exists(node_name=project_id) and self.cache.check_node_exists(node_name=dataset_id))
         names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
         return dataset_id in names_list
 
@@ -828,6 +812,10 @@ class API_interface:
         """ Function which returns True if a project exists and False if it doesn't. """
         if len(project_name) == 0:
             raise Exception("Project name cannot have no size")
+        if self.user_cache:
+            if self.cache_timeout < datetime.utcnow():
+                return self.cache.check_node_exists(node_name=project_name)
+
         names_list = self.get_project_names()
         return project_name in names_list
 
@@ -836,9 +824,15 @@ class API_interface:
         if len(project_name) == 0 or len(experiment_name) == 0:
             raise Exception("Project or Experiment name have no size")
         if self.user_cache:
-            if self.cache_timeout < datetime.utcnow() and project_name == self.cache_proj_name:
-                #self.update_cache(project_id=project_id)
-                names_list = self.cache.keys()
-                return experiment_name in names_list
+            if self.cache_timeout < datetime.utcnow():
+                return (self.cache.check_node_exists(node_name=experiment_name) and self.cache.check_node_exists(node_name=project_name))
         names_list = self.get_experiment_names(project_id=project_name)
         return experiment_name in names_list
+
+    def update_cache(self) -> None:
+        self.cache.clear_tree()
+        self.cache_timeout = datetime.utcnow()+self.cache_time_delta
+        if len(self.username) != 0:
+            self.cache = dh.Tree(nodes=self.author_query(username=self.username))
+        else:
+            raise Exception("The user wasn't initialised. Nothing to update.")
