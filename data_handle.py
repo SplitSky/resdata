@@ -30,3 +30,14 @@ class Tree(object):
     def clear_tree(self):
         self.tree = {}
         self.node_names = set()
+
+    def delete_node(self, node_name):
+        if node_name not in self.node_names:
+            return True
+        del self.tree[node_name]
+        self.node_names.remove(node_name)
+        for parent_name, parent_node, in self.tree.items():
+            if node_name in parent_node:
+                del parent_node[node_name]
+                break
+

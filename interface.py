@@ -209,7 +209,6 @@ class API_interface:
 
     def create_user(self, username_in, password_in, email, full_name):
         """ Creates a user and adds the user's entries to the Authentication database. """
-        # TODO: Add signing to the encryption
         # generate public/private keys
         u = key_manager()
         u.generate_keys()
@@ -251,9 +250,12 @@ class API_interface:
         response = self.s.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
-
-        if self.user_cache:
-            self.update_cache()
+        if response.status_code == status.HTTP_200_OK:
+            if self.user_cache:
+                self.update_cache()
+            return True
+        else:
+            return False
 
     def get_experiment_names(self, project_id: str):
 
