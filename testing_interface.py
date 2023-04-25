@@ -1,8 +1,8 @@
 import testing as t
 from interface import API_interface
 import server.datastructure as d
-path = "http://127.0.0.1:8000/"
-#path = "http://10.99.96.195/"
+#path = "http://127.0.0.1:8000/"
+path = "http://10.99.96.185/"
 import time
 from os.path import exists
 import jupyter_driver as jd
@@ -657,14 +657,11 @@ class TestClass:
         for i in range(0, len(project_from_file.groups)):
             file_experiment = project_from_file.groups[i]
             db_experiment = project_from_db.groups[i]
-            
             # compare the experiment variables
             assert file_experiment.name == db_experiment.name
-
             print(file_experiment.author)
             print(db_experiment.author)
             assert file_experiment.author == db_experiment.author
-
             assert file_experiment.meta == db_experiment.meta
             for j in range(0, len(file_experiment.children)): # iterate over datasets
                 file_dataset = file_experiment.children[j]
@@ -689,15 +686,11 @@ class TestClass:
         file_name = "test_project.json"
         project_name = "test_project_1"
         # return project
-
-
         t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
         project_from_file = t.load_file_project(filename_out=file_name)
         ui.insert_project(project=project_from_file)
         # project_from_db = ui.return_full_project(project_name=project_name)
         # load in the file
-
-        
 
 #def main():
 #    test_class = TestClass()
