@@ -207,9 +207,11 @@ class API_interface:
 
 
 
-    def create_user(self, username_in, password_in, email, full_name):
+    def create_user(self, username_in: str, password_in: str, email: str, full_name: str):
         """ Creates a user and adds the user's entries to the Authentication database. """
         # generate public/private keys
+        if len(username_in) == 0 or len(password_in) == 0 or len(email) == 0 or len(full_name) == 0:
+            raise Exception("The length of input variables can't be zero")
         u = key_manager()
         u.generate_keys()
         private_key, public_key = u.read_keys()
