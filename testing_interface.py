@@ -1,11 +1,12 @@
 import testing as t
 from interface import API_interface
 import server.datastructure as d
-#path = "http://127.0.0.1:8000/"
-path = "http://10.99.96.185/"
+path = "http://127.0.0.1:8000/"
+#path = "http://10.99.96.185/"
 import time
 from os.path import exists
 import jupyter_driver as jd
+import simple_interface as s
 
 # tests to conduct
 
@@ -692,7 +693,42 @@ class TestClass:
         # project_from_db = ui.return_full_project(project_name=project_name)
         # load in the file
 
+    def test_18(self):
+        temp = API_interface(path_in=path)
+        temp.purge_everything()
+        username = "test_user"
+        password = "some_password"
+
+        easy_ui = s.User_Interface(path)
+        easy_ui.create_user(username=username, password=password, full_name="name", email="email")
+        easy_ui.user_authenticate(username, password)
+
+        # data insertion using simple ui
+        project_name = "project_test"
+        project_meta = {"project_meta": "project metadata value"}
+        experiment_name = "experiment_test"
+        experiment_meta = {"experiment_meta": "experiment metadata value"}
+        dataset_name = "dataset_test"
+        dataset_meta = {"dataset_meta": "dataset metadata value"}
+        dataset_payload = [1,2,3,4,5]
+        data_type = "testing data"
+        data_headings = ["data_heading"]
+
+        dataset_in = easy_ui.insert_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=dataset_name, payload=dataset_payload, meta=dataset_meta, data_type=data_type, data_headings=data_headings)
+        # insert dataset locally without experiment/project path
+        # sync the data with the API
+        easy_ui.sync_data()
+        # verify the data inserted matches
+        easy_ui.api.tree_print()
+        dataset_out = easy_ui.return_dataset(project_name, experiment_name, dataset_name)
+        assert dataset_in.name == dataset_out.name
+        assert dataset_in.data == dataset_out.data
+        assert dataset_in.data_type == dataset_out.data_type
+        assert dataset_in.author == dataset_out.author
+        assert dataset_in.data_headings == dataset_out.data_headings
+
+        
 #def main():
 #    test_class = TestClass()
-#    test_class.test_0()
+#    test_class.test_18()
 #main()

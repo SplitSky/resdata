@@ -45,7 +45,7 @@ class API_interface:
         self.user_cache = user_cache
         self.cache_proj_name: str
         self.cache = dh.Tree(None)
-        self.cache_time_delta = timedelta(minutes=20) # minutes
+        self.cache_time_delta = timedelta(minutes=2) # minutes
         self.cache_timeout = datetime.utcnow()
 
     def check_connection(self) -> bool:
@@ -207,10 +207,11 @@ class API_interface:
 
 
 
-    def create_user(self, username_in, password_in, email, full_name):
+    def create_user(self, username_in: str, password_in: str, email: str, full_name: str):
         """ Creates a user and adds the user's entries to the Authentication database. """
-        # TODO: Add signing to the encryption
         # generate public/private keys
+        if len(username_in) == 0 or len(password_in) == 0 or len(email) == 0 or len(full_name) == 0:
+            raise Exception("The length of input variables can't be zero")
         u = key_manager()
         u.generate_keys()
         private_key, public_key = u.read_keys()
@@ -251,9 +252,12 @@ class API_interface:
         response = self.s.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
-
-        if self.user_cache:
-            self.update_cache()
+        if response.status_code == status.HTTP_200_OK:
+            if self.user_cache:
+                self.update_cache()
+            return True
+        else:
+            return False
 
     def get_experiment_names(self, project_id: str):
 
