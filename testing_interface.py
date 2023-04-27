@@ -714,14 +714,21 @@ class TestClass:
         data_type = "testing data"
         data_headings = ["data_heading"]
 
-        easy_ui.insert_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=dataset_name, payload=dataset_payload, meta=dataset_meta, data_type=data_type, data_headings=data_headings)
+        dataset_in = easy_ui.insert_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name=dataset_name, payload=dataset_payload, meta=dataset_meta, data_type=data_type, data_headings=data_headings)
         # insert dataset locally without experiment/project path
         # sync the data with the API
         easy_ui.sync_data()
         # verify the data inserted matches
         easy_ui.api.tree_print()
+        dataset_out = easy_ui.return_dataset(project_name, experiment_name, dataset_name)
+        assert dataset_in.name == dataset_out.name
+        assert dataset_in.data == dataset_out.data
+        assert dataset_in.data_type == dataset_out.data_type
+        assert dataset_in.author == dataset_out.author
+        assert dataset_in.data_headings == dataset_out.data_headings
+
         
-def main():
-    test_class = TestClass()
-    test_class.test_18()
-main()
+#def main():
+#    test_class = TestClass()
+#    test_class.test_18()
+#main()

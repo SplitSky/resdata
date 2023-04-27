@@ -10,7 +10,7 @@ class User_Interface:
     def __init__(self, path):
         self.username = ""
         self.password = ""
-        self.projects: List[d.Project]
+        self.projects: List[d.Project] = []
         self.api = i.API_interface(path_in=path, user_cache=True)
         self.exp_index = 0
 
@@ -162,6 +162,20 @@ class User_Interface:
                     j += 1
                 print("The dataset popped")
         raise Exception("The dataset doesn't exist")
+
+    def get_dataset(self, project_name: str, experiment_name:str, dataset_name:str) -> d.Dataset:
+        experiment = self.get_experiment(project_name, experiment_name)
+        for dataset in experiment.children:
+            if dataset.name == dataset_name:
+                return dataset
+        raise Exception("The dataset doesn't exist")
+
+    def sync_dataset(self, project_name:str, experiment_name: str, dataset_name: str):
+        if self.check_dataset_exists(project_name, experiment_name, dataset_name):
+            print(f'The dataset - {dataset_name} exists. Skipping ...')
+        else:
+            dataset = self.get_dataset(project_name, experiment_name, dataset_name)
+            self.api.insert_dataset(project_name, experiment_name, dataset)
        
     def sync_data(self):
         """Updates the database with local files"""
@@ -188,12 +202,20 @@ class User_Interface:
                         else:
                             print(f'Inserting the experiment {exp.name}')
                             self.api.insert_experiment(project_name=project.name, experiment=exp)
-
             else:
                 # insert the project
                 #
                 self.api.insert_project(project=project)
-                print(f'Project {project_name} inserted')
+                print(f'Project {project.name} inserted')
+
+    def return_project(self, project_name: str):
+        return self.api.return_full_project(project_name)
+
+    def return_experiment(self, project_name:str, experiment_name:str):
+        return self.api.return_full_experiment(project_name, experiment_name)
+
+    def return_dataset(self, project_name: str, experiment_name:str, dataset_name:str):
+        return self.api.return_full_dataset(project_name, experiment_name, dataset_name)
 
 
 class Tree(object):

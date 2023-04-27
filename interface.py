@@ -45,7 +45,7 @@ class API_interface:
         self.user_cache = user_cache
         self.cache_proj_name: str
         self.cache = dh.Tree(None)
-        self.cache_time_delta = timedelta(minutes=20) # minutes
+        self.cache_time_delta = timedelta(minutes=2) # minutes
         self.cache_timeout = datetime.utcnow()
 
     def check_connection(self) -> bool:
