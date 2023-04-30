@@ -1,6 +1,6 @@
 import interface as i
 import testing as t
-import datastructure as d
+import server.datastructure as d
 from typing import Union, List, Dict
 import data_handle as dh
 
@@ -190,7 +190,7 @@ class User_Interface:
                     for exp in project.groups:
                         # iterate over experiments
                         if self.api.check_experiment_exists(project_name=project.name, experiment_name=exp.name):
-                            print(f'The local experiment {exp.name} exists - checking datasets ...')
+                            print(f'The local experiment {exp.name} exists - checking datasets .https://www.youtube.com/watch?v=fmKPYxIovZU..')
                             if exp.children == None or len(exp.children) == 0:
                                 print("The experiment has no datasets. Skipping ...")
                             else:
