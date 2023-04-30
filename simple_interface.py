@@ -1,6 +1,7 @@
+from re import L
 import interface as i
 import testing as t
-import datastructure as d
+import server.datastructure as d
 from typing import Union, List, Dict
 import data_handle as dh
 
@@ -208,15 +209,97 @@ class User_Interface:
                 self.api.insert_project(project=project)
                 print(f'Project {project.name} inserted')
 
-    def return_project(self, project_name: str):
-        return self.api.return_full_project(project_name)
 
-    def return_experiment(self, project_name:str, experiment_name:str):
-        return self.api.return_full_experiment(project_name, experiment_name)
+    def return_project(self, project_name: str) -> d.Project:
+        if self.api.check_project_exists(project_name=project_name):
+            # project exists on the api
+            print(f'The project {project_name} exists locally. Nothing to fetch')
+            print("Updating contents...")
+            self.update_proj_content(project_name)
+            return self.get_project(project_name)
+        else:
+            temp =self.api.return_full_project(project_name=project_name) 
+            self.projects.append(temp)
+            return temp
 
-    def return_dataset(self, project_name: str, experiment_name:str, dataset_name:str):
-        return self.api.return_full_dataset(project_name, experiment_name, dataset_name)
 
+    def return_experiment(self, project_name:str, experiment_name:str) -> d.Experiment:
+        #exp_names = self.api.get_experiment_names(project_id=project_name)
+        if self.check_experiment_exists(project_name, experiment_name):
+            print(f'The experiment "{experiment_name}" exists locally. Nothing to fetch')
+            self.update_exp_content(project_name, experiment_name)
+            return self.get_experiment(project_name, experiment_name)
+        else:
+            exp_temp = self.api.return_full_experiment(project_name, experiment_name)
+            for proj in self.projects:
+                if proj.name == project_name:
+                    if proj.groups == None:
+                        proj.groups = [exp_temp]
+                    else:
+                        proj.groups.append(exp_temp)
+                    return exp_temp
+            raise Exception("The project path specified is incorrect")
+
+    def return_dataset(self, project_name: str, experiment_name:str, dataset_name:str) -> d.Dataset:
+        #dataset_names = self.api.get_dataset_names(project_name, experiment_name)
+        if self.check_dataset_exists(project_name, experiment_name, dataset_name):
+            print("The dataset exists locally. Nothing to fetch")
+            return self.return_dataset(project_name, experiment_name, dataset_name)
+        else:
+            # check the path exists
+            e = Exception("The path is incorrect")
+            if self.check_project_exists(project_name) and self.check_experiment_exists(experiment_name,project_name):
+                for proj in self.projects:
+                    if proj.name == project_name:
+                        if proj.groups == None:
+                            raise Exception("The project is empty")
+                        for exp in proj.groups:
+                            if exp.name == experiment_name:
+                                temp_dataset = self.api.return_full_dataset(project_name, experiment_name, dataset_name)
+                                exp.children.append(temp_dataset)
+                                print(f'The dataset {dataset_name} has been pulled from the database.')
+                                return temp_dataset
+                        raise e
+                raise e
+            else:
+                raise e
+
+        # self.api.return_full_dataset(project_name, experiment_name, dataset_name)
+
+    def update_proj_content(self, project_name: str):
+        local_exp_names = []
+        db_exp_names = self.api.get_experiment_names(project_name)
+        for proj in self.projects:
+            if project_name == proj.name:
+                # found the project
+                if proj.groups == None:
+                    proj.groups = []
+                for exp in proj.groups:
+                    local_exp_names.append(exp.name)
+                for exp_name in db_exp_names:
+                    if not exp_name in local_exp_names:
+                        # fetch experiment
+                        self.return_experiment(project_name, exp_name)
+                        print(f'Pulling the experiment {exp_name} from the database...')
+                    else:
+                        self.update_exp_content(project_name, exp_name)
+                        print(f'Experiment {exp_name} exists locally. Updating contents...')
+
+    def update_exp_content(self, project_name: str, experiment_name: str):
+        local_dat_names = []
+        db_dat_names = self.api.get_dataset_names(project_name, experiment_name)
+        for proj in self.projects:
+            if proj.name == project_name:
+                if proj.groups == None:
+                    raise Exception("The projects is empty")
+                for exp in proj.groups:
+                    if exp.name == experiment_name:
+                        for dat in exp.children:
+                            local_dat_names.append(dat.name)
+                        for dat_name in db_dat_names:
+                            if not dat_name in local_dat_names:
+                                self.return_dataset(project_name, experiment_name, dat_name)
+                                print(f'Fetching the dataset {dat_name} from the database')
 
 class Tree(object):
     def __init__(self, nodes):

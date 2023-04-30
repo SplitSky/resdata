@@ -728,7 +728,7 @@ class TestClass:
         assert dataset_in.data_headings == dataset_out.data_headings
 
         
-#def main():
-#    test_class = TestClass()
-#    test_class.test_18()
-#main()
+def main():
+    test_class = TestClass()
+    test_class.test_18()
+main()
