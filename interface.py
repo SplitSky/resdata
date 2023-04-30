@@ -13,16 +13,17 @@ import sys
 import concurrent.futures
 import data_handle as dh
 from datetime import datetime, timedelta
+import pickle
 
 from server.security import key_manager # import for development. Split security module into two pieces on deployment
 
 # max size variable
 #max_size = 16793598 # bytes
 max_size = 6478488
+#max_size = 5182790 // 2
 
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
-
     temp = h.shake_256()
     temp.update(password.encode('utf8'))
     return temp.hexdigest(64)
@@ -31,10 +32,8 @@ def has_common_element(list_A, list_B):
     set_B = set(list_B)
     return any(elem in set_B for elem in list_A)
 
-
 class API_interface:
     """ The Class containing the interface functions and variables. """
-
     def __init__(self, path_in: str, user_cache=False) -> None:
         self.path: str = path_in
         self.token: str = ""
@@ -45,7 +44,7 @@ class API_interface:
         self.user_cache = user_cache
         self.cache_proj_name: str
         self.cache = dh.Tree(None)
-        self.cache_time_delta = timedelta(minutes=2) # minutes
+        self.cache_time_delta = timedelta(minutes=200) # minutes
         self.cache_timeout = datetime.utcnow()
 
     def check_connection(self) -> bool:
@@ -66,6 +65,12 @@ class API_interface:
             # dataset within parameters
             # proceed without fragmentation
             self.s.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+            if self.user_cache:
+                if not self.cache.check_node_exists(project_name):
+                    self.cache.insert_node(project_name, "root")
+                if not self.cache.check_node_exists(experiment_name):
+                    self.cache.insert_node(experiment_name, project_name)
+                self.cache.insert_node(dataset_in.name, experiment_name)
             return True
         else:
             # dataset needs fragmentation
@@ -138,8 +143,7 @@ class API_interface:
                     exp_meta = temp.meta
                     exp_author = temp.author
                 else:
-                    datasets.append(self.return_full_dataset(project_name=project_name, experiment_name=experiment_name,
-                                                             dataset_name=name))
+                    datasets.append(temp)
         # call api for each dataset and return the contents -> then add the contents to an object and return the object
         return d.Experiment(name=exp_name, children=datasets, meta=exp_meta, author=exp_author)
 
@@ -161,8 +165,6 @@ class API_interface:
         return d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,
                          meta=proj_dict.get("meta"), creator=proj_dict.get("creator"))
 
-
-
     def insert_project(self, project: d.Project):
         """ Function which inserts project recursively using the insert_experiment function. """
         response_out = []
@@ -173,12 +175,10 @@ class API_interface:
         if self.check_project_exists(project_name=project.name):
             raise RuntimeError('Project Already exists')
         self.init_project(project)
-
         temp = project.groups
         if temp is not None:
             for experiment in temp:
                 response_out.append(self.insert_experiment(project.name, experiment))
-
         if False in response_out:
             return False
         else:
@@ -252,15 +252,13 @@ class API_interface:
         response = self.s.post(self.path + "generate_token", json=credentials.dict())  # generates token
         temp = response.json()  # loads json into dict
         self.token = temp.get("access_token")
-        if response.status_code == status.HTTP_200_OK:
-            if self.user_cache:
-                self.update_cache()
+        if self.user_cache:
+            self.update_cache()
             return True
         else:
             return False
 
     def get_experiment_names(self, project_id: str):
-
         user_in = d.Author(name=self.username, permission="none")
         response = self.s.get(self.path + project_id + "/names", json=user_in.dict())
         return response.json().get("names")
@@ -358,11 +356,9 @@ class API_interface:
         """Adds an author to the project,experiment and dataset to enable to access. Uses the utility function add_author_to_dataset"""
         if not (type(author_name) == type("string") and type(author_permissions) == type("string")):
              raise Exception("Author name and permission have to be strings")
-    
         # appends the author to the path that leads to this dataset to guarantee access
         self.add_author_to_experiment(project_id=project_id, experiment_id=experiment_id, author_name=author_name, author_permission=author_permissions)
         self.add_author_to_project(project_id=project_id, author_name=author_name,author_permission=author_permissions)
-
         author_in = d.Author(name=author_name, permission=author_permissions)
         response = self.s.post(self.path + project_id + "/" + experiment_id + "/" + dataset_id +"/"+ self.username +"/add_author",
                                  json=author_in.dict())
@@ -388,7 +384,6 @@ class API_interface:
         response = self.check_experiment_exists(project_name=project_id, experiment_name=experiment_id)
         if response == False:
             raise Exception("The experiment doesn't exist")
-
         author_temp = d.Author(name=self.username ,permission="write")
         dataset = d.Dataset(name="search request body", data=[], meta=meta_search, data_type="search", author=[author_temp.dict()], data_headings=[])
         dataset.set_credentials(self.username, self.token)
@@ -580,11 +575,13 @@ class API_interface:
         except:
             return False
 
-    def check_object_size(self, object: d.Dataset):
+    def check_object_size(self, object: d.Dataset) -> bool:
         # Returns True if the dataset has size that doesn't exceeds max size
-        temp = object.json()
-        size = sys.getsizeof(json.dumps(temp))
-        if size >= self.max_size:
+        temp = pickle.dumps(object)
+        size = sys.getsizeof(temp)
+        #temp = object.json()
+        #size = sys.getsizeof(temp)
+        if size > self.max_size:
             return False
         else:
             return True
@@ -806,7 +803,7 @@ class API_interface:
             raise Exception("One of the variables has size zero")
         if self.user_cache:
             # if cache not expired and the project matches and cache used
-            if self.cache_timeout < datetime.utcnow():
+            if self.cache_timeout > datetime.utcnow():
                 # query the cache data structure
                 return (self.cache.check_node_exists(node_name=experiment_id) and self.cache.check_node_exists(node_name=project_id) and self.cache.check_node_exists(node_name=dataset_id))
         names_list = self.get_dataset_names(project_id=project_id, experiment_id=experiment_id)
@@ -817,9 +814,8 @@ class API_interface:
         if len(project_name) == 0:
             raise Exception("Project name cannot have no size")
         if self.user_cache:
-            if self.cache_timeout < datetime.utcnow():
+            if datetime.utcnow() < self.cache_timeout:
                 return self.cache.check_node_exists(node_name=project_name)
-
         names_list = self.get_project_names()
         return project_name in names_list
 
@@ -828,7 +824,7 @@ class API_interface:
         if len(project_name) == 0 or len(experiment_name) == 0:
             raise Exception("Project or Experiment name have no size")
         if self.user_cache:
-            if self.cache_timeout < datetime.utcnow():
+            if self.cache_timeout > datetime.utcnow():
                 return (self.cache.check_node_exists(node_name=experiment_name) and self.cache.check_node_exists(node_name=project_name))
         names_list = self.get_experiment_names(project_id=project_name)
         return experiment_name in names_list

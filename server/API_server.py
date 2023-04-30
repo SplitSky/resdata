@@ -213,7 +213,7 @@ async def return_project_data(project_id: str) -> str:
 @app.post("/create_user/{ui_public_key}")
 async def create_user(user: d.User, ui_public_key) -> Dict:
     """Create a new user"""
-    sleep(1)
+    #sleep(1)
     auth_obj = User_Auth(user.username, user.hash_in, client)
     # passes initial string key authentication
     auth_obj.read_keys()

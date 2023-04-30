@@ -30,11 +30,10 @@ def send_fetch_cycle(dataset_size, structure, array_var_type):
 
     username = "test_user"
     password = "some_password123"
-    ui = API_interface(path)
+    ui = API_interface(path, user_cache=True)
     ui.purge_everything()
     ui.create_user(username, password, "email", "full_name")
     #create user
-
     ui.generate_token(username, password) # authenticate the user
     # generate test_project
     file_name = "test_project.json"
@@ -43,11 +42,10 @@ def send_fetch_cycle(dataset_size, structure, array_var_type):
     project_in = t.load_file_project(filename_out=file_name)
     # insert project
     start = time.perf_counter() # start timing the function
-    assert ui.insert_project(project=project_in) == True
+    assert ui.insert_project_fast(project=project_in) == True
     # fetch project
     ui.return_full_project(project_name=project_name)
     end = time.perf_counter()
-
     difference = (end - start)
     print("Difference: " + str(difference))
     return difference
@@ -532,7 +530,6 @@ class TestClass:
 
         # return previous dataset to confirm return_dataset works
         dataset = ui.return_full_dataset(project_name=project_name, experiment_name=experiment_name, dataset_name="dataset_0")
-        print("first sanity check")
         if dataset == False:
             print("Failed")
         else:
@@ -543,7 +540,7 @@ class TestClass:
         # confirm the datasets are the same
         temp, data_type = ui.convert_img_to_array(filename=picture_file_name)
         for i in range(0,len(temp)):
-            print(temp[i] == dataset.data[i])
+            assert temp[i] == dataset.data[i]
         assert dataset.data == temp
         temp2 = ui.generate_img_from_dataset(file_name=final_picture_name, dataset_in=dataset)
         assert temp2 == True
@@ -694,7 +691,7 @@ class TestClass:
         # load in the file
 
     def test_18(self):
-        temp = API_interface(path_in=path)
+        temp = API_interface(path_in=path, user_cache=True)
         temp.purge_everything()
         username = "test_user"
         password = "some_password"
@@ -727,8 +724,68 @@ class TestClass:
         assert dataset_in.author == dataset_out.author
         assert dataset_in.data_headings == dataset_out.data_headings
 
+    def test_19(self):
+        # test for calculating timing complexity
+        dataset_size = 1
+        no_of_datasets = 1
+        no_of_experiments = 1
+        no_of_projects = 1
+        data_type = "array" 
+        max_no_of_datasets = 100
+        step1 = 10
+    
+        max_no_of_experiments = 50
+        step2 = 10
+    
+        max_no_of_projects = 5
+        step3 = 1
+    
+        max_dataset_size = 500000
+        step4 = 50000 # dataset size is in powers of 10. i.e. 10^i
+        # runs and collects data regarding the time dependency on the complexity to estimate
+        # the O notation
+        full_times = []
+    
+        # measure the dataset size dependence on N
+        # done for 3 variable types -> int, float, bytes
+        print("size of dataset dependent on time")
+       # times = []
+       # x = []
+       # for i in range(dataset_size, max_dataset_size, step4):
+       #     x.append(i)
+       #     #print("value of N: " + str(i))
+       #     times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int"))
+       # print(x)
+       # print(times)
+        # measure the number of datasets dependence on N
+    
+        print("number of datasets dependent on time")
+        times = []
+        x = []
+        for i in range(no_of_datasets, max_no_of_datasets,5):
+            x.append(i)
+            #print("value of N: " + str(i))
+            times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
+            #print(x)
+            #print(times)
+        print(x)
+        print(times)
+    
+       # # measure the number of experiments dependence on N
+        print("The number of experiments dependence on N")
+        times = []
+        x = []
+        for i in range(no_of_experiments, max_no_of_experiments, step2):
+            x.append(i)
+            #print("value of N: " + str(i))
+            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
+            #print(x)
+            #print(times)
+        print(x)
+        print(times)
+
         
 def main():
     test_class = TestClass()
-    test_class.test_18()
+    test_class.test_19()
 main()
