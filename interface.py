@@ -20,7 +20,6 @@ from server.security import key_manager # import for development. Split security
 # max size variable
 #max_size = 16793598 # bytes
 max_size = 6478488
-#max_size = 5182790 // 2
 
 def return_hash(password: str):
     """ Hash function used by the interface. It is used to only send hashes and not plain passwords."""
@@ -154,14 +153,11 @@ class API_interface:
         # check the project exists if not raise error
         if not self.check_project_exists(project_name=project_name):
             raise RuntimeError("The project requested doesn't exist")
-
         # request a list of all experiments within the project
         exp_names_list = self.get_experiment_names(project_id=project_name)
-
         experiments = []
         for exp_name in exp_names_list:
             experiments.append(self.return_full_experiment(project_name, exp_name))
-
         response = self.s.get(self.path + project_name + "/details")
         proj_dict = json.loads(response.json())  # conversion into dict
         return d.Project(name=proj_dict.get("name"), author=proj_dict.get("author"), groups=experiments,

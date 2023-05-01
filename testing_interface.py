@@ -7,6 +7,7 @@ import time
 from os.path import exists
 import jupyter_driver as jd
 import simple_interface as s
+from datetime import datetime, timedelta
 
 # tests to conduct
 
@@ -23,14 +24,14 @@ import simple_interface as s
 cache_status = True
 
 # functions used to simplify the testing
-def send_fetch_cycle(dataset_size, structure, array_var_type):
+def send_fetch_cycle(dataset_size, structure, array_var_type, cache=True, fast=True):
     # dataset_size - indicates the size of the document that is produced
     # structure - [x,y] -> x = number of experiments; y = number of documents
     # array_var_type - the type of the number within the 
-
+    print('Fetch cycle')
     username = "test_user"
     password = "some_password123"
-    ui = API_interface(path, user_cache=True)
+    ui = API_interface(path, user_cache=cache)
     ui.purge_everything()
     ui.create_user(username, password, "email", "full_name")
     #create user
@@ -41,12 +42,18 @@ def send_fetch_cycle(dataset_size, structure, array_var_type):
     t.create_test_file_project_time(filename_in=file_name, structure=structure, project_name=project_name, author_name=username, dataset_size=dataset_size ,variable_type=array_var_type)
     project_in = t.load_file_project(filename_out=file_name)
     # insert project
-    start = time.perf_counter() # start timing the function
-    ui.insert_project_fast(project=project_in)
-    # fetch project
-    print("thing")
-    ui.return_full_project(project_name=project_name)
-    end = time.perf_counter()
+     
+    if fast:
+        start = time.perf_counter() # start timing the function
+        ui.insert_project_fast(project=project_in)
+        ui.return_full_project(project_name=project_name)
+        end = time.perf_counter()
+    else:
+        start = time.perf_counter()
+        ui.insert_project(project=project_in)
+        ui.return_full_project(project_name=project_name)
+        end = time.perf_counter()
+
     difference = (end - start)
     print("Difference: " + str(difference))
     return difference
@@ -746,45 +753,131 @@ class TestClass:
         # runs and collects data regarding the time dependency on the complexity to estimate
         # the O notation
         full_times = []
-    
+        full_x = []
+   
+        print("in it file")
+        file_name = "timing_log.txt"
+        timestamp = datetime.utcnow()
+
+
         # measure the dataset size dependence on N
         # done for 3 variable types -> int, float, bytes
         print("size of dataset dependent on time")
+        #print("caching and multithreading")
        # times = []
        # x = []
        # for i in range(dataset_size, max_dataset_size, step4):
        #     x.append(i)
-       #     #print("value of N: " + str(i))
-       #     times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int"))
+       #     times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=True))
+       # full_x.append(x)
+       # full_times.append(times)
        # print(x)
        # print(times)
+
+        print("")
+        print("Caching")
+        times = []
+        x = []
+        for i in range(dataset_size, max_dataset_size, step4):
+            x.append(i)
+            times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=False))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)       
+
+        print("")
+
+        print("No caching and no multithreading")
+        times = []
+        x = []
+        for i in range(dataset_size, max_dataset_size, step4):
+            x.append(i)
+            times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=False, fast=False))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)
         # measure the number of datasets dependence on N
-    
-        print("number of datasets dependent on time")
+        print("The number of datasets dependency on time")
+        print("caching and multithreading")
         times = []
         x = []
         for i in range(no_of_datasets, max_no_of_datasets,5):
             x.append(i)
-            #print("value of N: " + str(i))
             times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
-            #print(x)
-            #print(times)
         print(x)
         print(times)
+        full_x.append(x)
+        full_times.append(times)
+        print("Caching")
+        times = []
+        x = []
+        for i in range(no_of_datasets, max_no_of_datasets,5):
+            x.append(i)
+            times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)
+        print("No caching and no multithreading")
+        times = []
+        x = []
+        for i in range(no_of_datasets, max_no_of_datasets,5):
+            x.append(i)
+            times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)
     
        # # measure the number of experiments dependence on N
-        #print("The number of experiments dependence on N")
-        #times = []
-        #x = []
-        #for i in range(no_of_experiments, max_no_of_experiments, step2):
-        #    x.append(i)
-        #    #print("value of N: " + str(i))
-        #    times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
-        #    #print(x)
-        #    #print(times)
-        #print(x)
-        #print(times)
+        print("The number of experiments dependence on N")
+        print("Caching and multithreading")
+        times = []
+        x = []
+        for i in range(no_of_experiments, max_no_of_experiments, step2):
+            x.append(i)
+            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)
+        print("Caching")
+        times = []
+        x = []
+        for i in range(no_of_experiments, max_no_of_experiments, step2):
+            x.append(i)
+            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)
+        print("No Caching and no multithreading")
+        times = []
+        x = []
+        for i in range(no_of_experiments, max_no_of_experiments, step2):
+            x.append(i)
+            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
+        print(x)
+        print(times)
+        full_x.append(x)
+        full_times.append(times)
 
+        with open(file_name, "+w") as f:
+            f.write(str(timestamp) + "\n")
+            labels = ['caching and multithread \n', 'cache \n', 'neither \n']
+            for i in range(0,len(full_x)):
+                if i % 3 == 0:
+                    f.write(labels[0])
+                elif i % 3 == 1:
+                    f.write(labels[1])
+                else:
+                    f.write(labels[2])
+
+                f.write(str(full_x[i]) + '\n')
+                f.write(str(full_times[i]) + '\n')
+            f.close()
     def test_20(self):
         i = 1
         send_fetch_cycle(1000, structure=[1,i],array_var_type="int")
