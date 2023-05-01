@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 cache_status = True
 
 # functions used to simplify the testing
-def send_fetch_cycle(dataset_size, structure, array_var_type, cache=True, fast=True):
+def send_fetch_cycle(dataset_size, structure, array_var_type, cache=False, fast=False):
     # dataset_size - indicates the size of the document that is produced
     # structure - [x,y] -> x = number of experiments; y = number of documents
     # array_var_type - the type of the number within the 
@@ -755,24 +755,24 @@ class TestClass:
         full_times = []
         full_x = []
    
-        print("in it file")
-        file_name = "timing_log.txt"
-        timestamp = datetime.utcnow()
+        #print("in it file")
+        #file_name = "timing_log.txt"
+        #timestamp = datetime.utcnow()
 
 
         # measure the dataset size dependence on N
         # done for 3 variable types -> int, float, bytes
         print("size of dataset dependent on time")
         #print("caching and multithreading")
-       # times = []
-       # x = []
-       # for i in range(dataset_size, max_dataset_size, step4):
-       #     x.append(i)
-       #     times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=True))
-       # full_x.append(x)
-       # full_times.append(times)
-       # print(x)
-       # print(times)
+        times = []
+        x = []
+        for i in range(dataset_size, max_dataset_size, step4):
+            x.append(i)
+            times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=True))
+        #full_x.append(x)
+        #full_times.append(times)
+        print(x)
+        print(times)
 
         print("")
         print("Caching")
@@ -785,7 +785,6 @@ class TestClass:
         print(times)
         full_x.append(x)
         full_times.append(times)       
-
         print("")
 
         print("No caching and no multithreading")
@@ -864,26 +863,16 @@ class TestClass:
         full_x.append(x)
         full_times.append(times)
 
-        with open(file_name, "+w") as f:
-            f.write(str(timestamp) + "\n")
-            labels = ['caching and multithread \n', 'cache \n', 'neither \n']
-            for i in range(0,len(full_x)):
-                if i % 3 == 0:
-                    f.write(labels[0])
-                elif i % 3 == 1:
-                    f.write(labels[1])
-                else:
-                    f.write(labels[2])
-
-                f.write(str(full_x[i]) + '\n')
-                f.write(str(full_times[i]) + '\n')
-            f.close()
     def test_20(self):
-        i = 1
-        send_fetch_cycle(1000, structure=[1,i],array_var_type="int")
+        i = 10
+        send_fetch_cycle(10000, structure=[1,i],array_var_type="int")
 
-        
+        print("gap")
+        send_fetch_cycle(10000, structure=[1,i], array_var_type="int", cache=True)
+        print("gap")
+        send_fetch_cycle(10000, structure=[1,i], array_var_type="int", cache=True, fast=True)
+
 def main():
     test_class = TestClass()
-    test_class.test_19()
+    test_class.test_20()
 main()

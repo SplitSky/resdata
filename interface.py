@@ -164,6 +164,7 @@ class API_interface:
                          meta=proj_dict.get("meta"), creator=proj_dict.get("creator"))
 
     def insert_project(self, project: d.Project):
+        print("insert project slow")
         """ Function which inserts project recursively using the insert_experiment function. """
         response_out = []
         if " " in project.name:
@@ -267,6 +268,7 @@ class API_interface:
         return response.json().get("names")
 
     def get_project_names(self):
+        print("Get project names")
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """
         user_in = d.Author(name=self.username, permission="none")
         response = self.s.get(self.path + "names", json=user_in.dict())
@@ -749,11 +751,13 @@ class API_interface:
         return dataset_id in names_list
 
     def check_project_exists(self, project_name: str):
+        print("check project exists")
         """ Function which returns True if a project exists and False if it doesn't. """
         if len(project_name) == 0:
             raise Exception("Project name cannot have no size")
         if self.user_cache:
             if datetime.utcnow() < self.cache_timeout:
+                print("Cache was used")
                 return self.cache.check_node_exists(node_name=project_name)
         names_list = self.get_project_names()
         return project_name in names_list
@@ -783,13 +787,14 @@ class API_interface:
             self.init_experiment(project_name, experiment)
         # init the experiment
         for dat in experiment.children:
-            dataset_thread = threading.Thread(target=self.insert_dataset,args=(project_name,experiment.name,dat,))
+            dataset_thread = threading.Thread(target=self.insert_dataset_fast,args=(project_name,experiment.name,dat,))
             dataset_thread.start()
             self.threads.append(dataset_thread)
         if self.user_cache:
             self.cache.insert_node(experiment.name, project_name)
 
     def insert_project_fast(self, project: d.Project):
+        print("insert project fast")
         self.threads = []
         """ Function which inserts project recursively using the insert_experiment function. """
         if " " in project.name:
@@ -810,4 +815,16 @@ class API_interface:
         
         for thread in self.threads:
             thread.join()
+
+    def insert_dataset_fast(self, project_name: str, experiment_name: str, dataset_in: d.Dataset)->None:
+        """ The function responsible for an insertion of a dataset. It authenticates the user and verifies the write permission."""
+        dataset_in.set_credentials(self.username, self.token)
+        # dataset is less than maximum size
+        self.s.post(url=f'{self.path}{project_name}/{experiment_name}/insert_dataset', json=dataset_in.dict())
+        if self.user_cache:
+            if not self.cache.check_node_exists(project_name):
+                self.cache.insert_node(project_name, "root")
+            if not self.cache.check_node_exists(experiment_name):
+                self.cache.insert_node(experiment_name, project_name)
+            self.cache.insert_node(dataset_in.name, experiment_name)
 
