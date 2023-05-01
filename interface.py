@@ -10,7 +10,7 @@ from variables import API_key
 from PIL import Image
 import numpy as np
 import sys
-import concurrent.futures
+import threading
 import data_handle as dh
 from datetime import datetime, timedelta
 import pickle
@@ -46,6 +46,8 @@ class API_interface:
         self.cache = dh.Tree(None)
         self.cache_time_delta = timedelta(minutes=200) # minutes
         self.cache_timeout = datetime.utcnow()
+
+        self.threads = []
 
     def check_connection(self) -> bool:
         """Test API connection to the server"""
@@ -736,66 +738,7 @@ class API_interface:
         project_temp = d.Project(name=project_name, creator="N/A", author=dataset_in.author, groups=[exp_temp])
         return project_temp
 
-    def insert_experiment_fast(self, project_name: str, experiment: d.Experiment) -> bool:
-        """ Quick data insertion. Inserts datasets individually one by one. Uses multi-threading to speed up the process"""
-        experiment_name = experiment.name
-        if not self.check_experiment_exists(project_name, experiment_name):
-            self.init_experiment(project_name, experiment)
-        # init the experiment
-        response = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            for dataset in experiment.children:
-                future = executor.submit(self.check_dataset_exists,project_name, experiment_name, dataset.name)
-                return_value = future.result()
-                if not return_value:
-                    future = executor.submit(self.insert_dataset, project_name, experiment_name, dataset)
-                    return_value = future.result()
-                    response.append(return_value)
-        if False in response:
-            return False
-        else:
-            return True
 
-    def insert_project_fast(self, project: d.Project):
-        """ Function which inserts project recursively using the insert_experiment function. """
-        response_out = []
-
-        if " " in project.name:
-            raise Exception("The project name cannot contain the character ' '.")
-        # set project in database
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            future = executor.submit(self.check_project_exists, project.name)
-            return_value = future.result()
-            if return_value:
-                raise RuntimeError('Project Already exists')
-            else:
-                future = executor.submit(self.init_project, project)
-            temp = project.groups
-            if temp is not None:
-                for experiment in temp:
-                    future = executor.submit(self.insert_experiment_fast, project.name, experiment)
-                    return_value = future.result()
-                    response_out.append(return_value)
-        
-        if False in response_out:
-            return False
-        else:
-            return True
-
-   # def insert_project_bulk(self, project: d.Project):
-   #     # multithreading and session variables used for sending big data files
-   #     if " " in project.name:
-   #         raise Exception("The project name cannot contain the character ' '.")
-   #     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-   #         future = executor.submit(self.check_project_exists, project.name)
-   #         return_value = future.result()
-   #         if return_value:
-   #             raise RuntimeError('Project Already exists')
-   #         else:
-   #             s = requests.Session()
-   #             # init project
-   #             # insert experiments
-   #                 # insert datasets all in one session
 
     def check_dataset_exists(self, project_id: str, experiment_id: str, dataset_id: str) -> bool:
         """ Checks whether a dataset of a given name exists in the specified location. Assumes the path exists"""
@@ -836,3 +779,39 @@ class API_interface:
             self.cache = dh.Tree(nodes=self.author_query(username=self.username))
         else:
             raise Exception("The user wasn't initialised. Nothing to update.")
+
+    def insert_experiment_fast(self, project_name: str, experiment: d.Experiment):
+        """ Quick data insertion. Inserts datasets individually one by one. Uses multi-threading to speed up the process"""
+        experiment_name = experiment.name
+        if not self.check_experiment_exists(project_name, experiment_name):
+            self.init_experiment(project_name, experiment)
+        # init the experiment
+        for dat in experiment.children:
+            dataset_thread = threading.Thread(target=self.insert_dataset,args=(project_name,experiment.name,dat,))
+            dataset_thread.start()
+            self.threads.append(dataset_thread)
+        if self.user_cache:
+            self.cache.insert_node(experiment.name, project_name)
+
+    def insert_project_fast(self, project: d.Project):
+        self.threads = []
+        """ Function which inserts project recursively using the insert_experiment function. """
+        if " " in project.name:
+            raise Exception("The project name cannot contain the character ' '.")
+        # set project in database
+        if self.check_project_exists(project.name):
+            raise Exception("The project exists")
+        self.init_project(project=project)
+        if self.user_cache:
+            self.cache.insert_node(project.name, "root")
+        if project.groups == None:
+            raise Exception("Project is empty")
+        # start experiment threads
+        for exp in project.groups:
+            experiment_thread = threading.Thread(target=self.insert_experiment_fast,args=(project.name,exp,))
+            experiment_thread.start()
+            self.threads.append(experiment_thread)
+        
+        for thread in self.threads:
+            thread.join()
+
