@@ -28,7 +28,7 @@ def send_fetch_cycle(dataset_size, structure, array_var_type, cache=False, fast=
     # dataset_size - indicates the size of the document that is produced
     # structure - [x,y] -> x = number of experiments; y = number of documents
     # array_var_type - the type of the number within the 
-    print('Fetch cycle')
+    #print('Fetch cycle')
     username = "test_user"
     password = "some_password123"
     ui = API_interface(path, user_cache=cache)
@@ -55,7 +55,7 @@ def send_fetch_cycle(dataset_size, structure, array_var_type, cache=False, fast=
         end = time.perf_counter()
 
     difference = (end - start)
-    print("Difference: " + str(difference))
+    #print("Difference: " + str(difference))
     return difference
 
 class TestClass:
@@ -734,134 +734,77 @@ class TestClass:
 
     def test_19(self):
         # test for calculating timing complexity
-        dataset_size = 1
-        no_of_datasets = 1
-        no_of_experiments = 1
-        no_of_projects = 1
-        data_type = "array" 
-        max_no_of_datasets = 100
-        step1 = 10
-    
-        max_no_of_experiments = 50
-        step2 = 10
-    
-        max_no_of_projects = 5
-        step3 = 1
-    
-        max_dataset_size = 500000
-        step4 = 50000 # dataset size is in powers of 10. i.e. 10^i
-        # runs and collects data regarding the time dependency on the complexity to estimate
-        # the O notation
-        full_times = []
-        full_x = []
-   
-        #print("in it file")
-        #file_name = "timing_log.txt"
-        #timestamp = datetime.utcnow()
+       # print("size of dataset dependent on time")
+       # times = []
+       # times2 = []
+       # times3 = []
+       # x = []
+       # for i in range(0,100000,10000):
+       #     x.append(i)
+       #     times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=True))
+       #     times2.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=False))
+       #     times3.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=False, fast=False))
+       # print(x)
+       # print(times)
+       # print(times2)
+       # print(times3)
+       # # measure the number of datasets dependence on N
+
+       # x = []
+       # times = []
+       # times2 = []
+       # times3 = []
+       # for i in range(0,30,1):
+       #     x.append(i)
+       #     times.append(send_fetch_cycle(100, structure=[1,i],array_var_type="int", cache=True, fast=True))
+       #     times2.append(send_fetch_cycle(100, structure=[1,i],array_var_type="int", cache=True, fast=False))
+       #     times3.append(send_fetch_cycle(100, structure=[1,i],array_var_type="int", cache=False, fast=False))           
+       # print(x)
+       # print(times)
+       # print(times2)
+       # print(times3)
+
+        x = []
+        times = []
+        times2 = []
+        times3 = []
+       # for i in range(1,10,1):
+       #     x.append(i)
+       #     times.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=True, fast=True))
+       #     times2.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=True, fast=False))
+       #     times3.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=False, fast=False))           
+       # print(x)
+       # print(times)
+       # print(times2)
+       # print(times3)
+
+       # for i in range(10,15,1):
+       #     x.append(i)
+       #     times.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=True, fast=True))
+       #     times2.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=True, fast=False))
+       #     times3.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=False, fast=False))           
+       # print(x)
+       # print(times)
+       # print(times2)
+       # print(times3)
+
+        for i in range(15,30,6):
+            x.append(i)
+            times.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=True, fast=True))
+            print("sleep")
+            time.sleep(2)
+            times2.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=True, fast=False))
+            print("sleep")
+            time.sleep(2)
+            times3.append(send_fetch_cycle(100, structure=[i,5],array_var_type="int", cache=False, fast=False))           
+            print("sleep")
+            time.sleep(2)
+        print(x)
+        print(times)
+        print(times2)
+        print(times3)
 
 
-        # measure the dataset size dependence on N
-        # done for 3 variable types -> int, float, bytes
-        print("size of dataset dependent on time")
-        #print("caching and multithreading")
-        times = []
-        x = []
-        for i in range(dataset_size, max_dataset_size, step4):
-            x.append(i)
-            times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=True))
-        #full_x.append(x)
-        #full_times.append(times)
-        print(x)
-        print(times)
-
-        print("")
-        print("Caching")
-        times = []
-        x = []
-        for i in range(dataset_size, max_dataset_size, step4):
-            x.append(i)
-            times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=True, fast=False))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)       
-        print("")
-
-        print("No caching and no multithreading")
-        times = []
-        x = []
-        for i in range(dataset_size, max_dataset_size, step4):
-            x.append(i)
-            times.append(send_fetch_cycle(i, structure=[1,1],array_var_type="int", cache=False, fast=False))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
-        # measure the number of datasets dependence on N
-        print("The number of datasets dependency on time")
-        print("caching and multithreading")
-        times = []
-        x = []
-        for i in range(no_of_datasets, max_no_of_datasets,5):
-            x.append(i)
-            times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
-        print("Caching")
-        times = []
-        x = []
-        for i in range(no_of_datasets, max_no_of_datasets,5):
-            x.append(i)
-            times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
-        print("No caching and no multithreading")
-        times = []
-        x = []
-        for i in range(no_of_datasets, max_no_of_datasets,5):
-            x.append(i)
-            times.append(send_fetch_cycle(1000, structure=[1,i],array_var_type="int"))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
-    
-       # # measure the number of experiments dependence on N
-        print("The number of experiments dependence on N")
-        print("Caching and multithreading")
-        times = []
-        x = []
-        for i in range(no_of_experiments, max_no_of_experiments, step2):
-            x.append(i)
-            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
-        print("Caching")
-        times = []
-        x = []
-        for i in range(no_of_experiments, max_no_of_experiments, step2):
-            x.append(i)
-            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
-        print("No Caching and no multithreading")
-        times = []
-        x = []
-        for i in range(no_of_experiments, max_no_of_experiments, step2):
-            x.append(i)
-            times.append(send_fetch_cycle(1000, structure=[i,1],array_var_type="int"))
-        print(x)
-        print(times)
-        full_x.append(x)
-        full_times.append(times)
 
     def test_20(self):
         i = 10
@@ -874,5 +817,5 @@ class TestClass:
 
 def main():
     test_class = TestClass()
-    test_class.test_20()
+    test_class.test_19()
 main()

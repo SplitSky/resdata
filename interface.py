@@ -164,7 +164,6 @@ class API_interface:
                          meta=proj_dict.get("meta"), creator=proj_dict.get("creator"))
 
     def insert_project(self, project: d.Project):
-        print("insert project slow")
         """ Function which inserts project recursively using the insert_experiment function. """
         response_out = []
         if " " in project.name:
@@ -268,7 +267,6 @@ class API_interface:
         return response.json().get("names")
 
     def get_project_names(self):
-        print("Get project names")
         """ Returns the list of project names - Lists databases except admin, local and Authentication. """
         user_in = d.Author(name=self.username, permission="none")
         response = self.s.get(self.path + "names", json=user_in.dict())
@@ -751,13 +749,11 @@ class API_interface:
         return dataset_id in names_list
 
     def check_project_exists(self, project_name: str):
-        print("check project exists")
         """ Function which returns True if a project exists and False if it doesn't. """
         if len(project_name) == 0:
             raise Exception("Project name cannot have no size")
         if self.user_cache:
             if datetime.utcnow() < self.cache_timeout:
-                print("Cache was used")
                 return self.cache.check_node_exists(node_name=project_name)
         names_list = self.get_project_names()
         return project_name in names_list
@@ -794,7 +790,6 @@ class API_interface:
             self.cache.insert_node(experiment.name, project_name)
 
     def insert_project_fast(self, project: d.Project):
-        print("insert project fast")
         self.threads = []
         """ Function which inserts project recursively using the insert_experiment function. """
         if " " in project.name:
