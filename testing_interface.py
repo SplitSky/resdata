@@ -673,27 +673,8 @@ class TestClass:
                 assert file_dataset.author == db_dataset.author
                 assert file_dataset.data_headings == db_dataset.data_headings
 
-    def test_17(self):
-        #thing
-        ui = API_interface(path,user_cache=True)
-        ui.check_connection()
-        ui.purge_everything() # clear the database
-        username = "thing"
-        password = "thing"
-        email = "a"
-        full_name = "a"
-        ui.create_user(username_in=username, password_in=password, email=email, full_name=full_name)
-        ui.generate_token(username, password)
-        file_name = "test_project.json"
-        project_name = "test_project_1"
-        # return project
-        t.create_test_file_project(filename_in=file_name, structure=[1,1], project_name=project_name, author_name=username)
-        project_from_file = t.load_file_project(filename_out=file_name)
-        ui.insert_project(project=project_from_file)
-        # project_from_db = ui.return_full_project(project_name=project_name)
-        # load in the file
 
-    def test_18(self):
+    def test_17(self):
         temp = API_interface(path_in=path)
         temp.purge_everything()
         username = "test_user"
