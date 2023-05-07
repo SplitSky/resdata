@@ -737,3 +737,5 @@ class TestClass:
 #    test_class = TestClass()
 #    test_class.test_19()
 #main()
+
+send_fetch_cycle(1000, [1,100],"int",False,False)

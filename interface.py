@@ -368,7 +368,7 @@ class API_interface:
 
     def purge_everything(self):
         self.s.post(self.path +"purge")
-        print("purged")
+        #print("purged")
 
     def experiment_search_meta(self, meta_search : dict, experiment_id : str, project_id : str):
         """Fetches the datasets matching the meta variables"""
